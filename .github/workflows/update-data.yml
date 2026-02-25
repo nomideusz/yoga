@@ -1,0 +1,109 @@
+# szkolyjogi.pl — Automated Price & Schedule Updates
+# Runs every 2 weeks: full scrape + description normalization
+# Runs every week (offset): prices-only quick update
+#
+# Requires repository secrets:
+#   OPENAI_API_KEY — for LLM extraction & description normalization
+
+name: Update Yoga School Data
+
+on:
+  schedule:
+    # Full scrape: 1st and 15th of each month at 06:00 UTC
+    - cron: '0 6 1,15 * *'
+    # Prices-only: every Monday at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Scrape mode'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - prices-only
+      school:
+        description: 'Single school ID (leave empty for all)'
+        required: false
+        type: string
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: scripts/scraper/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          pip install -r scripts/scraper/requirements.txt
+          python -m crawl4ai.install  # install browser for crawl4ai
+
+      - name: Determine scrape mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> $GITHUB_OUTPUT
+            echo "school=${{ inputs.school }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "0 6 * * 1" ]; then
+            echo "mode=prices-only" >> $GITHUB_OUTPUT
+            echo "school=" >> $GITHUB_OUTPUT
+          else
+            echo "mode=full" >> $GITHUB_OUTPUT
+            echo "school=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run scraper
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        working-directory: scripts/scraper
+        run: |
+          ARGS=""
+          if [ "${{ steps.mode.outputs.mode }}" = "prices-only" ]; then
+            ARGS="--prices-only"
+          fi
+          if [ -n "${{ steps.mode.outputs.school }}" ]; then
+            ARGS="$ARGS --school ${{ steps.mode.outputs.school }}"
+          fi
+          python scrape.py $ARGS
+
+      - name: Normalize descriptions (full scrape only)
+        if: steps.mode.outputs.mode == 'full'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        working-directory: scripts/scraper
+        run: python normalize.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet src/lib/data.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push updated data
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "szkolyjogi-bot"
+          git config user.email "bot@szkolyjogi.pl"
+          git add src/lib/data.json
+          
+          MODE="${{ steps.mode.outputs.mode }}"
+          DATE=$(date +%Y-%m-%d)
+          
+          if [ "$MODE" = "prices-only" ]; then
+            git commit -m "data: update prices ($DATE)"
+          else
+            git commit -m "data: full scrape update ($DATE)"
+          fi
+          
+          git push
