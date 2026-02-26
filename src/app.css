@@ -16,7 +16,7 @@
   --sf-card:    #ffffff;
   --sf-dark:    #151d2b;
   --sf-text:    #3a4558;
-  --sf-muted:   #8a95a8;
+  --sf-muted:   #6b7a8f;
   --sf-ice:     #cddff5;
   --sf-frost:   #e9f0f8;
   --sf-accent:  #4a7fb5;
@@ -87,7 +87,7 @@ html {
   background-color: var(--sf-bg);
   color: var(--sf-text);
   line-height: 1.65;
-  font-size: 15.5px;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   display: flex;
@@ -390,11 +390,7 @@ html {
   animation: sf-fade-up 0.5s var(--ease-out) both;
 }
 
-/* ── Breathing geo decoration ────────── */
-@keyframes sf-breathe {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50%      { transform: scale(1.06); opacity: 0.9; }
-}
+
 
 /* ── Top accent line ─────────────────── */
 .sf-topline {

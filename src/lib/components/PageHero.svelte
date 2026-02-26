@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount, onDestroy } from "svelte";
+
   let {
     tag = "",
     title = "",
@@ -10,6 +12,19 @@
     subtitle?: string;
     compact?: boolean;
   } = $props();
+
+  let now = $state(new Date());
+  let timer: ReturnType<typeof setInterval>;
+
+  onMount(() => {
+    timer = setInterval(() => { now = new Date(); }, 1000);
+  });
+
+  onDestroy(() => clearInterval(timer));
+
+  // Clock hand angles (degrees, 0 = 12 o'clock)
+  const minuteDeg = $derived(now.getMinutes() * 6 + now.getSeconds() * 0.1);
+  const hourDeg   = $derived((now.getHours() % 12) * 30 + now.getMinutes() * 0.5);
 </script>
 
 <header class="sf-hero" class:sf-hero--compact={compact}>
@@ -24,10 +39,33 @@
     {/if}
   </div>
 
-  <div class="sf-hero-geo" aria-hidden="true">
-    <div class="sf-geo-circle"></div>
-    <div class="sf-geo-line sf-geo-line--1"></div>
-    <div class="sf-geo-line sf-geo-line--2"></div>
+  <div class="sf-hero-clock" aria-hidden="true">
+    <svg viewBox="0 0 280 280" width="250" height="250" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ring -->
+      <circle cx="140" cy="140" r="130" stroke="var(--sf-ice)" stroke-width="1.2"/>
+      <!-- Hour hand -->
+      <line
+        x1={140 - 6 * Math.sin(hourDeg * Math.PI / 180)}
+        y1={140 + 6 * Math.cos(hourDeg * Math.PI / 180)}
+        x2={140 + 80 * Math.sin(hourDeg * Math.PI / 180)}
+        y2={140 - 80 * Math.cos(hourDeg * Math.PI / 180)}
+        stroke="var(--sf-ice)"
+        stroke-width="2.4"
+        stroke-linecap="round"
+      />
+      <!-- Minute hand -->
+      <line
+        x1={140 - 8 * Math.sin(minuteDeg * Math.PI / 180)}
+        y1={140 + 8 * Math.cos(minuteDeg * Math.PI / 180)}
+        x2={140 + 115 * Math.sin(minuteDeg * Math.PI / 180)}
+        y2={140 - 115 * Math.cos(minuteDeg * Math.PI / 180)}
+        stroke="var(--sf-ice)"
+        stroke-width="2.4"
+        stroke-linecap="round"
+      />
+      <!-- Center dot -->
+      <circle cx="140" cy="140" r="2" fill="var(--sf-ice)"/>
+    </svg>
   </div>
 </header>
 
@@ -86,50 +124,17 @@
     line-height: 1.75;
   }
 
-  /* ── Geometric decoration ── */
-  .sf-hero-geo {
+  /* ── Clock decoration ── */
+  .sf-hero-clock {
     position: absolute;
     top: 12%;
     right: 0;
-    width: 280px;
-    height: 280px;
+    opacity: 0.65;
     pointer-events: none;
   }
 
-  .sf-geo-circle {
-    width: 240px;
-    height: 240px;
-    border: 1.5px solid var(--sf-ice);
-    border-radius: 50%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    animation: sf-breathe 8s ease-in-out infinite;
-  }
-
-  .sf-geo-line {
-    position: absolute;
-    background: var(--sf-ice);
-  }
-
-  .sf-geo-line--1 {
-    width: 1.5px;
-    height: 160px;
-    top: 34px;
-    right: 120px;
-    transform: rotate(15deg);
-  }
-
-  .sf-geo-line--2 {
-    width: 110px;
-    height: 1.5px;
-    top: 118px;
-    right: 18px;
-  }
-
   @media (max-width: 860px) {
-    .sf-hero-geo {
+    .sf-hero-clock {
       display: none;
     }
-  }
-</style>
+  }</style>

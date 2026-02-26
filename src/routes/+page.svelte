@@ -1,6 +1,6 @@
 <script lang="ts">
   import PageHero from "$lib/components/PageHero.svelte";
-  import StatBar from "$lib/components/StatBar.svelte";
+  import SearchBar from "$lib/components/SearchBar.svelte";
   import SectionLabel from "$lib/components/SectionLabel.svelte";
   import YogaSchoolTable from "$lib/components/YogaSchoolTable.svelte";
 
@@ -11,18 +11,15 @@
 
   const totalSchools = $derived(listings.length);
 
-  const topRated = $derived(
-    [...listings]
-      .filter((listing) => listing.rating !== null)
-      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+  /** Top 6 cities by school count */
+  const popularCities = $derived(
+    cities
+      .map((city) => ({
+        city,
+        count: listings.filter((l) => l.city === city).length,
+      }))
+      .sort((a, b) => b.count - a.count)
       .slice(0, 6)
-  );
-
-  const cityGroups = $derived(
-    cities.map((city) => ({
-      city,
-      count: listings.filter((listing) => listing.city === city).length,
-    }))
   );
 </script>
 
@@ -30,12 +27,12 @@
   <title>Katalog Szkół Jogi w Polsce — szkolyjogi.pl</title>
   <meta
     name="description"
-    content="Spokojny katalog szkół jogi w Polsce — porównaj ceny karnetów, style i lokalizacje w jednym, przejrzystym zestawieniu."
+    content="Katalog szkół jogi w Polsce — porównaj ceny karnetów, style i lokalizacje w jednym, przejrzystym zestawieniu."
   />
   <meta property="og:title" content="Katalog Szkół Jogi w Polsce — szkolyjogi.pl" />
   <meta
     property="og:description"
-    content="Spokojny katalog szkół jogi w Polsce — porównaj ceny karnetów, style i lokalizacje w jednym, przejrzystym zestawieniu."
+    content="Katalog szkół jogi w Polsce — porównaj ceny karnetów, style i lokalizacje w jednym, przejrzystym zestawieniu."
   />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://szkolyjogi.pl/" />
@@ -44,61 +41,25 @@
 
 <div class="sf-page-shell">
   <PageHero
-    tag="Katalog Jogi"
+    tag="Katalog szkół jogi"
     title="Spokojne<br/>miejsca<br/>do praktyki"
-    subtitle="Porównaj ceny karnetów, style i lokalizacje polskich studiów jogi — bez zbędnych komplikacji."
+    subtitle="{totalSchools} szkół jogi w {cities.length} miastach, {styles.length} stylów praktyki."
   />
 
-  <StatBar stats={[
-    { value: totalSchools, label: 'Studiów' },
-    { value: cities.length, label: 'Miast' },
-    { value: styles.length, label: 'Stylów jogi' },
-  ]} />
+  <SearchBar {cities} {styles} cityCoords={data.cityCoords} />
 
-  <!-- Cities -->
+  <!-- Popular cities -->
   <section class="sf-section">
-    <SectionLabel text="Według miasta" />
-    <div class="city-list">
-      {#each cityGroups as group, i}
+    <SectionLabel text="Popularne miasta" />
+    <div class="city-tiles">
+      {#each popularCities as { city, count }, i}
         <a
-          href="/{group.city.toLowerCase()}"
-          class="city-chip sf-animate"
-          style="animation-delay: {i * 25}ms"
+          href="/{city.toLowerCase()}"
+          class="city-tile sf-card sf-animate"
+          style="animation-delay: {i * 50}ms"
         >
-          {group.city} <span class="city-chip-count">{group.count}</span>
-        </a>
-      {/each}
-    </div>
-  </section>
-
-  <!-- Top rated -->
-  <section class="sf-section">
-    <SectionLabel text="Najwyżej oceniane" />
-    <div class="top-grid">
-      {#each topRated as school, i}
-        <a
-          href="/listing/{school.id}"
-          class="top-card sf-card sf-animate"
-          style="animation-delay: {i * 60}ms"
-        >
-          <div class="top-rank">{String(i + 1).padStart(2, "0")}</div>
-          <div class="top-content">
-            <h3 class="top-name">{school.name}</h3>
-            <p class="top-city">{school.city}</p>
-            <div class="top-tags">
-              {#each school.styles.slice(0, 3) as style}
-                <span class="style-pill">{style}</span>
-              {/each}
-            </div>
-          </div>
-          <div class="top-meta">
-            {#if school.rating}
-              <span class="top-rating">{school.rating.toFixed(1)}</span>
-            {/if}
-            {#if school.price}
-              <span class="top-price">{school.price} zł</span>
-            {/if}
-          </div>
+          <span class="city-tile-name">{city}</span>
+          <span class="city-tile-count">{count} {count === 1 ? 'szkoła' : count < 5 ? 'szkoły' : 'szkół'}</span>
         </a>
       {/each}
     </div>
@@ -110,19 +71,29 @@
     <YogaSchoolTable schools={listings} />
   </section>
 
-  <!-- About -->
-  <section class="sf-section sf-about">
-    <div class="about-inner">
-      <SectionLabel text="O projekcie" />
-      <p>
-        <strong>szkolyjogi.pl</strong> to minimalistyczny katalog stworzony dla osób praktykujących jogę w Polsce.
-        Zbieramy ceny karnetów, style (Ashtanga, Vinyasa, Iyengar, Kundalini) i lokalizacje w jednym,
-        czytelnym formacie.
-      </p>
-      <div class="about-actions">
-        <a href="/post" class="primary-button">Dodaj studio</a>
-        <a href="/about" class="secondary-button">Więcej informacji →</a>
+  <!-- How it works (studio owners) -->
+  <section class="sf-section sf-how">
+    <SectionLabel text="Prowadzisz studio?" />
+    <div class="how-steps">
+      <div class="how-step sf-animate" style="animation-delay: 0ms">
+        <span class="how-num">1</span>
+        <h3 class="how-title">Znajdź swoje studio</h3>
+        <p class="how-desc">Wyszukaj swoją szkołę w katalogu — prawdopodobnie już tu jest.</p>
       </div>
+      <div class="how-step sf-animate" style="animation-delay: 80ms">
+        <span class="how-num">2</span>
+        <h3 class="how-title">Przejmij profil</h3>
+        <p class="how-desc">Potwierdź, że to Twoje studio i uzyskaj pełną kontrolę nad treścią.</p>
+      </div>
+      <div class="how-step sf-animate" style="animation-delay: 160ms">
+        <span class="how-num">3</span>
+        <h3 class="how-title">Zarządzaj za darmo</h3>
+        <p class="how-desc">Dodaj grafik, zdjęcia, opis — wszystko bezpłatnie, bez limitu czasu.</p>
+      </div>
+    </div>
+    <div class="how-cta">
+      <a href="/post" class="primary-button">Dodaj studio</a>
+      <a href="/about" class="secondary-button">Więcej informacji →</a>
     </div>
   </section>
 </div>
@@ -133,145 +104,97 @@
     padding: 56px 0 40px;
   }
 
-  /* ── City chips (compact inline list) ── */
-  .city-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+  /* ── Popular city tiles ── */
+  .city-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 
-  .city-chip {
-    display: inline-flex;
+  .city-tile {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 7px 16px;
-    background: var(--sf-card);
-    border: 1px solid var(--sf-line);
-    border-radius: var(--radius-pill);
+    justify-content: center;
+    padding: 28px 16px;
     text-decoration: none;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--sf-dark);
+    text-align: center;
+    gap: 6px;
     transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out);
   }
 
-  .city-chip:hover {
+  .city-tile:hover {
     border-color: var(--sf-accent);
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 
-  .city-chip-count {
+  .city-tile-name {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--sf-dark);
+    line-height: 1.2;
+  }
+
+  .city-tile-count {
     font-family: var(--font-mono);
     font-size: 0.66rem;
-    color: var(--sf-muted);
-    letter-spacing: 0.04em;
-  }
-
-  /* ── Top rated cards ── */
-  .top-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 14px;
-  }
-
-  .top-card {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-    text-decoration: none;
-  }
-
-  .top-rank {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    color: var(--sf-ice);
-    font-weight: 500;
-    line-height: 1;
-    min-width: 34px;
-  }
-
-  .top-content {
-    flex: 1;
-  }
-
-  .top-name {
-    font-family: var(--font-body);
-    font-weight: 600;
-    color: var(--sf-dark);
-    font-size: 0.98rem;
-    margin-bottom: 3px;
-    line-height: 1.3;
-  }
-
-  .top-city {
-    font-size: 0.8rem;
-    color: var(--sf-muted);
-    margin-bottom: 10px;
-  }
-
-  .top-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .style-pill {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    padding: 3px 10px;
-    border: 1px solid var(--sf-line);
-    border-radius: var(--radius-pill);
-    color: var(--sf-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 500;
-  }
-
-  .top-meta {
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 54px;
-  }
-
-  .top-rating {
-    font-family: var(--font-display);
-    font-size: 1.35rem;
-    color: var(--sf-warm);
-    font-weight: 500;
-    line-height: 1;
-  }
-
-  .top-price {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
+    letter-spacing: 0.1em;
     color: var(--sf-muted);
-    white-space: nowrap;
-    letter-spacing: 0.02em;
+    font-weight: 500;
   }
 
-  /* ── About ── */
-  .sf-about {
+  /* ── How it works ── */
+  .sf-how {
     border-top: 1px solid var(--sf-line);
     margin-top: 24px;
     padding-top: 64px;
   }
 
-  .about-inner {
-    max-width: 640px;
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 36px;
   }
 
-  .about-inner p {
+  .how-step {
+    text-align: center;
+  }
+
+  .how-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid var(--sf-accent);
+    font-family: var(--font-display);
     font-size: 1rem;
-    line-height: 1.8;
-    color: var(--sf-text);
-    margin-bottom: 28px;
+    color: var(--sf-accent);
+    margin-bottom: 14px;
   }
 
-  .about-actions {
+  .how-title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--sf-dark);
+    margin-bottom: 6px;
+  }
+
+  .how-desc {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--sf-muted);
+    max-width: 260px;
+    margin: 0 auto;
+  }
+
+  .how-cta {
     display: flex;
     gap: 14px;
     align-items: center;
@@ -280,8 +203,13 @@
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
-    .top-grid {
+    .city-tiles {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .how-steps {
       grid-template-columns: 1fr;
+      gap: 32px;
     }
   }
 </style>

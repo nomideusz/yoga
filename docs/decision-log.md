@@ -41,3 +41,12 @@ Use this file to capture important product, GTM, and pricing decisions.
 
 - **Owner:** Product/Engineering
 - **Decision:** Build embeddable widget early to reduce migration objection.
+
+### 2026-02-25 — Directory-Only Product Focus (Phase 1)
+
+- **Owner:** Founder/Product
+- **Context:** Team wants to focus on building high-quality directory UX and SEO pages first.
+- **Decision:** Treat booking system as external and postpone platform/widget booking integration to a later phase.
+- **Alternatives Considered:** Parallel directory + booking workstreams.
+- **Impact:** Product and engineering roadmap prioritizes listings/search/detail quality, claim flow, and SEO coverage.
+- **Follow-up By:** 2026-03-15

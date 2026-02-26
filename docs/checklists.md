@@ -3,7 +3,8 @@
 ## Immediate Actions (This Week)
 
 - [ ] Register `szkolyjogi.pl`
-- [ ] Onboard first case-study school (permanently free)
+- [ ] Finalize directory-first scope (booking deferred) in decision log
+- [ ] Onboard first case-study school profile (directory showcase)
 - [ ] Collect first 5 warm owner leads from referral network
 - [ ] Confirm legal inbox email for corrections/takedowns
 
@@ -21,10 +22,10 @@
 ## Sales Readiness Checklist
 
 - [ ] Live demo environment prepared
-- [ ] Trial offer messaging documented (6 months free)
+- [ ] Directory value proposition messaging documented
 - [ ] Competitor positioning one-pager prepared
 - [ ] Setup fee policy defined (300–500 PLN)
-- [ ] Pricing ranges aligned to target market expectations
+- [ ] Pricing ranges aligned to target market expectations (for later booking rollout)
 
 ## Product Readiness Checklist (Widget)
 
@@ -33,6 +34,8 @@
 - [ ] Guest booking flow works inside widget
 - [ ] Booking records sync to dashboard
 - [ ] Funnel analytics events captured
+
+> Note: Widget checklist is explicitly deferred until the next phase.
 
 ## Month-4 Conversion Checklist
 

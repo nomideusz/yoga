@@ -125,6 +125,23 @@ export async function getUniqueStyles(): Promise<string[]> {
   return rows.map(r => r.name);
 }
 
+export type CityCoord = { city: string; lat: number; lng: number };
+
+export async function getCityCoords(): Promise<CityCoord[]> {
+  const rows = await db
+    .select({
+      city: schools.city,
+      lat: sql<number>`AVG(${schools.latitude})`,
+      lng: sql<number>`AVG(${schools.longitude})`,
+    })
+    .from(schools)
+    .where(sql`${schools.latitude} IS NOT NULL AND ${schools.longitude} IS NOT NULL`)
+    .groupBy(schools.city)
+    .orderBy(asc(schools.city));
+
+  return rows.filter(r => r.lat != null && r.lng != null) as CityCoord[];
+}
+
 export async function getListingsByStyle(styleName: string): Promise<Listing[]> {
   const styleRow = await db
     .select()

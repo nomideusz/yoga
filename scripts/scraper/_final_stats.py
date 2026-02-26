@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect("C:/cmder/apps/directory/local.db")
+conn = sqlite3.connect("C:/cmder/apps/yoga/local.db")
 c = conn.cursor()
 
 c.execute("SELECT COUNT(*) FROM schools WHERE city='Kraków' AND (price IS NOT NULL OR single_class_price IS NOT NULL)")

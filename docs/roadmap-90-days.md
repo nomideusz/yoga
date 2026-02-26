@@ -6,7 +6,7 @@
 
 - Public launch on `szkolyjogi.pl`
 - Listings seeded and searchable
-- First case-study school live with booking
+- First showcase schools live with complete profile pages
 
 ### Workstreams
 
@@ -22,30 +22,30 @@
 ### Outcomes
 
 - First outreach batch live
-- Several schools in trial
-- Initial booking volume from active schools
+- First school profile claims and correction submissions
+- Measurable directory traffic and engagement growth
 
 ### Workstreams
 
-1. Demo flow refinement
+1. Demo flow refinement (directory + profile value)
 2. Sales pipeline seeded by warm referrals
 3. Usage instrumentation for conversion storytelling
 4. SEO content cadence for city/style pages
 
-## Month 3 — Conversion Engine
+## Month 3 — Conversion Readiness
 
 ### Outcomes
 
-- Evidence of trial engagement quality
-- Pricing conversation framework ready
-- Widget MVP usable in real school websites
+- Strong evidence of directory engagement quality
+- Pricing conversation framework ready for future booking rollout
+- Booking/widget requirements finalized for next phase
 
 ### Workstreams
 
 1. Build embeddable widget MVP
-2. Improve lifecycle email flows (confirmation, reminder)
+2. Expand style and city SEO coverage based on search demand
 3. Prepare month-4 usage review template
-4. Define paid conversion and setup-fee policy
+4. Define paid conversion and setup-fee policy for later booking launch
 
 ## Weekly Operating Rhythm
 
@@ -57,6 +57,6 @@
 
 - New listings added
 - Claimed listings
-- Active schools on booking system
-- Weekly bookings and cancellation rates
+- Detail page CTR (list → profile)
+- Report/correction submissions resolved within SLA
 - Trial pipeline by stage
