@@ -4,15 +4,42 @@
   import type { ScheduleEntry } from "$lib/data";
   import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
   import {
-    Agenda,
+    Planner,
     Calendar,
-    DayGrid,
-    WeekGrid,
-    WeekHeatmap,
     createRecurringAdapter,
     neutral,
+    setLabels,
   } from "@nomideusz/svelte-calendar";
-  import type { CalendarView, RecurringEvent } from "@nomideusz/svelte-calendar";
+  import type {
+    CalendarView,
+    RecurringEvent,
+  } from "@nomideusz/svelte-calendar";
+
+  setLabels({
+    today: "Dziś",
+    yesterday: "Wczoraj",
+    tomorrow: "Jutro",
+    day: "Dzień",
+    week: "Tydzień",
+    planner: "Grafik",
+    agenda: "Lista",
+    now: "teraz",
+    free: "wolne",
+    allDay: "Cały dzień",
+    done: "Zakończone",
+    upNext: "Nadchodzące",
+    noEvents: "Brak zajęć",
+    nothingScheduled: "Brak zaplanowanych zajęć",
+    allDoneForToday: "Wszystkie zajęcia na dziś zakończone",
+    goToToday: "Przejdź do dziś",
+    previousWeek: "Poprzedni tydzień",
+    nextWeek: "Następny tydzień",
+    previousDay: "Poprzedni dzień",
+    nextDay: "Następny dzień",
+    calendar: "Kalendarz",
+    nMore: (n: number) => `+${n} więcej`,
+    nEvents: (n: number) => `${n} ${n === 1 ? "zajęcia" : "zajęć"}`,
+  });
 
   let { data }: { data: PageData } = $props();
   let listing = $derived(data.listing);
@@ -39,7 +66,32 @@
     return grouped;
   }
 
-  let scheduleByDay = $derived(groupByDay(listing.schedule || []));
+  // ── Mock schedule for testing ──────────────────────────────
+  const MOCK_SCHEDULE: ScheduleEntry[] = [
+    { day: "Poniedziałek", time: "07:00-08:15", class_name: "Hatha Joga", instructor: "Anna Kowalska", level: "początkujący" },
+    { day: "Poniedziałek", time: "10:00-11:30", class_name: "Vinyasa Flow", instructor: "Marek Nowak", level: "dynamiczny" },
+    { day: "Poniedziałek", time: "18:00-19:30", class_name: "Joga regeneracyjna", instructor: "Ewa Wiśniewska", level: "regeneracyjny" },
+    { day: "Wtorek", time: "08:00-09:00", class_name: "Medytacja poranna", instructor: "Anna Kowalska", level: "medytacja" },
+    { day: "Wtorek", time: "17:00-18:30", class_name: "Sivananda Joga", instructor: "Piotr Zieliński", level: "sivananda" },
+    { day: "Środa", time: "07:00-08:15", class_name: "Hatha Joga", instructor: "Anna Kowalska", level: "początkujący" },
+    { day: "Środa", time: "12:00-13:00", class_name: "Joga online", instructor: "Marek Nowak", level: "online" },
+    { day: "Środa", time: "18:00-19:30", class_name: "Vinyasa Flow", instructor: "Ewa Wiśniewska", level: "dynamiczny" },
+    { day: "Czwartek", time: "09:00-10:00", class_name: "Joga dla seniorów", instructor: "Piotr Zieliński", level: "senior" },
+    { day: "Czwartek", time: "17:30-19:00", class_name: "Hatha Joga", instructor: "Anna Kowalska", level: "początkujący" },
+    { day: "Piątek", time: "07:00-08:00", class_name: "Medytacja poranna", instructor: "Ewa Wiśniewska", level: "medytacja" },
+    { day: "Piątek", time: "10:00-11:30", class_name: "Vinyasa Flow", instructor: "Marek Nowak", level: "dynamiczny" },
+    { day: "Sobota", time: "09:00-10:30", class_name: "Hatha Joga", instructor: "Anna Kowalska", level: "początkujący" },
+    { day: "Sobota", time: "11:00-12:00", class_name: "Joga regeneracyjna", instructor: "Ewa Wiśniewska", level: "regeneracyjny" },
+  ];
+
+  // Use mock data for testing; swap to listing.schedule for production
+  const USE_MOCK = true;
+  function getSchedule() {
+    return USE_MOCK ? MOCK_SCHEDULE : (listing.schedule || []);
+  }
+  const initialSchedule = getSchedule();
+
+  let scheduleByDay = $derived(groupByDay(USE_MOCK ? MOCK_SCHEDULE : (listing.schedule || [])));
   let hasSchedule = $derived(Object.keys(scheduleByDay).length > 0);
   let hasContactInfo = $derived(
     listing.websiteUrl || listing.phone || listing.email,
@@ -85,50 +137,43 @@
     });
   }
 
-  let recurringEvents = $derived(scheduleToRecurring(listing.schedule || []));
-  let calendarAdapter = $derived(
-    createRecurringAdapter(recurringEvents, { colorMap: CLASS_COLORS, autoColor: true }),
+  // Adapter created once — no reactive wrappers, stable identity across scrolls.
+  // BUG WORKAROUND: createRecurringAdapter generates event IDs that are
+  // relative to the requested range (e.g. "sched-0--w0--d1"), so when the
+  // Calendar re-fetches for a new focus week the store's upsert() overwrites
+  // previous weeks' events with the new ones. We wrap the adapter to append
+  // the actual date to each event ID, making them globally unique.
+  const innerAdapter = createRecurringAdapter(
+    scheduleToRecurring(initialSchedule),
+    { colorMap: CLASS_COLORS, autoColor: true },
   );
+
+  const calendarAdapter = {
+    async fetchEvents(range: { start: Date; end: Date }) {
+      const events = await innerAdapter.fetchEvents(range);
+      return events.map((ev) => ({
+        ...ev,
+        id: `${ev.id}::${ev.start.toISOString().slice(0, 10)}`,
+      }));
+    },
+    createEvent: innerAdapter.createEvent.bind(innerAdapter),
+    updateEvent: innerAdapter.updateEvent.bind(innerAdapter),
+    deleteEvent: innerAdapter.deleteEvent.bind(innerAdapter),
+  };
 
   const calendarViews: CalendarView[] = [
     {
-      id: "week-grid",
+      id: "week-planner",
       label: "Grafik",
       granularity: "week",
-      component: WeekGrid,
-    },
-    {
-      id: "day-grid",
-      label: "Grafik",
-      granularity: "day",
-      component: DayGrid,
-    },
-    {
-      id: "week-agenda",
-      label: "Lista",
-      granularity: "week",
-      component: Agenda,
+      component: Planner,
       props: { mode: "week" },
-    },
-    {
-      id: "day-agenda",
-      label: "Lista",
-      granularity: "day",
-      component: Agenda,
-      props: { mode: "day" },
-    },
-    {
-      id: "week-heatmap",
-      label: "Mapa",
-      granularity: "week",
-      component: WeekHeatmap,
     },
   ];
 
   // Compute visible hour range from schedule (with 1h padding)
-  let visibleHours = $derived.by(() => {
-    const schedule = listing.schedule || [];
-    if (schedule.length === 0) return [6, 22] as [number, number];
+  function computeVisibleHours(schedule: ScheduleEntry[]): [number, number] {
+    if (schedule.length === 0) return [6, 22];
     let minH = 24, maxH = 0;
     for (const e of schedule) {
       const [startStr, endStr] = e.time.split("-");
@@ -137,8 +182,10 @@
       if (sh < minH) minH = sh;
       if (eh + 1 > maxH) maxH = eh + 1;
     }
-    return [Math.max(0, minH - 1), Math.min(24, maxH)] as [number, number];
-  });
+    return [Math.max(0, minH - 1), Math.min(24, maxH)];
+  }
+
+  const visibleHours = computeVisibleHours(initialSchedule);
 </script>
 
 <svelte:head>
@@ -311,16 +358,17 @@
     {#if hasSchedule}
       <section class="panel panel-wide sf-card schedule-calendar-section">
         <h2 class="panel-label">Grafik zajęć</h2>
-        <Calendar
-          views={calendarViews}
-          adapter={calendarAdapter}
-          defaultView="week-grid"
-          theme={neutral}
-          locale="pl-PL"
-          height={560}
-          {visibleHours}
-          readOnly
-        />
+          <Calendar
+            views={calendarViews}
+            adapter={calendarAdapter}
+            defaultView="week-planner"
+            theme={neutral}
+            locale="pl-PL"
+            height={560}
+            initialDate={new Date()}
+            {visibleHours}
+            readOnly
+          />
       </section>
 
     {/if}
