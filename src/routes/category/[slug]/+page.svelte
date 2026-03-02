@@ -63,6 +63,11 @@
     display: block;
     padding: var(--spacing-md);
     text-decoration: none;
+    transition: border-color var(--dur-fast) ease;
+  }
+
+  .listing-card:hover {
+    border-color: var(--sf-accent);
   }
 
   .card-name {

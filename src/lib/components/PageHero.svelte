@@ -17,14 +17,16 @@
   let timer: ReturnType<typeof setInterval>;
 
   onMount(() => {
-    timer = setInterval(() => { now = new Date(); }, 1000);
+    timer = setInterval(() => {
+      now = new Date();
+    }, 1000);
   });
 
   onDestroy(() => clearInterval(timer));
 
   // Clock hand angles (degrees, 0 = 12 o'clock)
   const minuteDeg = $derived(now.getMinutes() * 6 + now.getSeconds() * 0.1);
-  const hourDeg   = $derived((now.getHours() % 12) * 30 + now.getMinutes() * 0.5);
+  const hourDeg = $derived((now.getHours() % 12) * 30 + now.getMinutes() * 0.5);
 </script>
 
 <header class="sf-hero" class:sf-hero--compact={compact}>
@@ -40,31 +42,43 @@
   </div>
 
   <div class="sf-hero-clock" aria-hidden="true">
-    <svg viewBox="0 0 280 280" width="250" height="250" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 280 280"
+      width="250"
+      height="250"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <!-- Ring -->
-      <circle cx="140" cy="140" r="130" stroke="var(--sf-ice)" stroke-width="1.2"/>
+      <circle
+        cx="140"
+        cy="140"
+        r="130"
+        stroke="var(--sf-ice)"
+        stroke-width="1.2"
+      />
       <!-- Hour hand -->
       <line
-        x1={140 - 6 * Math.sin(hourDeg * Math.PI / 180)}
-        y1={140 + 6 * Math.cos(hourDeg * Math.PI / 180)}
-        x2={140 + 80 * Math.sin(hourDeg * Math.PI / 180)}
-        y2={140 - 80 * Math.cos(hourDeg * Math.PI / 180)}
+        x1={140 - 6 * Math.sin((hourDeg * Math.PI) / 180)}
+        y1={140 + 6 * Math.cos((hourDeg * Math.PI) / 180)}
+        x2={140 + 80 * Math.sin((hourDeg * Math.PI) / 180)}
+        y2={140 - 80 * Math.cos((hourDeg * Math.PI) / 180)}
         stroke="var(--sf-ice)"
         stroke-width="2.4"
         stroke-linecap="round"
       />
       <!-- Minute hand -->
       <line
-        x1={140 - 8 * Math.sin(minuteDeg * Math.PI / 180)}
-        y1={140 + 8 * Math.cos(minuteDeg * Math.PI / 180)}
-        x2={140 + 115 * Math.sin(minuteDeg * Math.PI / 180)}
-        y2={140 - 115 * Math.cos(minuteDeg * Math.PI / 180)}
+        x1={140 - 8 * Math.sin((minuteDeg * Math.PI) / 180)}
+        y1={140 + 8 * Math.cos((minuteDeg * Math.PI) / 180)}
+        x2={140 + 115 * Math.sin((minuteDeg * Math.PI) / 180)}
+        y2={140 - 115 * Math.cos((minuteDeg * Math.PI) / 180)}
         stroke="var(--sf-ice)"
         stroke-width="2.4"
         stroke-linecap="round"
       />
       <!-- Center dot -->
-      <circle cx="140" cy="140" r="2" fill="var(--sf-ice)"/>
+      <circle cx="140" cy="140" r="2" fill="var(--sf-ice)" />
     </svg>
   </div>
 </header>
@@ -72,13 +86,12 @@
 <style>
   .sf-hero {
     position: relative;
-    padding: clamp(48px, 10vh, 120px) 0 clamp(36px, 6vh, 80px);
+    padding: clamp(40px, 8vh, 96px) 0 clamp(28px, 5vh, 56px);
   }
 
   .sf-hero--compact {
-    padding: clamp(28px, 6vh, 64px) 0 clamp(20px, 4vh, 48px);
+    padding: clamp(24px, 5vh, 48px) 0 clamp(16px, 3vh, 36px);
   }
-
   .sf-hero-inner {
     position: relative;
     z-index: 1;
@@ -137,4 +150,5 @@
     .sf-hero-clock {
       display: none;
     }
-  }</style>
+  }
+</style>

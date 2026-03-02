@@ -125,8 +125,6 @@
 
   .city-tile:hover {
     border-color: var(--sf-accent);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
   }
 
   .city-tile-name {
@@ -148,7 +146,7 @@
 
   /* ── How it works ── */
   .sf-how {
-    border-top: 1px solid var(--sf-line);
+    border-top: 1px solid var(--sf-frost);
     margin-top: 24px;
     padding-top: 64px;
   }
@@ -171,10 +169,10 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 1.5px solid var(--sf-accent);
+    border: 1.5px solid var(--sf-line);
     font-family: var(--font-display);
     font-size: 1rem;
-    color: var(--sf-accent);
+    color: var(--sf-dark);
     margin-bottom: 14px;
   }
 

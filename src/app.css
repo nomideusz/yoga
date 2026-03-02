@@ -8,66 +8,71 @@
 :root {
   /* ── Typography ────────────────────── */
   --font-display: "Playfair Display", "Georgia", serif;
-  --font-body: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-body:
+    "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:
+    "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 
   /* ── Palette ───────────────────────── */
-  --sf-bg:      #f5f7fb;
-  --sf-card:    #ffffff;
-  --sf-dark:    #151d2b;
-  --sf-text:    #3a4558;
-  --sf-muted:   #6b7a8f;
-  --sf-ice:     #cddff5;
-  --sf-frost:   #e9f0f8;
-  --sf-accent:  #4a7fb5;
+  --sf-bg: #f5f7fb;
+  --sf-card: #ffffff;
+  --sf-dark: #151d2b;
+  --sf-text: #3a4558;
+  --sf-muted: #54667a;
+  --sf-ice: #cddff5;
+  --sf-frost: #e9f0f8;
+  --sf-accent: #4a7fb5;
   --sf-accent-hover: #3a6899;
-  --sf-warm:    #c49a6c;
+  --sf-warm: #c49a6c;
   --sf-warm-bg: #f5ede4;
-  --sf-line:    #dce4ee;
-  --sf-danger:  #e05252;
+  --sf-line: #dce4ee;
+  --sf-danger: #e05252;
 
   /* ── Legacy aliases (consumed by existing code) ── */
-  --bg-color:      var(--sf-bg);
+  --bg-color: var(--sf-bg);
   --surface-color: var(--sf-card);
-  --text-color:    var(--sf-dark);
-  --text-muted:    var(--sf-muted);
-  --accent-color:  var(--sf-accent);
-  --link-color:    var(--sf-dark);
+  --text-color: var(--sf-dark);
+  --text-muted: var(--sf-muted);
+  --accent-color: var(--sf-accent);
+  --link-color: var(--sf-dark);
   --visited-color: var(--sf-dark);
-  --border-color:  var(--sf-line);
-  --header-bg:     transparent;
+  --border-color: var(--sf-line);
+  --header-bg: transparent;
 
   /* ── Container ───────────────────────── */
-  --sf-container:  1440px;
-  --sf-gutter:     clamp(24px, 5vw, 80px);
+  --sf-container: 1440px;
+  --sf-gutter: clamp(24px, 5vw, 80px);
 
   /* ── Spacing scale ─────────────────── */
-  --spacing-xs:  8px;
-  --spacing-sm:  16px;
-  --spacing-md:  24px;
-  --spacing-lg:  48px;
-  --spacing-xl:  64px;
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 48px;
+  --spacing-xl: 64px;
   --spacing-xxl: 96px;
 
   /* ── Radius ────────────────────────── */
-  --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  14px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --radius-pill: 999px;
 
   /* ── Shadows ───────────────────────── */
-  --shadow-sm:  0 1px 3px rgba(21,29,43,0.04);
-  --shadow-md:  0 4px 20px rgba(74,127,181,0.07);
-  --shadow-lg:  0 8px 36px rgba(74,127,181,0.10);
+  --shadow-sm: 0 1px 3px rgba(21, 29, 43, 0.04);
+  --shadow-md: 0 4px 20px rgba(74, 127, 181, 0.07);
+  --shadow-lg: 0 8px 36px rgba(74, 127, 181, 0.1);
 
   /* ── Transitions ───────────────────── */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 0.15s;
-  --dur-med:  0.25s;
+  --dur-med: 0.25s;
 }
 
 /* ── Global reset ────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -75,6 +80,10 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+body {
+  background-color: red;
 }
 
 /* ══════════════════════════════════════════════════
@@ -187,7 +196,7 @@ html {
 
 /* ── Layout — Footer ─────────────────── */
 .app footer.site-footer {
-  border-top: 1px solid var(--sf-line);
+  border-top: 1px solid var(--sf-frost);
   padding: 36px var(--sf-gutter);
   max-width: var(--sf-container);
   margin: 0 auto;
@@ -224,7 +233,10 @@ html {
 }
 
 /* ── Typography ──────────────────────── */
-.app h1, .app h2, .app h3, .app h4 {
+.app h1,
+.app h2,
+.app h3,
+.app h4 {
   font-family: var(--font-display);
   font-weight: 500;
   color: var(--sf-dark);
@@ -298,6 +310,7 @@ html {
 .app .primary-button:hover {
   background-color: var(--sf-accent-hover);
   border-color: var(--sf-accent-hover);
+  color: #ffffff;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -371,31 +384,39 @@ html {
   background: var(--sf-card);
   border: 1px solid var(--sf-line);
   border-radius: var(--radius-md);
-  transition: border-color var(--dur-med) ease, box-shadow var(--dur-med) ease, transform var(--dur-med) var(--ease-out);
+  transition:
+    border-color var(--dur-med) ease,
+    box-shadow var(--dur-med) ease,
+    transform var(--dur-med) var(--ease-out);
 }
 
 .sf-card:hover {
   border-color: var(--sf-accent);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 /* ── Staggered fade-in animation ─────── */
 @keyframes sf-fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .sf-animate {
-  animation: sf-fade-up 0.5s var(--ease-out) both;
+  animation: sf-fade-up 0.35s var(--ease-out) both;
 }
-
-
 
 /* ── Top accent line ─────────────────── */
 .sf-topline {
   height: 3px;
-  background: linear-gradient(90deg, var(--sf-accent), var(--sf-ice), var(--sf-warm));
+  background: linear-gradient(
+    90deg,
+    var(--sf-accent),
+    var(--sf-ice),
+    var(--sf-warm)
+  );
 }
-
-

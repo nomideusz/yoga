@@ -1,5 +1,33 @@
 <script>
   import "../app.css";
+  import { setLabels } from "@nomideusz/svelte-calendar";
+
+  setLabels({
+    today: "Dziś",
+    yesterday: "Wczoraj",
+    tomorrow: "Jutro",
+    day: "Dzień",
+    week: "Tydzień",
+    planner: "Grafik",
+    agenda: "Lista",
+    now: "teraz",
+    free: "wolne",
+    allDay: "Cały dzień",
+    done: "Zakończone",
+    upNext: "Nadchodzące",
+    noEvents: "Brak zajęć",
+    nothingScheduled: "Brak zaplanowanych zajęć",
+    allDoneForToday: "Wszystkie zajęcia na dziś zakończone",
+    goToToday: "Przejdź do dziś",
+    previousWeek: "Poprzedni tydzień",
+    nextWeek: "Następny tydzień",
+    previousDay: "Poprzedni dzień",
+    nextDay: "Następny dzień",
+    calendar: "Kalendarz",
+    nMore: (n) => `+${n} więcej`,
+    nEvents: (n) => `${n} ${n === 1 ? "zajęcia" : "zajęć"}`,
+  });
+
   let { children } = $props();
 </script>
 

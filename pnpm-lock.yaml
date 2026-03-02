@@ -12,8 +12,8 @@ importers:
         specifier: ^0.17.0
         version: 0.17.0
       '@nomideusz/svelte-calendar':
-        specifier: ^0.5.1
-        version: 0.5.1(svelte@5.53.6)
+        specifier: ^0.6.0
+        version: 0.6.0(svelte@5.53.6)
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -585,8 +585,8 @@ packages:
   '@neon-rs/load@0.0.4':
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
 
-  '@nomideusz/svelte-calendar@0.5.1':
-    resolution: {integrity: sha512-ys9aWyU29viBH2y562jcS4V9Yk6fqM1XVT9JN4EVuFGKXhBggyvA9GBSialeuuF+b4HpZnAorBIU1gvLzr0aKQ==}
+  '@nomideusz/svelte-calendar@0.6.0':
+    resolution: {integrity: sha512-NSYQMMnoVIZ6Qh/9VnS2ziBGJBld4WAqn7gVd5rmKjGbPh4ZvXhVxf3dfzmlr7h4UV/b3aw4XmoLOFeHNeGBEA==}
     peerDependencies:
       svelte: ^5.0.0
 
@@ -1524,7 +1524,7 @@ snapshots:
 
   '@neon-rs/load@0.0.4': {}
 
-  '@nomideusz/svelte-calendar@0.5.1(svelte@5.53.6)':
+  '@nomideusz/svelte-calendar@0.6.0(svelte@5.53.6)':
     dependencies:
       date-fns: 4.1.0
       date-fns-tz: 3.2.0(date-fns@4.1.0)
