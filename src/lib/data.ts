@@ -1,4 +1,4 @@
-// Re-export the canonical Listing type from the DB queries layer.
+// Re-export the canonical types from the DB queries layer.
 // Pages get data via server load functions; this module provides
 // shared types and pure utility helpers that run on both server & client.
 
@@ -16,7 +16,9 @@ export function daysSincePriceCheck(listing: Listing): number {
 }
 
 /** Returns a freshness label for the price */
-export function priceFreshness(listing: Listing): 'fresh' | 'aging' | 'stale' {
+export type Freshness = 'fresh' | 'aging' | 'stale';
+
+export function priceFreshness(listing: Listing): Freshness {
   const days = daysSincePriceCheck(listing);
   if (days <= 14) return 'fresh';
   if (days <= 30) return 'aging';
@@ -51,4 +53,15 @@ export function relativeDate(dateString: string): string {
   if (days < 30) return `${Math.floor(days / 7)} tyg. temu`;
   return `${Math.floor(days / 30)} mies. temu`;
 }
+
+/** ISO day-of-week number → Polish day name */
+export const DAY_NAMES_PL: Record<number, string> = {
+  0: 'Poniedziałek',
+  1: 'Wtorek',
+  2: 'Środa',
+  3: 'Czwartek',
+  4: 'Piątek',
+  5: 'Sobota',
+  6: 'Niedziela',
+};
 

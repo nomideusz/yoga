@@ -8,6 +8,9 @@
   const listings = $derived(data.listings);
   const cities = $derived(data.cities);
   const styles = $derived(data.styles);
+  const cityCoords = $derived(
+    Object.entries(data.cityCoords).map(([city, coords]) => ({ city, ...coords }))
+  );
 
   const totalSchools = $derived(listings.length);
 
@@ -46,7 +49,7 @@
     subtitle="{totalSchools} szkół jogi w {cities.length} miastach, {styles.length} stylów praktyki."
   />
 
-  <SearchBar {cities} {styles} cityCoords={data.cityCoords} />
+  <SearchBar {cities} {styles} {cityCoords} />
 
   <!-- Popular cities -->
   <section class="sf-section">
