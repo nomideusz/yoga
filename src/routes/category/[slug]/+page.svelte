@@ -10,6 +10,7 @@
 </script>
 
 <svelte:head>
+  <link rel="canonical" href="https://szkolyjogi.pl/category/{slug}" />
   <title>{categoryName ? categoryName.charAt(0).toUpperCase() + categoryName.slice(1) : ''} | szkolyjogi.pl</title>
 </svelte:head>
 

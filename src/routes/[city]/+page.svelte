@@ -8,6 +8,7 @@
 </script>
 
 <svelte:head>
+  <link rel="canonical" href="https://szkolyjogi.pl/{data.city?.toLowerCase()}" />
   <title
     >Szkoły Jogi {data.city} | Ceny Karnetów, Lokalizacje, Opinie | szkolyjogi.pl</title
   >

@@ -7,12 +7,10 @@
     Calendar,
     createRecurringAdapter,
     createMemoryAdapter,
-    generatePalette,
   } from "@nomideusz/svelte-calendar";
   import type {
     RecurringEvent,
     TimelineEvent,
-    EventStatus,
   } from "@nomideusz/svelte-calendar";
 
   let { data }: { data: PageData } = $props();
@@ -51,7 +49,7 @@
 
   function scheduleToRecurring(entries: ScheduleEntry[]): RecurringEvent[] {
     return entries.map((e, i) => {
-      const status: EventStatus | undefined = e.isCancelled ? 'cancelled' : undefined;
+      const status = e.isCancelled ? 'cancelled' as const : undefined;
       return {
         id: `sched-${e.id ?? i}`,
         title: e.className,
@@ -59,8 +57,8 @@
         startTime: e.startTime,
         endTime: e.endTime ?? fallbackEnd(e.startTime),
         subtitle: e.teacher ?? undefined,
-        tags: e.level ? [e.level] : undefined,
-        category: e.level ?? undefined,
+        tags: [...(e.isFree ? ['Bezpłatne'] : []), ...(e.level ? [e.level] : [])],
+        category: e.style ?? e.className,
         location: e.location ?? undefined,
         ...(status && { status }),
       };
@@ -69,11 +67,8 @@
 
   /** Convert dated entries to TimelineEvent[] for the memory adapter */
   function scheduleToDated(entries: ScheduleEntry[]): TimelineEvent[] {
-    const palette = generatePalette('#6366f1');
     return entries.map((e, i) => {
-      const [sh, sm] = e.startTime.split(':').map(Number);
       const end = e.endTime ?? fallbackEnd(e.startTime);
-      const [eh, em] = end.split(':').map(Number);
 
       const start = new Date(`${e.date}T${e.startTime}:00`);
       const endDate = new Date(`${e.date}T${end}:00`);
@@ -84,24 +79,19 @@
         start,
         end: endDate,
         subtitle: e.teacher ?? undefined,
-        tags: e.level ? [e.level] : undefined,
-        category: e.level ?? undefined,
+        tags: [...(e.isFree ? ['Bezpłatne'] : []), ...(e.level ? [e.level] : [])],
+        category: e.style ?? e.className,
         location: e.location ?? undefined,
-        color: palette[i % palette.length],
-        status: e.isCancelled ? 'cancelled' as EventStatus : undefined,
+        status: e.isCancelled ? 'cancelled' as const : undefined,
       };
     });
   }
 
   function buildAdapter(entries: ScheduleEntry[]) {
     if (scheduleMode === 'dated') {
-      return createMemoryAdapter(scheduleToDated(entries), {
-        palette: generatePalette('#6366f1'),
-      });
+      return createMemoryAdapter(scheduleToDated(entries));
     }
-    return createRecurringAdapter(scheduleToRecurring(entries), {
-      palette: generatePalette('#6366f1'),
-    });
+    return createRecurringAdapter(scheduleToRecurring(entries));
   }
 
   /** For dated mode, start on the earliest date in the schedule */
@@ -112,9 +102,55 @@
   );
 
   let calendarAdapter = $derived(buildAdapter(schedule));
+
+  // ── JSON-LD structured data ──────────────────────────────
+  let jsonLd = $derived(() => {
+    const ld: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'SportsActivityLocation',
+      name: listing.name,
+      url: listing.websiteUrl ?? `https://szkolyjogi.pl/listing/${listing.id}`,
+      telephone: listing.phone ?? undefined,
+      email: listing.email ?? undefined,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: listing.address || undefined,
+        addressLocality: listing.city,
+        addressCountry: 'PL',
+      },
+    };
+
+    if (listing.latitude != null && listing.longitude != null) {
+      ld.geo = {
+        '@type': 'GeoCoordinates',
+        latitude: listing.latitude,
+        longitude: listing.longitude,
+      };
+    }
+
+    if (listing.imageUrl) {
+      ld.image = listing.imageUrl;
+    }
+
+    if (listing.rating != null) {
+      ld.aggregateRating = {
+        '@type': 'AggregateRating',
+        ratingValue: listing.rating,
+        reviewCount: listing.reviews ?? 0,
+        bestRating: 5,
+      };
+    }
+
+    if (listing.price != null) {
+      ld.priceRange = `~${listing.price} PLN/mies.`;
+    }
+
+    return ld;
+  });
 </script>
 
 <svelte:head>
+  <link rel="canonical" href="https://szkolyjogi.pl/listing/{listing.id}" />
   <title>{listing.name} | Joga {listing.city} | szkolyjogi.pl</title>
   <meta
     name="description"
@@ -138,6 +174,7 @@
     <meta property="og:image" content={listing.imageUrl} />
   {/if}
   <meta name="twitter:card" content="summary_large_image" />
+  {@html `<script type="application/ld+json">${JSON.stringify(jsonLd())}</script>`}
 </svelte:head>
 
 <article class="sf-page-shell">
@@ -361,7 +398,7 @@
             To Twoje studio? Przejmij profil i wyróżnij się wśród {listing.city === 'Warszawa' ? 'warszawskich' : 'lokalnych'} szkół jogi — bezpłatnie.
           </p>
           <a
-            href="mailto:kontakt@szkolyjogi.pl?subject=Zg%C5%82aszam%20profil%20studia%20jogi%3A%20{encodeURIComponent(listing.name)}"
+            href="/listing/{listing.id}/claim"
             class="claim-btn"
           >
             Przejmij profil

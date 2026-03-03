@@ -27,6 +27,7 @@
 </script>
 
 <svelte:head>
+  <link rel="canonical" href="https://szkolyjogi.pl/" />
   <title>Katalog Szkół Jogi w Polsce — szkolyjogi.pl</title>
   <meta
     name="description"

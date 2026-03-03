@@ -16,6 +16,7 @@ export const schools = sqliteTable('schools', {
   trialPrice: real('trial_price'),
   singleClassPrice: real('single_class_price'),
   pricingNotes: text('pricing_notes'),
+  pricingJson: text('pricing_json'),  // full structured pricing (JSON array of tiers + metadata)
 
   rating: real('rating'),
   reviews: integer('reviews'),
@@ -34,6 +35,7 @@ export const schools = sqliteTable('schools', {
   googlePlaceId: text('google_place_id').default(''),
   googleMapsUrl: text('google_maps_url').default(''),
 
+  pricingUrl: text('pricing_url').default(''),
   scheduleUrl: text('schedule_url').default(''),
   scheduleSource: text('schedule_source').default(''),
   scheduleMode: text('schedule_mode').default('auto'),  // 'auto' | 'weekly' | 'dated'
@@ -127,6 +129,20 @@ export const scrapeLog = sqliteTable('scrape_log', {
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 
+// ── Claim Requests ──────────────────────────────────────────────────────────
+
+export const claimRequests = sqliteTable('claim_requests', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  schoolId: text('school_id').notNull().references(() => schools.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  role: text('role').notNull(),           // 'owner' | 'manager' | 'instructor'
+  message: text('message'),
+  status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
 // ── Type exports ────────────────────────────────────────────────────────────
 
 export type School = typeof schools.$inferSelect;
@@ -135,3 +151,5 @@ export type Style = typeof styles.$inferSelect;
 export type ScheduleEntry = typeof scheduleEntries.$inferSelect;
 export type NewScheduleEntry = typeof scheduleEntries.$inferInsert;
 export type ScrapeLog = typeof scrapeLog.$inferSelect;
+export type ClaimRequest = typeof claimRequests.$inferSelect;
+export type NewClaimRequest = typeof claimRequests.$inferInsert;

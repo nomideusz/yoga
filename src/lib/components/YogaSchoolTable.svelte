@@ -39,8 +39,10 @@
   }
 
   // Deduplicate and extract all unique styles
+  const plCollator = new Intl.Collator('pl-PL');
+
   let uniqueStyles = $derived(
-    Array.from(new Set(schools.flatMap((school) => school.styles))).sort(),
+    Array.from(new Set(schools.flatMap((school) => school.styles))).sort(plCollator.compare),
   );
 
   let selectedStyle = $state("Wszystkie");
@@ -122,17 +124,20 @@
         if (valA == null && valB == null) {
           // Both null on primary key — sort by completeness desc, then name
           const comp = completeness(b) - completeness(a);
-          return comp !== 0 ? comp : a.name.localeCompare(b.name);
+          return comp !== 0 ? comp : plCollator.compare(a.name, b.name);
         }
         if (valA == null) return 1;
         if (valB == null) return -1;
 
-        if (valA < valB) return -1 * sortDirection;
-        if (valA > valB) return 1 * sortDirection;
+        // Use locale-aware comparison for strings (Polish: ł, ś, ż, etc.)
+        const cmp = typeof valA === 'string' && typeof valB === 'string'
+          ? plCollator.compare(valA, valB) * sortDirection
+          : ((valA < valB ? -1 : valA > valB ? 1 : 0) * sortDirection);
+        if (cmp !== 0) return cmp;
 
         // Tie on primary key — sort by completeness desc, then name
         const comp = completeness(b) - completeness(a);
-        return comp !== 0 ? comp : a.name.localeCompare(b.name);
+        return comp !== 0 ? comp : plCollator.compare(a.name, b.name);
       }),
   );
 
