@@ -56,7 +56,7 @@
   />
 
   <section class="sf-section sf-section--tight">
-    <YogaSchoolTable schools={listings} />
+    <YogaSchoolTable schools={listings} {cityCoords} />
   </section>
 
   <!-- Map — secondary discovery -->

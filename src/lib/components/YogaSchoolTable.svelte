@@ -8,10 +8,13 @@
 
   const PER_PAGE = 20;
 
+  type CityCoord = { city: string; lat: number; lng: number };
+
   let {
     schools,
     hideCityColumn = false,
-  }: { schools: Listing[]; hideCityColumn?: boolean } = $props();
+    cityCoords = [],
+  }: { schools: Listing[]; hideCityColumn?: boolean; cityCoords?: CityCoord[] } = $props();
 
   let currentPage = $state(1);
   let viewMode = $state<'table' | 'cards'>(typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches ? 'cards' : 'table');
@@ -44,6 +47,10 @@
   // ── Search & filter ──
   let searchQuery = $state("");
   let selectedStyle = $state("");
+  let showSuggestions = $state(false);
+  let locating = $state(false);
+
+  const MAX_SUGGESTIONS = 4;
 
   let uniqueStyles = $derived(
     (() => {
@@ -59,20 +66,61 @@
     })()
   );
 
-  let showFilters = $derived(schools.length >= 5 && uniqueStyles.length >= 3);
+  let showStyleFilter = $derived(schools.length >= 5 && uniqueStyles.length >= 3);
 
-  // City suggestion — when search matches a city name, offer a link
-  let citySuggestion = $derived(
-    (() => {
-      if (hideCityColumn || !searchQuery || searchQuery.length < 2) return null;
-      const q = searchQuery.toLowerCase();
-      const cities = [...new Set(schools.map(s => s.city))];
-      const match = cities.find(c => c.toLowerCase().startsWith(q));
-      if (!match) return null;
-      const count = schools.filter(s => s.city === match).length;
-      return { city: match, count };
-    })()
+  // Autocomplete suggestions
+  let uniqueCities = $derived([...new Set(schools.map(s => s.city))].sort((a, b) => plCollator.compare(a, b)));
+
+  let matchingCities = $derived(
+    searchQuery.length > 0 && !hideCityColumn
+      ? uniqueCities.filter(c => c.toLowerCase().startsWith(searchQuery.toLowerCase())).slice(0, MAX_SUGGESTIONS)
+      : []
   );
+
+  let matchingSchools = $derived(
+    searchQuery.length >= 2
+      ? schools.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, MAX_SUGGESTIONS)
+      : []
+  );
+
+  let hasSuggestions = $derived(matchingCities.length > 0 || matchingSchools.length > 0);
+
+  function handleBlur() {
+    setTimeout(() => { showSuggestions = false; }, 200);
+  }
+
+  function handleSearchKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") showSuggestions = false;
+  }
+
+  // Geolocation
+  function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function locateMe() {
+    if (!navigator.geolocation || cityCoords.length === 0) return;
+    locating = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        let nearest = cityCoords[0];
+        let minDist = Infinity;
+        for (const cc of cityCoords) {
+          const d = haversine(latitude, longitude, cc.lat, cc.lng);
+          if (d < minDist) { minDist = d; nearest = cc; }
+        }
+        searchQuery = nearest.city;
+        locating = false;
+      },
+      () => { locating = false; },
+      { timeout: 8000, maximumAge: 300000 }
+    );
+  }
 
   function matchesSearch(school: Listing, q: string): boolean {
     if (!q) return true;
@@ -215,39 +263,93 @@
   }
 </script>
 
-<div class="filter-bar">
-  <div class="filter-inputs">
-    <div class="search-wrap">
-      <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5L14.5 14.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-      <input
-        type="text"
-        class="search-input"
-        placeholder="Szukaj szkoły, miasta lub stylu..."
-        bind:value={searchQuery}
-        aria-label="Szukaj"
-      />
-      {#if searchQuery}
-        <button class="search-clear" onclick={() => (searchQuery = "")} aria-label="Wyczyść">×</button>
-      {/if}
+<div class="search-bar">
+  <div class="search-inner">
+    <div class="search-field search-field--query">
+      <label for="table-search" class="search-label">Szkoła lub miasto</label>
+      <div class="input-wrap">
+        <input
+          id="table-search"
+          type="text"
+          placeholder="np. Warszawa, Yoga Studio..."
+          bind:value={searchQuery}
+          onfocus={() => (showSuggestions = true)}
+          onblur={handleBlur}
+          onkeydown={handleSearchKeydown}
+          autocomplete="off"
+        />
+        {#if cityCoords.length > 0}
+          <button
+            type="button"
+            class="locate-btn"
+            onclick={locateMe}
+            disabled={locating}
+            aria-label="Znajdź najbliższe miasto"
+            title="Znajdź najbliższe miasto"
+          >
+            {#if locating}
+              <svg class="locate-spin" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="28" stroke-dashoffset="8" stroke-linecap="round"/></svg>
+            {:else}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="2.5" fill="currentColor"/><path d="M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.2"/></svg>
+            {/if}
+          </button>
+        {/if}
+        {#if showSuggestions && hasSuggestions}
+          <ul class="suggestions" role="listbox">
+            {#if matchingCities.length > 0}
+              <li class="suggestion-group" role="presentation">Miasta</li>
+              {#each matchingCities as city (city)}
+                <li role="option" aria-selected="false">
+                  <a href="/{city.toLowerCase()}" class="suggestion-btn" onmousedown={(e) => e.preventDefault()}>
+                    <svg class="suggestion-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1C5.24 1 3 3.24 3 6c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="6" r="1.5" fill="currentColor"/></svg>
+                    {city}
+                  </a>
+                </li>
+              {/each}
+            {/if}
+            {#if matchingSchools.length > 0}
+              <li class="suggestion-group" role="presentation">Szkoły</li>
+              {#each matchingSchools as school (school.id)}
+                <li role="option" aria-selected="false">
+                  <a href="/listing/{school.id}" class="suggestion-btn" onmousedown={(e) => e.preventDefault()}>
+                    <svg class="suggestion-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="4" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h3A1.5 1.5 0 0 1 11 2.5V4" stroke="currentColor" stroke-width="1.2"/></svg>
+                    <span>
+                      {school.name}
+                      {#if !hideCityColumn}<span class="suggestion-city">{school.city}</span>{/if}
+                    </span>
+                  </a>
+                </li>
+              {/each}
+            {/if}
+          </ul>
+        {/if}
+      </div>
     </div>
-    {#if showFilters}
-      <select
-        class="style-select"
-        bind:value={selectedStyle}
-        aria-label="Filtruj wg stylu"
-      >
-        <option value="">Wszystkie style</option>
-        {#each uniqueStyles as { style, count } (style)}
-          <option value={style}>{style} ({count})</option>
-        {/each}
-      </select>
+
+    <div class="search-divider"></div>
+
+    {#if showStyleFilter}
+      <div class="search-field search-field--style">
+        <label for="table-style" class="search-label">Styl jogi</label>
+        <select id="table-style" bind:value={selectedStyle}>
+          <option value="">Wszystkie style</option>
+          {#each uniqueStyles as { style, count } (style)}
+            <option value={style}>{style} ({count})</option>
+          {/each}
+        </select>
+      </div>
     {/if}
   </div>
-  {#if citySuggestion}
-    <a href="/{citySuggestion.city.toLowerCase()}" class="city-suggestion">
-      {citySuggestion.city} — {citySuggestion.count} szkół →
-    </a>
-  {/if}
+</div>
+
+<div class="toolbar">
+  <span class="pg-summary-text">
+    {#if filteredAndSortedSchools.length > 0}
+      Wyświetlono {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, filteredAndSortedSchools.length)} z {filteredAndSortedSchools.length}
+    {:else}
+      Brak wyników
+    {/if}
+  </span>
   <div class="view-toggle" role="radiogroup" aria-label="Widok listy">
     <button
       class="toggle-btn"
@@ -277,16 +379,6 @@
       </svg>
     </button>
   </div>
-</div>
-
-<div class="pg-summary">
-  <span class="pg-summary-text">
-    {#if filteredAndSortedSchools.length > 0}
-      Wyświetlono {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, filteredAndSortedSchools.length)} z {filteredAndSortedSchools.length}
-    {:else}
-      Brak wyników
-    {/if}
-  </span>
 </div>
 
 {#if viewMode === 'table'}
@@ -462,10 +554,181 @@
 <Pagination {currentPage} {totalPages} onPageChange={handlePageChange} />
 
 <style>
-  /* ── Results summary ── */
-  .pg-summary {
+  /* ── Search bar ── */
+  .search-bar {
+    padding: 4px 0 8px;
+  }
+
+  .search-inner {
     display: flex;
-    justify-content: flex-end;
+    align-items: stretch;
+    background: var(--sf-card);
+    border: 1px solid var(--sf-line);
+    border-radius: var(--radius-lg);
+    overflow: visible;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--dur-med) ease, box-shadow var(--dur-med) ease;
+  }
+
+  .search-inner:focus-within {
+    border-color: var(--sf-accent);
+    box-shadow: var(--shadow-md);
+  }
+
+  .search-field {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 18px;
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .search-field--query { flex: 1.6; }
+  .search-field--style { flex: 1; }
+
+  .search-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--sf-muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .search-field input,
+  .search-field select {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--sf-dark);
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    padding: 0;
+    line-height: 1.4;
+  }
+
+  .search-field input::placeholder {
+    color: var(--sf-muted);
+    opacity: 0.6;
+  }
+
+  .search-field select {
+    appearance: none;
+    cursor: pointer;
+    padding-right: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7a8f' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+  }
+
+  .search-divider {
+    width: 1px;
+    background: var(--sf-line);
+    align-self: stretch;
+    margin: 10px 0;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .input-wrap input { flex: 1; min-width: 0; }
+
+  .locate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: var(--sf-frost);
+    border-radius: 50%;
+    color: var(--sf-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color var(--dur-fast) ease, background var(--dur-fast) ease;
+  }
+
+  .locate-btn:hover:not(:disabled) {
+    color: var(--sf-accent);
+    background: var(--sf-ice);
+  }
+
+  .locate-btn:disabled { cursor: wait; opacity: 0.7; }
+
+  @keyframes locate-spin { to { transform: rotate(360deg); } }
+  .locate-spin { animation: locate-spin 0.8s linear infinite; }
+
+  /* ── Autocomplete dropdown ── */
+  .suggestions {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: -18px;
+    right: -18px;
+    background: var(--sf-card);
+    border: 1px solid var(--sf-line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    list-style: none;
+    z-index: 100;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+
+  .suggestion-group {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--sf-muted);
+    font-weight: 600;
+    padding: 10px 18px 4px;
+  }
+
+  .suggestion-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--sf-dark);
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: background var(--dur-fast) ease;
+    text-decoration: none;
+  }
+
+  .suggestion-btn:hover { background: var(--sf-frost); }
+
+  .suggestion-icon { flex-shrink: 0; color: var(--sf-muted); }
+
+  .suggestion-city {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sf-muted);
+    margin-left: 6px;
+  }
+
+  /* ── Toolbar (summary + view toggle) ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: var(--spacing-xs);
   }
 
@@ -477,133 +740,19 @@
     color: var(--sf-muted);
   }
 
-  /* ── Filter bar ── */
-  .filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: var(--spacing-md);
-  }
-
-  .filter-inputs {
-    display: flex;
-    gap: 10px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .search-wrap {
-    position: relative;
-    flex: 1;
-    max-width: 360px;
-  }
-
-  .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--sf-muted);
-    pointer-events: none;
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 8px 32px 8px 34px;
-    border: 1px solid var(--sf-line);
-    border-radius: var(--radius-sm);
-    background: var(--sf-card);
-    color: var(--sf-dark);
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    transition: border-color var(--dur-fast) ease;
-  }
-
-  .search-input:focus {
-    outline: none;
-    border-color: var(--sf-accent);
-  }
-
-  .search-input::placeholder {
-    color: var(--sf-ice);
-    font-size: 0.82rem;
-  }
-
-  .search-clear {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: none;
-    color: var(--sf-muted);
-    font-size: 1rem;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: color var(--dur-fast) ease;
-  }
-
-  .search-clear:hover {
-    color: var(--sf-dark);
-  }
-
-  .style-select {
-    padding: 8px 28px 8px 12px;
-    border: 1px solid var(--sf-line);
-    border-radius: var(--radius-sm);
-    background: var(--sf-card);
-    color: var(--sf-dark);
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    transition: border-color var(--dur-fast) ease;
-    white-space: nowrap;
-  }
-
-  .style-select:focus {
-    outline: none;
-    border-color: var(--sf-accent);
-  }
-
-  .city-suggestion {
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--sf-accent);
-    text-decoration: none;
-    white-space: nowrap;
-    align-self: center;
-    flex-shrink: 0;
-  }
-
-  .city-suggestion:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  @media (max-width: 600px) {
-    .filter-bar {
-      flex-wrap: wrap;
-    }
-    .filter-inputs {
+  @media (max-width: 640px) {
+    .search-inner {
       flex-direction: column;
-      width: 100%;
+      border-radius: var(--radius-md);
     }
-    .search-wrap {
-      max-width: 100%;
-    }
-    .city-suggestion {
+    .search-divider {
       width: 100%;
+      height: 1px;
+      margin: 0;
+    }
+    .suggestions {
+      left: 0;
+      right: 0;
     }
   }
 
