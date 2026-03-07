@@ -7,6 +7,47 @@
   let slug = $derived(data.slug);
   let categoryListings = $derived(data.listings);
   let categoryName = $derived(data.styleName ?? (slug ? slug.replace(/-/g, " ") : ""));
+
+  /** FAQ structured data for SEO */
+  let faqJsonLd = $derived.by(() => {
+    const priced = categoryListings.filter(s => s.price != null);
+    const avgPrice = priced.length > 0 ? Math.round(priced.reduce((sum, s) => sum + s.price!, 0) / priced.length) : null;
+    const cities = [...new Set(categoryListings.map(s => s.city))].sort();
+
+    const faq: Array<{ q: string; a: string }> = [];
+
+    faq.push({
+      q: `Ile szkół oferuje styl ${categoryName} w Polsce?`,
+      a: `W katalogu szkolyjogi.pl znajduje się ${categoryListings.length} ${categoryListings.length === 1 ? 'szkoła' : 'szkół'} oferujących zajęcia w stylu ${categoryName}.`,
+    });
+
+    if (avgPrice != null) {
+      faq.push({
+        q: `Ile kosztuje ${categoryName}?`,
+        a: `Średnia cena miesięcznego karnetu na zajęcia ${categoryName} wynosi ${avgPrice} PLN.`,
+      });
+    }
+
+    if (cities.length > 0) {
+      faq.push({
+        q: `W jakich miastach dostępne są zajęcia ${categoryName}?`,
+        a: `Zajęcia ${categoryName} dostępne są w ${cities.length} ${cities.length === 1 ? 'mieście' : 'miastach'}: ${cities.slice(0, 10).join(', ')}${cities.length > 10 ? ' i innych' : ''}.`,
+      });
+    }
+
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faq.map(f => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: f.a,
+        },
+      })),
+    };
+  });
 </script>
 
 <svelte:head>
@@ -32,6 +73,7 @@
       name: s.name,
     })),
   }).replace(/</g, '\\u003c')}</script>`}
+  {@html `<script type="application/ld+json">${JSON.stringify(faqJsonLd).replace(/</g, '\\u003c')}</script>`}
 </svelte:head>
 
 <div class="sf-page-shell">

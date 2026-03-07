@@ -400,7 +400,10 @@
         <h2 class="panel-label">Cennik</h2>
         <div class="price-hero">
           <span class="price-hero-value">{listing.price != null ? `${listing.price}` : '—'}</span>
-          <span class="price-hero-unit">{listing.price != null ? 'PLN / miesiąc' : ''}</span>
+          <span class="price-hero-unit">{listing.price != null ? (listing.priceEstimated ? '~PLN / miesiąc' : 'PLN / miesiąc') : ''}</span>
+          {#if listing.priceEstimated}
+            <span class="estimated-badge" title="Cena szacunkowa obliczona na podstawie pakietów wejść (3x/tydzień)">szacunkowy</span>
+          {/if}
           {#if listing.trialPrice === 0}
             <span class="trial-badge">Pierwsze zajęcia gratis</span>
           {/if}
@@ -617,6 +620,15 @@
     background: var(--sf-warm-bg); padding: 3px 10px;
     border-radius: var(--radius-pill); font-weight: 600;
     white-space: nowrap; align-self: center;
+  }
+  .estimated-badge {
+    font-family: var(--font-mono); font-size: 0.58rem;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--sf-muted); border: 1px solid var(--sf-line);
+    background: var(--sf-frost); padding: 3px 10px;
+    border-radius: var(--radius-pill); font-weight: 600;
+    white-space: nowrap; align-self: center;
+    cursor: help;
   }
 
   .freshness {
