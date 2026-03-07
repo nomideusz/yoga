@@ -61,6 +61,19 @@
 
   let showFilters = $derived(schools.length >= 5 && uniqueStyles.length >= 3);
 
+  // City suggestion — when search matches a city name, offer a link
+  let citySuggestion = $derived(
+    (() => {
+      if (hideCityColumn || !searchQuery || searchQuery.length < 2) return null;
+      const q = searchQuery.toLowerCase();
+      const cities = [...new Set(schools.map(s => s.city))];
+      const match = cities.find(c => c.toLowerCase().startsWith(q));
+      if (!match) return null;
+      const count = schools.filter(s => s.city === match).length;
+      return { city: match, count };
+    })()
+  );
+
   function matchesSearch(school: Listing, q: string): boolean {
     if (!q) return true;
     const lower = q.toLowerCase();
@@ -230,6 +243,11 @@
       </select>
     {/if}
   </div>
+  {#if citySuggestion}
+    <a href="/{citySuggestion.city.toLowerCase()}" class="city-suggestion">
+      {citySuggestion.city} — {citySuggestion.count} szkół →
+    </a>
+  {/if}
   <div class="view-toggle" role="radiogroup" aria-label="Widok listy">
     <button
       class="toggle-btn"
@@ -556,6 +574,23 @@
     border-color: var(--sf-accent);
   }
 
+  .city-suggestion {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sf-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    align-self: center;
+    flex-shrink: 0;
+  }
+
+  .city-suggestion:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   @media (max-width: 600px) {
     .filter-bar {
       flex-wrap: wrap;
@@ -566,6 +601,9 @@
     }
     .search-wrap {
       max-width: 100%;
+    }
+    .city-suggestion {
+      width: 100%;
     }
   }
 
