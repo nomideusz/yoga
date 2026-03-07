@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import "../app.css";
   import { setLabels } from "@nomideusz/svelte-calendar";
 
@@ -35,12 +35,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
   <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap"
+  />
+  <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap"
     rel="stylesheet"
   />
 </svelte:head>
 
 <div class="app">
+  <a href="#main-content" class="sr-only sr-only-focusable">Przejdź do głównej treści</a>
   <div class="sf-topline"></div>
   <header class="site-header">
     <div class="site-logo">
@@ -52,7 +58,7 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main-content">
     {@render children()}
   </main>
 

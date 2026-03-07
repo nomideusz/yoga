@@ -6,12 +6,32 @@
   let { data } = $props();
   let slug = $derived(data.slug);
   let categoryListings = $derived(data.listings);
-  let categoryName = $derived(slug ? slug.replace(/-/g, " ") : "");
+  let categoryName = $derived(data.styleName ?? (slug ? slug.replace(/-/g, " ") : ""));
 </script>
 
 <svelte:head>
   <link rel="canonical" href="https://szkolyjogi.pl/category/{slug}" />
   <title>{categoryName ? categoryName.charAt(0).toUpperCase() + categoryName.slice(1) : ''} | szkolyjogi.pl</title>
+  <meta
+    name="description"
+    content="Szkoły jogi w stylu {categoryName} — {categoryListings.length} {categoryListings.length === 1 ? 'placówka' : 'placówek'} w katalogu szkolyjogi.pl."
+  />
+  <meta property="og:title" content="{categoryName ? categoryName.charAt(0).toUpperCase() + categoryName.slice(1) : ''} | szkolyjogi.pl" />
+  <meta property="og:description" content="Szkoły jogi w stylu {categoryName} — {categoryListings.length} {categoryListings.length === 1 ? 'placówka' : 'placówek'} w katalogu szkolyjogi.pl." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://szkolyjogi.pl/category/{slug}" />
+  {@html `<script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: categoryName ? categoryName.charAt(0).toUpperCase() + categoryName.slice(1) : '',
+    numberOfItems: categoryListings.length,
+    itemListElement: categoryListings.slice(0, 20).map((s, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://szkolyjogi.pl/listing/${s.id}`,
+      name: s.name,
+    })),
+  }).replace(/</g, '\\u003c')}</script>`}
 </svelte:head>
 
 <div class="sf-page-shell">
