@@ -755,8 +755,18 @@
     .listing-sidebar { position: static; }
     .listing-meta-row { flex-direction: column; gap: 4px; }
     .listing-meta-dot { display: none; }
-    .action-bar { flex-direction: column; }
-    .action-btn { justify-content: center; }
-    .action-link { justify-content: center; }
+  }
+
+  @media (max-width: 480px) {
+    .listing-name { font-size: 1.8rem; }
+    .action-bar { gap: 8px; }
+    .action-btn { padding: 8px 12px; font-size: 0.78rem; }
+    .action-link { font-size: 0.76rem; word-break: break-all; }
+    .cover { min-height: 180px; height: 36vh; }
+    .price-hero-value { font-size: 2rem; }
+    .panel { padding: var(--spacing-sm); }
+    .schedule-empty-section { padding: 32px 16px; }
+    .profile-meta { flex-direction: column; gap: 4px; }
+    .meta-link { margin-left: 0; }
   }
 </style>

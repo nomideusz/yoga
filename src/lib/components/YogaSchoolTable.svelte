@@ -39,30 +39,7 @@
     }
   }
 
-  // Deduplicate and extract all unique styles
   const plCollator = new Intl.Collator('pl-PL');
-
-  /** Unique styles with school counts, sorted alphabetically */
-  let stylesWithCounts = $derived(
-    (() => {
-      const counts = new Map<string, number>();
-      for (const school of schools) {
-        for (const style of school.styles) {
-          counts.set(style, (counts.get(style) ?? 0) + 1);
-        }
-      }
-      return Array.from(counts.entries())
-        .map(([style, count]) => ({ style, count }))
-        .sort((a, b) => plCollator.compare(a.style, b.style));
-    })()
-  );
-
-  let uniqueStyles = $derived(stylesWithCounts.map((s) => s.style));
-
-  /** Only show filters when there are enough schools and styles to make filtering useful */
-  let showStyleFilters = $derived(schools.length >= 5 && stylesWithCounts.length >= 3);
-
-  let selectedStyle = $state("Wszystkie");
 
   function isValidSortKey(value: unknown): value is string {
     if (typeof value !== "string") return false;
@@ -81,15 +58,10 @@
       if (!raw) return;
 
       const state = JSON.parse(raw) as {
-        selectedStyle?: unknown;
         sortKey?: unknown;
         sortDirection?: unknown;
         viewMode?: unknown;
       };
-
-      if (typeof state.selectedStyle === "string") {
-        selectedStyle = state.selectedStyle;
-      }
 
       if (isValidSortKey(state.sortKey)) {
         if (!hideCityColumn || state.sortKey !== "city") {
@@ -107,7 +79,6 @@
         viewMode = window.matchMedia('(max-width: 768px)').matches ? 'cards' : 'table';
       }
     } catch {
-      selectedStyle = "Wszystkie";
       sortKey = defaultSortKey;
       sortDirection = -1;
       viewMode = window.matchMedia('(max-width: 768px)').matches ? 'cards' : 'table';
@@ -131,13 +102,9 @@
     return s[key] ?? null;
   }
 
-  // Filter first, then sort (null values pushed to bottom)
+  // Sort schools (null values pushed to bottom)
   let filteredAndSortedSchools = $derived(
     [...schools]
-      .filter((school) => {
-        if (selectedStyle === "Wszystkie") return true;
-        return school.styles.includes(selectedStyle);
-      })
       .sort((a, b) => {
         const valA = getSortValue(a, sortKey);
         const valB = getSortValue(b, sortKey);
@@ -166,21 +133,11 @@
   // Pagination
   let totalPages = $derived(Math.max(1, Math.ceil(filteredAndSortedSchools.length / PER_PAGE)));
 
-  // Reset to page 1 when filter or sort changes
+  // Reset to page 1 when sort changes
   $effect(() => {
-    // Subscribe to the reactive values
-    void selectedStyle;
     void sortKey;
     void sortDirection;
-    // Reset page
     currentPage = 1;
-  });
-
-  $effect(() => {
-    if (selectedStyle === "Wszystkie") return;
-    if (!showStyleFilters || !uniqueStyles.includes(selectedStyle)) {
-      selectedStyle = "Wszystkie";
-    }
   });
 
   $effect(() => {
@@ -188,7 +145,6 @@
     localStorage.setItem(
       tableStorageKey(),
       JSON.stringify({
-        selectedStyle,
         sortKey,
         sortDirection,
         viewMode,
@@ -213,27 +169,6 @@
 </script>
 
 <div class="filter-bar">
-  {#if showStyleFilters}
-  <div class="filter-left">
-    <span class="muted filter-label">Filtruj wg stylu:</span>
-    <button
-      class="filter-btn"
-      class:active={selectedStyle === "Wszystkie"}
-      onclick={() => (selectedStyle = "Wszystkie")}
-    >
-      Wszystkie
-    </button>
-    {#each stylesWithCounts as { style, count } (style)}
-      <button
-        class="filter-btn"
-        class:active={selectedStyle === style}
-        onclick={() => (selectedStyle = style)}
-      >
-        {style} <span class="filter-count">({count})</span>
-      </button>
-    {/each}
-  </div>
-  {/if}
   <div class="view-toggle" role="radiogroup" aria-label="Widok listy">
     <button
       class="toggle-btn"
@@ -374,9 +309,6 @@
   {:else}
     <div class="empty-state">
       Brak wyników — żadna ze szkół nie pasuje do wybranych kryteriów.
-      {#if selectedStyle !== "Wszystkie"}
-        <button class="empty-action" onclick={() => (selectedStyle = "Wszystkie")}>Pokaż wszystkie style</button>
-      {/if}
     </div>
   {/each}
 </div>
@@ -443,9 +375,6 @@
   {:else}
     <div class="empty-state">
       Brak wyników — żadna ze szkół nie pasuje do wybranych kryteriów.
-      {#if selectedStyle !== "Wszystkie"}
-        <button class="empty-action" onclick={() => (selectedStyle = "Wszystkie")}>Pokaż wszystkie style</button>
-      {/if}
     </div>
   {/each}
 </div>
@@ -472,61 +401,8 @@
   /* ── Filter bar ── */
   .filter-bar {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-    align-items: flex-start;
+    justify-content: flex-end;
     margin-bottom: var(--spacing-md);
-    justify-content: space-between;
-  }
-
-  .filter-left {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-    align-items: center;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .filter-label {
-    font-family: var(--font-body);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--sf-muted);
-    margin-right: var(--spacing-xs);
-  }
-
-  .filter-btn {
-    background: var(--sf-card);
-    color: var(--sf-dark);
-    border: 1px solid var(--sf-line);
-    padding: 8px 16px;
-    font-family: var(--font-body);
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    font-weight: 500;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: var(--radius-pill);
-    transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease, background-color var(--dur-fast) ease;
-  }
-
-  .filter-btn:hover {
-    border-color: var(--sf-accent);
-    color: var(--sf-accent);
-  }
-
-  .filter-btn.active {
-    background: var(--sf-accent);
-    color: #ffffff;
-    border-color: var(--sf-accent);
-    font-weight: 600;
-  }
-
-  .filter-count {
-    opacity: 0.65;
-    font-size: 0.64rem;
   }
 
   /* ── Table card wrapper ── */
@@ -927,27 +803,6 @@
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-  }
-
-  .empty-action {
-    display: block;
-    margin: 16px auto 0;
-    background: none;
-    border: 1px solid var(--sf-line);
-    color: var(--sf-accent);
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    padding: 8px 20px;
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    transition: border-color var(--dur-fast) ease;
-  }
-
-  .empty-action:hover {
-    border-color: var(--sf-accent);
   }
 
   /* ── Responsive ── */
