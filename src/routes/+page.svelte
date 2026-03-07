@@ -1,7 +1,6 @@
 <script lang="ts">
   import CityMap from "$lib/components/CityMap.svelte";
   import PageHero from "$lib/components/PageHero.svelte";
-  import SearchBar from "$lib/components/SearchBar.svelte";
   import SectionLabel from "$lib/components/SectionLabel.svelte";
   import YogaSchoolTable from "$lib/components/YogaSchoolTable.svelte";
 
@@ -59,8 +58,6 @@
     tag="Katalog szkół jogi"
     titleLines={["Spokojne", "miejsca", "do praktyki"]}
   />
-
-  <SearchBar {cities} {styles} {cityCoords} schools={listings.map(l => ({ id: l.id, name: l.name, city: l.city }))} />
 
   <p class="home-stats">
     {totalSchools} szkół jogi w {cities.length} miastach, {styles.length} stylów praktyki.

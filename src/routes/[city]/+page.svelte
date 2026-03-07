@@ -2,18 +2,11 @@
   import type { PageData } from "./$types";
   import CityMap from "$lib/components/CityMap.svelte";
   import YogaSchoolTable from "$lib/components/YogaSchoolTable.svelte";
-  import SearchBar from "$lib/components/SearchBar.svelte";
   import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
   import PageHero from "$lib/components/PageHero.svelte";
 
   let { data }: { data: PageData } = $props();
   const googleMapsApiKey = $derived(data.googleMapsApiKey);
-  const cities = $derived((data as any).cities as string[]);
-  const styles = $derived((data as any).styles as string[]);
-  const cityCoords = $derived(
-    Object.entries((data as any).cityCoords as Record<string, { lat: number; lng: number }>)
-      .map(([city, coords]) => ({ city, ...coords }))
-  );
 
   /** Build markers from individual school locations */
   const schoolMarkers = $derived(
@@ -126,8 +119,6 @@
     subtitle="Porównanie cen, ocen i stylów dla {data.schools.length} szkół jogi w tym mieście."
     compact
   />
-
-  <SearchBar {cities} {styles} {cityCoords} schools={data.schools.map(s => ({ id: s.id, name: s.name, city: s.city }))} />
 
   {#if googleMapsApiKey && schoolMarkers.length > 0}
     <section class="city-map-section">

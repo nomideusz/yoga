@@ -41,6 +41,36 @@
 
   const plCollator = new Intl.Collator('pl-PL');
 
+  // ── Search & filter ──
+  let searchQuery = $state("");
+  let selectedStyle = $state("");
+
+  let uniqueStyles = $derived(
+    (() => {
+      const counts = new Map<string, number>();
+      for (const school of schools) {
+        for (const style of school.styles) {
+          counts.set(style, (counts.get(style) ?? 0) + 1);
+        }
+      }
+      return Array.from(counts.entries())
+        .map(([style, count]) => ({ style, count }))
+        .sort((a, b) => plCollator.compare(a.style, b.style));
+    })()
+  );
+
+  let showFilters = $derived(schools.length >= 5 && uniqueStyles.length >= 3);
+
+  function matchesSearch(school: Listing, q: string): boolean {
+    if (!q) return true;
+    const lower = q.toLowerCase();
+    return (
+      school.name.toLowerCase().includes(lower) ||
+      school.city.toLowerCase().includes(lower) ||
+      school.styles.some(s => s.toLowerCase().includes(lower))
+    );
+  }
+
   function isValidSortKey(value: unknown): value is string {
     if (typeof value !== "string") return false;
     return ["name", "city", "rating"].includes(value);
@@ -102,9 +132,11 @@
     return s[key] ?? null;
   }
 
-  // Sort schools (null values pushed to bottom)
+  // Filter then sort (null values pushed to bottom)
   let filteredAndSortedSchools = $derived(
     [...schools]
+      .filter(s => matchesSearch(s, searchQuery))
+      .filter(s => !selectedStyle || s.styles.includes(selectedStyle))
       .sort((a, b) => {
         const valA = getSortValue(a, sortKey);
         const valB = getSortValue(b, sortKey);
@@ -133,10 +165,12 @@
   // Pagination
   let totalPages = $derived(Math.max(1, Math.ceil(filteredAndSortedSchools.length / PER_PAGE)));
 
-  // Reset to page 1 when sort changes
+  // Reset to page 1 when sort or filter changes
   $effect(() => {
     void sortKey;
     void sortDirection;
+    void searchQuery;
+    void selectedStyle;
     currentPage = 1;
   });
 
@@ -169,6 +203,33 @@
 </script>
 
 <div class="filter-bar">
+  <div class="filter-inputs">
+    <div class="search-wrap">
+      <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5L14.5 14.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Szukaj szkoły, miasta lub stylu..."
+        bind:value={searchQuery}
+        aria-label="Szukaj"
+      />
+      {#if searchQuery}
+        <button class="search-clear" onclick={() => (searchQuery = "")} aria-label="Wyczyść">×</button>
+      {/if}
+    </div>
+    {#if showFilters}
+      <select
+        class="style-select"
+        bind:value={selectedStyle}
+        aria-label="Filtruj wg stylu"
+      >
+        <option value="">Wszystkie style</option>
+        {#each uniqueStyles as { style, count } (style)}
+          <option value={style}>{style} ({count})</option>
+        {/each}
+      </select>
+    {/if}
+  </div>
   <div class="view-toggle" role="radiogroup" aria-label="Widok listy">
     <button
       class="toggle-btn"
@@ -308,7 +369,7 @@
     </div>
   {:else}
     <div class="empty-state">
-      Brak wyników — żadna ze szkół nie pasuje do wybranych kryteriów.
+      Brak wyników — spróbuj zmienić wyszukiwanie lub wyczyść filtry.
     </div>
   {/each}
 </div>
@@ -374,7 +435,7 @@
     </a>
   {:else}
     <div class="empty-state">
-      Brak wyników — żadna ze szkół nie pasuje do wybranych kryteriów.
+      Brak wyników — spróbuj zmienić wyszukiwanie lub wyczyść filtry.
     </div>
   {/each}
 </div>
@@ -401,8 +462,111 @@
   /* ── Filter bar ── */
   .filter-bar {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
     margin-bottom: var(--spacing-md);
+  }
+
+  .filter-inputs {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    max-width: 360px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sf-muted);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 32px 8px 34px;
+    border: 1px solid var(--sf-line);
+    border-radius: var(--radius-sm);
+    background: var(--sf-card);
+    color: var(--sf-dark);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    transition: border-color var(--dur-fast) ease;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--sf-accent);
+  }
+
+  .search-input::placeholder {
+    color: var(--sf-ice);
+    font-size: 0.82rem;
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: var(--sf-muted);
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: color var(--dur-fast) ease;
+  }
+
+  .search-clear:hover {
+    color: var(--sf-dark);
+  }
+
+  .style-select {
+    padding: 8px 28px 8px 12px;
+    border: 1px solid var(--sf-line);
+    border-radius: var(--radius-sm);
+    background: var(--sf-card);
+    color: var(--sf-dark);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color var(--dur-fast) ease;
+    white-space: nowrap;
+  }
+
+  .style-select:focus {
+    outline: none;
+    border-color: var(--sf-accent);
+  }
+
+  @media (max-width: 600px) {
+    .filter-bar {
+      flex-wrap: wrap;
+    }
+    .filter-inputs {
+      flex-direction: column;
+      width: 100%;
+    }
+    .search-wrap {
+      max-width: 100%;
+    }
   }
 
   /* ── Table card wrapper ── */
