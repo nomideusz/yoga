@@ -1,9 +1,6 @@
 <script lang="ts">
   import "../app.css";
   import { setLabels } from "@nomideusz/svelte-calendar";
-  import { i18n } from "$lib/i18n.js";
-  const t = i18n.t;
-
   setLabels({
     today: "Dziś",
     yesterday: "Wczoraj",
@@ -49,13 +46,12 @@
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap"
     rel="stylesheet"
   />
-  <link rel="alternate" hreflang="pl" href="https://szkolyjogi.pl/" />
-  <link rel="alternate" hreflang="x-default" href="https://szkolyjogi.pl/" />
+
 </svelte:head>
 
 <div class="app">
   <a href="#main-content" class="sr-only sr-only-focusable"
-    >{t("skip_to_content")}</a
+    >Przejdź do głównej treści</a
   >
   <div class="sf-topline"></div>
   <header class="site-header">
@@ -63,8 +59,8 @@
       <a href="/">szkolyjogi.pl</a>
     </div>
     <nav class="site-nav">
-      <a href="/about">{t("nav_about")}</a>
-      <a href="/post">{t("nav_add_studio")}</a>
+      <a href="/about">O nas</a>
+      <a href="/post">Dodaj studio</a>
     </nav>
   </header>
 
@@ -73,10 +69,10 @@
   </main>
 
   <footer class="site-footer">
-    <span class="footer-copy">{t("footer_copyright")}</span>
+    <span class="footer-copy">&copy; 2026 szkolyjogi.pl — Katalog Szkół Jogi w Polsce</span>
     <div class="footer-links">
-      <a href="/terms">{t("footer_terms")}</a>
-      <a href="/about">{t("footer_about")}</a>
+      <a href="/terms">Regulamin</a>
+      <a href="/about">O projekcie</a>
     </div>
   </footer>
 </div>
