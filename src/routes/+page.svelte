@@ -55,9 +55,7 @@
     titleLines={["Spokojne", "miejsca", "do praktyki"]}
   />
 
-  <!-- Full table — the core content -->
   <section class="sf-section sf-section--tight">
-    <SectionLabel text="Wszystkie szkoły" />
     <YogaSchoolTable schools={listings} />
   </section>
 
