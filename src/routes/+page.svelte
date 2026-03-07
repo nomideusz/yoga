@@ -6,14 +6,10 @@
 
   let { data } = $props();
   const listings = $derived(data.listings);
-  const cities = $derived(data.cities);
-  const styles = $derived(data.styles);
   const cityCoords = $derived(
     Object.entries(data.cityCoords).map(([city, coords]) => ({ city, ...coords }))
   );
   const googleMapsApiKey = $derived(data.googleMapsApiKey);
-
-  const totalSchools = $derived(listings.length);
 
   /** City markers with school counts for the map */
   const cityMarkers = $derived(
@@ -59,10 +55,6 @@
     titleLines={["Spokojne", "miejsca", "do praktyki"]}
   />
 
-  <p class="home-stats">
-    {totalSchools} szkół jogi w {cities.length} miastach, {styles.length} stylów praktyki.
-  </p>
-
   <!-- Full table — the core content -->
   <section class="sf-section sf-section--tight">
     <SectionLabel text="Wszystkie szkoły" />
@@ -105,16 +97,6 @@
 </div>
 
 <style>
-  /* ── Stats below search ── */
-  .home-stats {
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--sf-muted);
-    padding: 16px 0 0;
-  }
-
   /* ── Page sections ── */
   .sf-section {
     padding: 56px 0 40px;
