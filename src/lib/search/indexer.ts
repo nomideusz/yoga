@@ -104,8 +104,16 @@ export async function rebuildFts(db: Client): Promise<void> {
 
 // ── Load resolver lookup tables ────────────────────────────
 
-/** Load all lookup tables needed by the resolver. Call once at startup. */
+let _cachedLookups: ResolverLookups | null = null;
+let _cacheTimestamp = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Load all lookup tables needed by the resolver. Cached for 5 minutes. */
 export async function loadResolverLookups(db: Client): Promise<ResolverLookups> {
+  const now = Date.now();
+  if (_cachedLookups && (now - _cacheTimestamp) < CACHE_TTL_MS) {
+    return _cachedLookups;
+  }
   // Cities: normalized name → slug
   const cityMap = new Map<string, string>();
   const cityRows = await db.execute('SELECT slug, name_n FROM cities');
@@ -160,7 +168,9 @@ export async function loadResolverLookups(db: Client): Promise<ResolverLookups> 
     districtMap.set(row.slug, districts.map(d => normalize(d)));
   }
 
-  return { cityMap, styleMap, districtMap };
+  _cachedLookups = { cityMap, styleMap, districtMap };
+  _cacheTimestamp = now;
+  return _cachedLookups;
 }
 
 // ── Helpers ────────────────────────────────────────────────

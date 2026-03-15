@@ -79,16 +79,16 @@ function buildListing(
 // ── Public queries ──────────────────────────────────────────────────────────
 
 export async function getAllListings(): Promise<Listing[]> {
-  const allSchools = await db.select().from(schools).where(eq(schools.isListed, true));
-
-  // Batch-load all styles joins
-  const allSchoolStyles = await db
-    .select({
+  // Run schools + styles queries in parallel (skip schedule entries — not needed for cards)
+  const [allSchools, allSchoolStyles] = await Promise.all([
+    db.select().from(schools).where(eq(schools.isListed, true)),
+    db.select({
       schoolId: schoolStyles.schoolId,
       styleName: styles.name,
     })
     .from(schoolStyles)
-    .innerJoin(styles, eq(schoolStyles.styleId, styles.id));
+    .innerJoin(styles, eq(schoolStyles.styleId, styles.id)),
+  ]);
 
   const stylesBySchool = new Map<string, string[]>();
   for (const row of allSchoolStyles) {
@@ -97,17 +97,8 @@ export async function getAllListings(): Promise<Listing[]> {
     stylesBySchool.set(row.schoolId, arr);
   }
 
-  // Batch-load all schedule entries
-  const allEntries = await db.select().from(scheduleEntries);
-  const schedBySchool = new Map<string, ScheduleEntryData[]>();
-  for (const row of allEntries) {
-    const arr = schedBySchool.get(row.schoolId) ?? [];
-    arr.push(mapScheduleRow(row));
-    schedBySchool.set(row.schoolId, arr);
-  }
-
   return allSchools.map((s) =>
-    buildListing(s, stylesBySchool.get(s.id) ?? [], schedBySchool.get(s.id) ?? []),
+    buildListing(s, stylesBySchool.get(s.id) ?? [], []),
   );
 }
 
@@ -115,16 +106,15 @@ export async function getListingById(id: string): Promise<Listing | null> {
   const [school] = await db.select().from(schools).where(eq(schools.id, id)).limit(1);
   if (!school) return null;
 
-  const schoolStyleRows = await db
-    .select({ name: styles.name })
-    .from(schoolStyles)
-    .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
-    .where(eq(schoolStyles.schoolId, id));
-
-  const schedRows = await db
-    .select()
-    .from(scheduleEntries)
-    .where(eq(scheduleEntries.schoolId, id));
+  const [schoolStyleRows, schedRows] = await Promise.all([
+    db.select({ name: styles.name })
+      .from(schoolStyles)
+      .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
+      .where(eq(schoolStyles.schoolId, id)),
+    db.select()
+      .from(scheduleEntries)
+      .where(eq(scheduleEntries.schoolId, id)),
+  ]);
 
   return {
     ...buildListing(
@@ -158,18 +148,21 @@ export async function getListingsByStyle(styleName: string): Promise<Listing[]> 
 
   const ids = schoolIds.map((r) => r.schoolId);
 
-  // Fetch all those schools
-  const matchedSchools = await db
-    .select()
-    .from(schools)
-    .where(and(sql`${schools.id} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`, eq(schools.isListed, true)));
+  const idsSql = sql.join(ids.map((id) => sql`${id}`), sql`, `);
 
-  // Batch-load styles for those schools
-  const allSchoolStyles = await db
-    .select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
-    .from(schoolStyles)
-    .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
-    .where(sql`${schoolStyles.schoolId} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
+  // Fetch schools + styles + schedule entries in parallel
+  const [matchedSchools, allSchoolStyles, entries] = await Promise.all([
+    db.select()
+      .from(schools)
+      .where(and(sql`${schools.id} IN (${idsSql})`, eq(schools.isListed, true))),
+    db.select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
+      .from(schoolStyles)
+      .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
+      .where(sql`${schoolStyles.schoolId} IN (${idsSql})`),
+    db.select()
+      .from(scheduleEntries)
+      .where(sql`${scheduleEntries.schoolId} IN (${idsSql})`),
+  ]);
 
   const stylesBySchool = new Map<string, string[]>();
   for (const row of allSchoolStyles) {
@@ -177,12 +170,6 @@ export async function getListingsByStyle(styleName: string): Promise<Listing[]> 
     arr.push(row.styleName);
     stylesBySchool.set(row.schoolId, arr);
   }
-
-  // Batch-load schedule entries
-  const entries = await db
-    .select()
-    .from(scheduleEntries)
-    .where(sql`${scheduleEntries.schoolId} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
 
   const schedBySchool = new Map<string, ScheduleEntryData[]>();
   for (const row of entries) {
@@ -205,13 +192,18 @@ export async function getListingsByCity(city: string): Promise<Listing[]> {
   if (matchedSchools.length === 0) return [];
 
   const ids = matchedSchools.map((s) => s.id);
+  const idsSql = sql.join(ids.map((id) => sql`${id}`), sql`, `);
 
-  // Batch-load styles
-  const allSchoolStyles = await db
-    .select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
-    .from(schoolStyles)
-    .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
-    .where(sql`${schoolStyles.schoolId} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
+  // Batch-load styles + schedule entries in parallel
+  const [allSchoolStyles, entries] = await Promise.all([
+    db.select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
+      .from(schoolStyles)
+      .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
+      .where(sql`${schoolStyles.schoolId} IN (${idsSql})`),
+    db.select()
+      .from(scheduleEntries)
+      .where(sql`${scheduleEntries.schoolId} IN (${idsSql})`),
+  ]);
 
   const stylesBySchool = new Map<string, string[]>();
   for (const row of allSchoolStyles) {
@@ -219,12 +211,6 @@ export async function getListingsByCity(city: string): Promise<Listing[]> {
     arr.push(row.styleName);
     stylesBySchool.set(row.schoolId, arr);
   }
-
-  // Batch-load schedule entries
-  const entries = await db
-    .select()
-    .from(scheduleEntries)
-    .where(sql`${scheduleEntries.schoolId} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
 
   const schedBySchool = new Map<string, ScheduleEntryData[]>();
   for (const row of entries) {

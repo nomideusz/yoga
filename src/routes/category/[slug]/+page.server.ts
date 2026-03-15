@@ -1,15 +1,18 @@
 import { getListingsByStyle } from '$lib/server/db/queries/index';
 import { STYLES_METADATA } from '$lib/styles-metadata';
-import { loadResolverLookups } from '$lib/search';
-import { client } from '$lib/server/db/index';
+import type { PageServerLoad } from './$types';
 
-export async function load({ params }) {
+export const load: PageServerLoad = async ({ params, parent }) => {
   const slug = params.slug;
   // Convert URL slug back to style name (e.g. "power-yoga" → "power yoga")
   const styleName = slug.replace(/-/g, ' ');
-  const listings = await getListingsByStyle(styleName);
+
+  const [listings, parentData] = await Promise.all([
+    getListingsByStyle(styleName),
+    parent(),
+  ]);
   const metadata = STYLES_METADATA[styleName.toLowerCase()];
-  const lookups = await loadResolverLookups(client);
+  const lookups = parentData.lookups;
 
   return {
     slug,
@@ -18,4 +21,4 @@ export async function load({ params }) {
     metadata,
     lookups,
   };
-}
+};

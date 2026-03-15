@@ -86,12 +86,11 @@
 
   <main id="main-content">
     {#if $navigating}
-      <div class="nav-loading">
+      <div class="nav-loading-overlay">
         <span class="sf-loader"></span>
       </div>
-    {:else}
-      {@render children()}
     {/if}
+    {@render children()}
   </main>
 
   <footer class="sf-site-footer">
@@ -175,11 +174,18 @@
     background: var(--sf-frost);
   }
 
-  .nav-loading {
+  .nav-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 40vh;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 50;
+    pointer-events: none;
   }
 
   /* ── Footer ── */
