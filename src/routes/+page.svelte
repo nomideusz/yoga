@@ -8,11 +8,11 @@
     const t = i18n.t;
 
     let { data } = $props();
-    const listings = $derived(data.listings);
+    const autocomplete = $derived(data.autocomplete);
 
     /** City -> school count, sorted descending */
     const cityCounts = $derived(
-        listings.reduce(
+        autocomplete.reduce(
             (acc, s) => {
                 acc[s.city] = (acc[s.city] || 0) + 1;
                 return acc;
@@ -39,11 +39,11 @@
 
     /** All styles for search */
     const allStyles = $derived(
-        [...new Set(listings.flatMap((l) => l.styles))].sort(),
+        [...new Set(autocomplete.flatMap((l) => l.styles))].sort(),
     );
 
     const styleCounts = $derived(
-        listings.reduce(
+        autocomplete.reduce(
             (acc, s) => {
                 for (const st of s.styles) {
                     acc[st] = (acc[st] || 0) + 1;
@@ -75,7 +75,6 @@
               id: string;
               name: string;
               city: string;
-              rating: number | null;
           }
         | { type: "style"; style: string; count: number }
         | { type: "city+style"; city: string; style: string; count: number }
@@ -158,7 +157,7 @@
                     for (const style of matchingStyles) {
                         const key = `${cityFirst}+${style}`;
                         if (!seen.has(key)) {
-                            const count = listings.filter(
+                            const count = autocomplete.filter(
                                 (l) =>
                                     l.city === cityFirst &&
                                     l.styles.includes(style),
@@ -187,7 +186,7 @@
                     for (const style of matchingStyles) {
                         const key = `${citySecond}+${style}`;
                         if (!seen.has(key)) {
-                            const count = listings.filter(
+                            const count = autocomplete.filter(
                                 (l) =>
                                     l.city === citySecond &&
                                     l.styles.includes(style),
@@ -232,7 +231,7 @@
         }
 
         // ── Schools (diacritic-forgiving + synonym-aware) ──
-        const matchedSchools = listings
+        const matchedSchools = autocomplete
             .filter((l) => {
                 const haystack =
                     normalizePolish(l.name) +
@@ -246,7 +245,6 @@
                     l.styles.map((s) => normalizePolish(s)).join(" ");
                 return expandedTokens.every((t) => haystack.includes(t));
             })
-            .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
             .slice(0, 5);
         for (const s of matchedSchools) {
             results.push({
@@ -254,7 +252,6 @@
                 id: s.id,
                 name: s.name,
                 city: s.city,
-                rating: s.rating,
             });
         }
 
@@ -336,7 +333,7 @@
             if (result?.latitude != null && result?.longitude != null) {
                 let nearest = "";
                 let minDist = Infinity;
-                for (const [city, coords] of cityCentroids) {
+                for (const [city, coords] of Object.entries(data.cityCoords)) {
                     const d = haversine(
                         result.latitude,
                         result.longitude,
@@ -401,7 +398,7 @@
                 // Find nearest city
                 let nearest = "";
                 let minDist = Infinity;
-                for (const [city, coords] of cityCentroids) {
+                for (const [city, coords] of Object.entries(data.cityCoords)) {
                     const d = haversine(
                         result.latitude,
                         result.longitude,
@@ -555,27 +552,6 @@
     // ── Geolocation ──
     let locating = $state(false);
 
-    const cityCentroids = $derived.by(() => {
-        const map = new Map<string, { lat: number; lng: number }>();
-        for (const city of allCities) {
-            const schools = listings.filter(
-                (s) =>
-                    s.city === city &&
-                    s.latitude != null &&
-                    s.longitude != null,
-            );
-            if (schools.length === 0) continue;
-            const lat =
-                schools.reduce((sum, s) => sum + s.latitude!, 0) /
-                schools.length;
-            const lng =
-                schools.reduce((sum, s) => sum + s.longitude!, 0) /
-                schools.length;
-            map.set(city, { lat, lng });
-        }
-        return map;
-    });
-
     async function requestLocation() {
         if (typeof navigator === "undefined" || !navigator.geolocation) return;
         locating = true;
@@ -585,7 +561,7 @@
                 const userLng = pos.coords.longitude;
                 let nearest = "";
                 let minDist = Infinity;
-                for (const [city, coords] of cityCentroids) {
+                for (const [city, coords] of Object.entries(data.cityCoords)) {
                     const d = haversine(
                         userLat,
                         userLng,
@@ -672,8 +648,8 @@
             <div class="sf-hero-tag">{t("hero_tag")}</div>
             <h1 class="sf-hero-title">{t("hero_title")}</h1>
             <p class="sf-hero-sub">
-                {listings.length}
-                {pluralSchool(listings.length)} {t("city_style_in")} {allCities.length} {t("hero_sub_cities")}.
+                {autocomplete.length}
+                {pluralSchool(autocomplete.length)} {t("city_style_in")} {allCities.length} {t("hero_sub_cities")}.
             </p>
 
             <!-- Unified Search Box -->
@@ -924,9 +900,7 @@
                                             >{result.name}</span
                                         >
                                         <span class="dropdown-item-meta"
-                                            >{result.city}{result.rating != null
-                                                ? ` · ★ ${result.rating.toFixed(1)}`
-                                                : ""}</span
+                                            >{result.city}</span
                                         >
                                     {/if}
                                 </button>

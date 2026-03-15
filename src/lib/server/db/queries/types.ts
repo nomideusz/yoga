@@ -73,3 +73,25 @@ export interface ReviewData {
   publishedAt: string | null;
   language: string | null;
 }
+
+/** Minimal type for homepage autocomplete/search — no prices, ratings, or descriptions */
+export interface AutocompleteEntry {
+  id: string;
+  name: string;
+  city: string;
+  address: string;
+  neighborhood: string | null;
+  styles: string[];
+}
+
+/** Card type for city/category list views — adds coords for map pins */
+export interface ListingCard {
+  id: string;
+  name: string;
+  city: string;
+  address: string;
+  neighborhood: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  styles: string[];
+}

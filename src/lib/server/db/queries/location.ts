@@ -2,17 +2,31 @@ import { db } from '../index';
 import { schools, styles, geocodedStreets } from '../schema';
 import { eq, and, sql } from 'drizzle-orm';
 
+let _citiesCache: string[] | null = null;
+let _citiesCacheTs = 0;
+const CITIES_CACHE_TTL = 10 * 60 * 1000;
+
 export async function getUniqueCities(): Promise<string[]> {
+  if (_citiesCache && Date.now() - _citiesCacheTs < CITIES_CACHE_TTL) return _citiesCache;
   const rows = await db
     .selectDistinct({ city: schools.city })
     .from(schools)
     .where(and(sql`${schools.city} != ''`, eq(schools.isListed, true)));
-  return rows.map((r) => r.city).sort();
+  _citiesCache = rows.map((r) => r.city).sort();
+  _citiesCacheTs = Date.now();
+  return _citiesCache;
 }
 
+let _stylesCache: string[] | null = null;
+let _stylesCacheTs = 0;
+const STYLES_CACHE_TTL = 10 * 60 * 1000;
+
 export async function getUniqueStyles(): Promise<string[]> {
+  if (_stylesCache && Date.now() - _stylesCacheTs < STYLES_CACHE_TTL) return _stylesCache;
   const rows = await db.select({ name: styles.name }).from(styles);
-  return rows.map((r) => r.name).sort();
+  _stylesCache = rows.map((r) => r.name).sort();
+  _stylesCacheTs = Date.now();
+  return _stylesCache;
 }
 
 export async function getCityCoords(): Promise<Record<string, { lat: number; lng: number }>> {

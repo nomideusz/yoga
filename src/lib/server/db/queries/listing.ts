@@ -1,7 +1,7 @@
 import { db } from '../index';
 import { schools, styles, schoolStyles, scheduleEntries } from '../schema';
 import { eq, and, sql } from 'drizzle-orm';
-import type { Listing, ScheduleEntryData } from './types';
+import type { Listing, ScheduleEntryData, AutocompleteEntry, ListingCard } from './types';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -76,6 +76,23 @@ function buildListing(
   };
 }
 
+/** Build a lean card from explicit column selection */
+function buildCard(
+  row: { id: string; name: string; city: string; address: string | null; neighborhood: string | null; latitude: number | null; longitude: number | null },
+  styleNames: string[],
+): ListingCard {
+  return {
+    id: row.id,
+    name: row.name,
+    city: row.city,
+    address: row.address ?? '',
+    neighborhood: row.neighborhood,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    styles: styleNames,
+  };
+}
+
 // ── Public queries ──────────────────────────────────────────────────────────
 
 export async function getAllListings(): Promise<Listing[]> {
@@ -100,6 +117,54 @@ export async function getAllListings(): Promise<Listing[]> {
   return allSchools.map((s) =>
     buildListing(s, stylesBySchool.get(s.id) ?? [], []),
   );
+}
+
+// ── Autocomplete index (cached) ────────────────────────────────────────────
+
+let _autocompleteCache: AutocompleteEntry[] | null = null;
+let _autocompleteCacheTs = 0;
+const AUTOCOMPLETE_CACHE_TTL = 10 * 60 * 1000;
+
+export async function getAutocompleteIndex(): Promise<AutocompleteEntry[]> {
+  if (_autocompleteCache && Date.now() - _autocompleteCacheTs < AUTOCOMPLETE_CACHE_TTL) {
+    return _autocompleteCache;
+  }
+
+  const [rows, allSchoolStyles] = await Promise.all([
+    db.select({
+      id: schools.id,
+      name: schools.name,
+      city: schools.city,
+      address: schools.address,
+      neighborhood: schools.neighborhood,
+    }).from(schools).where(eq(schools.isListed, true)),
+    db.select({
+      schoolId: schoolStyles.schoolId,
+      styleName: styles.name,
+    })
+    .from(schoolStyles)
+    .innerJoin(styles, eq(schoolStyles.styleId, styles.id)),
+  ]);
+
+  const stylesBySchool = new Map<string, string[]>();
+  for (const row of allSchoolStyles) {
+    const arr = stylesBySchool.get(row.schoolId) ?? [];
+    arr.push(row.styleName);
+    stylesBySchool.set(row.schoolId, arr);
+  }
+
+  const result = rows.map((s) => ({
+    id: s.id,
+    name: s.name,
+    city: s.city,
+    address: s.address ?? '',
+    neighborhood: s.neighborhood,
+    styles: stylesBySchool.get(s.id) ?? [],
+  }));
+
+  _autocompleteCache = result;
+  _autocompleteCacheTs = Date.now();
+  return result;
 }
 
 export async function getListingById(id: string): Promise<Listing | null> {
@@ -127,8 +192,7 @@ export async function getListingById(id: string): Promise<Listing | null> {
   };
 }
 
-export async function getListingsByStyle(styleName: string): Promise<Listing[]> {
-  // Find matching style IDs (case-insensitive)
+export async function getListingsByStyle(styleName: string): Promise<ListingCard[]> {
   const matchedStyles = await db
     .select({ id: styles.id })
     .from(styles)
@@ -136,7 +200,6 @@ export async function getListingsByStyle(styleName: string): Promise<Listing[]> 
 
   if (matchedStyles.length === 0) return [];
 
-  // Get school IDs that have this style
   const schoolIds = await db
     .select({ schoolId: schoolStyles.schoolId })
     .from(schoolStyles)
@@ -147,21 +210,24 @@ export async function getListingsByStyle(styleName: string): Promise<Listing[]> 
   if (schoolIds.length === 0) return [];
 
   const ids = schoolIds.map((r) => r.schoolId);
-
   const idsSql = sql.join(ids.map((id) => sql`${id}`), sql`, `);
 
-  // Fetch schools + styles + schedule entries in parallel
-  const [matchedSchools, allSchoolStyles, entries] = await Promise.all([
-    db.select()
-      .from(schools)
-      .where(and(sql`${schools.id} IN (${idsSql})`, eq(schools.isListed, true))),
+  const [matchedSchools, allSchoolStyles] = await Promise.all([
+    db.select({
+      id: schools.id,
+      name: schools.name,
+      city: schools.city,
+      address: schools.address,
+      neighborhood: schools.neighborhood,
+      latitude: schools.latitude,
+      longitude: schools.longitude,
+    })
+    .from(schools)
+    .where(and(sql`${schools.id} IN (${idsSql})`, eq(schools.isListed, true))),
     db.select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
       .from(schoolStyles)
       .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
       .where(sql`${schoolStyles.schoolId} IN (${idsSql})`),
-    db.select()
-      .from(scheduleEntries)
-      .where(sql`${scheduleEntries.schoolId} IN (${idsSql})`),
   ]);
 
   const stylesBySchool = new Map<string, string[]>();
@@ -171,21 +237,22 @@ export async function getListingsByStyle(styleName: string): Promise<Listing[]> 
     stylesBySchool.set(row.schoolId, arr);
   }
 
-  const schedBySchool = new Map<string, ScheduleEntryData[]>();
-  for (const row of entries) {
-    const arr = schedBySchool.get(row.schoolId) ?? [];
-    arr.push(mapScheduleRow(row));
-    schedBySchool.set(row.schoolId, arr);
-  }
-
   return matchedSchools.map((s) =>
-    buildListing(s, stylesBySchool.get(s.id) ?? [], schedBySchool.get(s.id) ?? []),
+    buildCard(s, stylesBySchool.get(s.id) ?? []),
   );
 }
 
-export async function getListingsByCity(city: string): Promise<Listing[]> {
+export async function getListingsByCity(city: string): Promise<ListingCard[]> {
   const matchedSchools = await db
-    .select()
+    .select({
+      id: schools.id,
+      name: schools.name,
+      city: schools.city,
+      address: schools.address,
+      neighborhood: schools.neighborhood,
+      latitude: schools.latitude,
+      longitude: schools.longitude,
+    })
     .from(schools)
     .where(and(sql`lower(${schools.city}) = lower(${city})`, eq(schools.isListed, true)));
 
@@ -194,16 +261,11 @@ export async function getListingsByCity(city: string): Promise<Listing[]> {
   const ids = matchedSchools.map((s) => s.id);
   const idsSql = sql.join(ids.map((id) => sql`${id}`), sql`, `);
 
-  // Batch-load styles + schedule entries in parallel
-  const [allSchoolStyles, entries] = await Promise.all([
-    db.select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
-      .from(schoolStyles)
-      .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
-      .where(sql`${schoolStyles.schoolId} IN (${idsSql})`),
-    db.select()
-      .from(scheduleEntries)
-      .where(sql`${scheduleEntries.schoolId} IN (${idsSql})`),
-  ]);
+  const allSchoolStyles = await db
+    .select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
+    .from(schoolStyles)
+    .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
+    .where(sql`${schoolStyles.schoolId} IN (${idsSql})`);
 
   const stylesBySchool = new Map<string, string[]>();
   for (const row of allSchoolStyles) {
@@ -212,14 +274,7 @@ export async function getListingsByCity(city: string): Promise<Listing[]> {
     stylesBySchool.set(row.schoolId, arr);
   }
 
-  const schedBySchool = new Map<string, ScheduleEntryData[]>();
-  for (const row of entries) {
-    const arr = schedBySchool.get(row.schoolId) ?? [];
-    arr.push(mapScheduleRow(row));
-    schedBySchool.set(row.schoolId, arr);
-  }
-
   return matchedSchools.map((s) =>
-    buildListing(s, stylesBySchool.get(s.id) ?? [], schedBySchool.get(s.id) ?? []),
+    buildCard(s, stylesBySchool.get(s.id) ?? []),
   );
 }

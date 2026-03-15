@@ -16,13 +16,6 @@
     displayName.replace(/\s+(Joga|Yoga)$/i, '').trim() || displayName
   );
 
-  /** Average price across schools with pricing */
-  const avgPrice = $derived.by(() => {
-    const priced = categoryListings.filter((s) => s.price != null);
-    if (priced.length === 0) return null;
-    return Math.round(priced.reduce((sum, s) => sum + s.price!, 0) / priced.length);
-  });
-
   /** Cities where this style is available, sorted by count */
   const cityCounts = $derived(
     categoryListings.reduce(
@@ -50,12 +43,6 @@
       q: `Ile szkół oferuje styl ${categoryName} w Polsce?`,
       a: `W katalogu szkolyjogi.pl znajduje się ${categoryListings.length} ${categoryListings.length === 1 ? 'szkoła' : 'szkół'} oferujących zajęcia w stylu ${categoryName}.`,
     });
-    if (avgPrice != null) {
-      faq.push({
-        q: `Ile kosztuje ${categoryName}?`,
-        a: `Średnia cena miesięcznego karnetu na zajęcia ${categoryName} wynosi ${avgPrice} PLN.`,
-      });
-    }
     if (cities.length > 0) {
       faq.push({
         q: `W jakich miastach dostępne są zajęcia ${categoryName}?`,
@@ -215,9 +202,6 @@
               <div class="school-card-foot">
                 {#if school.styles.length > 1}
                   <span class="school-styles">{school.styles.filter(s => s !== categoryName).join(', ')}</span>
-                {/if}
-                {#if school.trialPrice === 0}
-                  <span class="trial-badge">{t("trial_badge")}</span>
                 {/if}
               </div>
             </a>

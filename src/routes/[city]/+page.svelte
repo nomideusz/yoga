@@ -2,7 +2,7 @@
   import { browser } from "$app/environment";
   import { goto } from "$app/navigation";
   import type { PageData } from "./$types";
-  import type { Listing } from "$lib/data";
+  import type { ListingCard } from "$lib/data";
   import { normalizePolish } from "$lib/utils/street";
   import { haversine } from "$lib/utils/haversine";
   import SchoolsMap from "$lib/components/SchoolsMap.svelte";
@@ -276,7 +276,7 @@
 
   // ── Sorted and Filtered schools ──
   const sortedSchools = $derived.by(
-    (): Array<Listing & { distance?: number }> => {
+    (): Array<ListingCard & { distance?: number }> => {
       // 1. Filter by activeFilterQuery (from resolver)
       let filtered = data.schools.filter((s) => {
         if (activeFilterQuery) {
@@ -535,19 +535,6 @@
 
   /** FAQ structured data for SEO */
   let faqJsonLd = $derived.by(() => {
-    const priced = data.schools.filter((s) => s.price != null);
-    const avgPrice =
-      priced.length > 0
-        ? Math.round(
-            priced.reduce((sum, s) => sum + s.price!, 0) / priced.length,
-          )
-        : null;
-    const minPrice =
-      priced.length > 0 ? Math.min(...priced.map((s) => s.price!)) : null;
-    const maxPrice =
-      priced.length > 0 ? Math.max(...priced.map((s) => s.price!)) : null;
-    const withTrial = data.schools.filter((s) => s.trialPrice === 0);
-
     const faq: Array<{ q: string; a: string }> = [];
 
     faq.push({
@@ -555,27 +542,10 @@
       a: `W mieście ${data.city} znajduje się ${data.schools.length} szkół jogi w katalogu szkolyjogi.pl.`,
     });
 
-    if (avgPrice != null && minPrice != null && maxPrice != null) {
-      faq.push({
-        q: `Ile kosztuje joga w mieście ${data.city}?`,
-        a: `Miesięczny karnet na jogę w mieście ${data.city} kosztuje średnio ${avgPrice} PLN. Ceny wahają się od ${minPrice} do ${maxPrice} PLN miesięcznie.`,
-      });
-    }
-
     if (allStyles.length > 0) {
       faq.push({
         q: `Jakie style jogi są dostępne w mieście ${data.city}?`,
         a: `W mieście ${data.city} dostępne są następujące style jogi: ${allStyles.join(", ")}.`,
-      });
-    }
-
-    if (withTrial.length > 0) {
-      faq.push({
-        q: `Gdzie w mieście ${data.city} są darmowe pierwsze zajęcia jogi?`,
-        a: `Bezpłatne pierwsze zajęcia oferuje ${withTrial.length} ${pluralSchool(withTrial.length)} w mieście ${data.city}, m.in. ${withTrial
-          .slice(0, 3)
-          .map((s) => s.name)
-          .join(", ")}.`,
       });
     }
 
@@ -811,9 +781,6 @@
                 <span class="school-distance">{school.walkingTime.durationMinutes} min · {(school.walkingTime.distanceMeters / 1000).toFixed(1)} km</span>
               {:else if school.distance != null && school.distance > 0}
                 <span class="school-distance">{school.distance.toFixed(1)} km</span>
-              {/if}
-              {#if school.trialPrice === 0}
-                <span class="trial-badge">{t("trial_badge")}</span>
               {/if}
             </div>
           </a>

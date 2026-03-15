@@ -2,7 +2,7 @@
 // Pages get data via server load functions; this module provides
 // shared types and pure utility helpers that run on both server & client.
 
-export type { Listing, ScheduleEntryData as ScheduleEntry } from '$lib/server/db/queries/index';
+export type { Listing, ScheduleEntryData as ScheduleEntry, ListingCard } from '$lib/server/db/queries/index';
 import type { Listing } from '$lib/server/db/queries/index';
 
 // ── Pure utility helpers (server & client) ──────────────────────────────────
