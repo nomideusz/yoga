@@ -192,7 +192,15 @@ export async function getListingById(id: string): Promise<Listing | null> {
   };
 }
 
+const _listingsByCityCache = new Map<string, { data: ListingCard[]; ts: number }>();
+const _listingsByStyleCache = new Map<string, { data: ListingCard[]; ts: number }>();
+const LISTINGS_CACHE_TTL = 10 * 60 * 1000;
+
 export async function getListingsByStyle(styleName: string): Promise<ListingCard[]> {
+  const key = styleName.toLowerCase();
+  const cached = _listingsByStyleCache.get(key);
+  if (cached && Date.now() - cached.ts < LISTINGS_CACHE_TTL) return cached.data;
+
   const matchedStyles = await db
     .select({ id: styles.id })
     .from(styles)
@@ -237,12 +245,18 @@ export async function getListingsByStyle(styleName: string): Promise<ListingCard
     stylesBySchool.set(row.schoolId, arr);
   }
 
-  return matchedSchools.map((s) =>
+  const result = matchedSchools.map((s) =>
     buildCard(s, stylesBySchool.get(s.id) ?? []),
   );
+  _listingsByStyleCache.set(key, { data: result, ts: Date.now() });
+  return result;
 }
 
 export async function getListingsByCity(city: string): Promise<ListingCard[]> {
+  const key = city.toLowerCase();
+  const cached = _listingsByCityCache.get(key);
+  if (cached && Date.now() - cached.ts < LISTINGS_CACHE_TTL) return cached.data;
+
   const matchedSchools = await db
     .select({
       id: schools.id,
@@ -274,7 +288,9 @@ export async function getListingsByCity(city: string): Promise<ListingCard[]> {
     stylesBySchool.set(row.schoolId, arr);
   }
 
-  return matchedSchools.map((s) =>
+  const result = matchedSchools.map((s) =>
     buildCard(s, stylesBySchool.get(s.id) ?? []),
   );
+  _listingsByCityCache.set(key, { data: result, ts: Date.now() });
+  return result;
 }

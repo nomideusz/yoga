@@ -29,7 +29,12 @@ export async function getUniqueStyles(): Promise<string[]> {
   return _stylesCache;
 }
 
+let _cityCoordsCache: Record<string, { lat: number; lng: number }> | null = null;
+let _cityCoordsCacheTs = 0;
+const CITY_COORDS_CACHE_TTL = 10 * 60 * 1000;
+
 export async function getCityCoords(): Promise<Record<string, { lat: number; lng: number }>> {
+  if (_cityCoordsCache && Date.now() - _cityCoordsCacheTs < CITY_COORDS_CACHE_TTL) return _cityCoordsCache;
   const rows = await db
     .select({
       city: schools.city,
@@ -46,6 +51,8 @@ export async function getCityCoords(): Promise<Record<string, { lat: number; lng
       result[r.city] = { lat: r.lat, lng: r.lng };
     }
   }
+  _cityCoordsCache = result;
+  _cityCoordsCacheTs = Date.now();
   return result;
 }
 
