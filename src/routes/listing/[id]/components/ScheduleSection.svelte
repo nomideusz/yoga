@@ -4,6 +4,8 @@
   import { i18n } from "$lib/i18n.js";
   const t = i18n.t;
 
+  const calendarLocale = $derived(i18n.locale === 'en' ? 'en-US' : 'pl-PL');
+
   let {
     listing,
     hasSchedule,
@@ -55,7 +57,7 @@
         <Calendar
           view="week-agenda"
           adapter={calendarAdapter}
-          locale="pl-PL"
+          locale={calendarLocale}
           height="auto"
           readOnly
           compact
@@ -68,7 +70,7 @@
         <Calendar
           view="week-agenda"
           adapter={calendarAdapter}
-          locale="pl-PL"
+          locale={calendarLocale}
           height="auto"
           readOnly
           compact
