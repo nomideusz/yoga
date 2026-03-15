@@ -64,13 +64,13 @@
   <div class="sf-lang-float">
     <button
       class="sf-lang-btn"
-      class:is-active={i18n.locale === 'pl'}
-      onclick={() => i18n.setLocale('pl')}
+      class:is-active={true}
+      onclick={() => {}}
     >PL</button>
     <button
       class="sf-lang-btn"
-      class:is-active={i18n.locale === 'en'}
-      onclick={() => i18n.setLocale('en')}
+      class:is-active={false}
+      onclick={() => {}}
     >EN</button>
   </div>
 
