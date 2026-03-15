@@ -3,7 +3,6 @@
   import { haversine } from "$lib/utils/haversine";
   import { normalizePolish } from "$lib/utils/street";
   import LocateButton from "$lib/components/LocateButton.svelte";
-  import { i18n } from "$lib/i18n";
   import { resolveSearch, type SearchContext } from '$lib/search';
 
   let { data } = $props();
