@@ -1,11 +1,6 @@
 <script lang="ts">
-  import SchoolList from "$lib/components/SchoolList.svelte";
-  import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
-  import SearchBox, { type SearchBoxItem } from '$lib/components/SearchBox.svelte';
-  import { resolveSearch, type SearchContext } from '$lib/search';
-  import type { AutocompleteResult } from '$lib/search';
   import { goto } from '$app/navigation';
-  import { normalizePolish } from '$lib/utils/street';
+  import Pagination from '$lib/components/Pagination.svelte';
 
   let { data } = $props();
   let slug = $derived(data.slug);
@@ -14,12 +9,9 @@
   let metadata = $derived(data.metadata);
   let displayName = $derived(metadata?.displayName ?? categoryName.charAt(0).toUpperCase() + categoryName.slice(1));
 
-  /** Top-rated schools for this style (max 3) */
-  const featured = $derived(
-    [...categoryListings]
-      .filter((l) => l.rating != null && l.rating > 0)
-      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-      .slice(0, 3),
+  /** Short name for h1 — strip redundant "Joga"/"Yoga" since label says STYL */
+  let shortName = $derived(
+    displayName.replace(/\s+(Joga|Yoga)$/i, '').trim() || displayName
   );
 
   /** Average price across schools with pricing */
@@ -46,213 +38,67 @@
       .map(([city, count]) => ({ city, count })),
   );
 
-  /** Format rating */
-  function fmtRating(rating: number | null): string {
-    if (rating == null) return "—";
-    return rating.toFixed(1);
-  }
-
-  /** Format price display */
-  function fmtPrice(price: number | null): string {
-    if (price == null) return "—";
-    return `${price} zł`;
-  }
+  const plCollator = new Intl.Collator('pl-PL');
 
   /** FAQ structured data for SEO */
   let faqJsonLd = $derived.by(() => {
     const cities = [...new Set(categoryListings.map(s => s.city))].sort();
-
     const faq: Array<{ q: string; a: string }> = [];
-
     faq.push({
       q: `Ile szkół oferuje styl ${categoryName} w Polsce?`,
       a: `W katalogu szkolyjogi.pl znajduje się ${categoryListings.length} ${categoryListings.length === 1 ? 'szkoła' : 'szkół'} oferujących zajęcia w stylu ${categoryName}.`,
     });
-
     if (avgPrice != null) {
       faq.push({
         q: `Ile kosztuje ${categoryName}?`,
         a: `Średnia cena miesięcznego karnetu na zajęcia ${categoryName} wynosi ${avgPrice} PLN.`,
       });
     }
-
     if (cities.length > 0) {
       faq.push({
         q: `W jakich miastach dostępne są zajęcia ${categoryName}?`,
         a: `Zajęcia ${categoryName} dostępne są w ${cities.length} ${cities.length === 1 ? 'mieście' : 'miastach'}: ${cities.slice(0, 10).join(', ')}${cities.length > 10 ? ' i innych' : ''}.`,
       });
     }
-
     return {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
       mainEntity: faq.map(f => ({
         '@type': 'Question',
         name: f.q,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: f.a,
-        },
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
       })),
     };
   });
 
-  // ── yoga-schools directory: filter + sort state ──
-  const plCollator = new Intl.Collator('pl-PL');
+  // ── Sort ──
+  let sortBy = $state<'name' | 'city'>('name');
 
-  let selectedStyle = $state("Wszystkie");
-  let sortKey = $state("rating");
-  let sortDirection = $state<'asc' | 'desc'>('desc');
-
-  const stylesWithCounts = $derived(
-    (() => {
-      const counts = new Map<string, number>();
-      for (const school of categoryListings) {
-        for (const style of school.styles) {
-          counts.set(style, (counts.get(style) ?? 0) + 1);
-        }
-      }
-      return Array.from(counts.entries())
-        .map(([style, count]) => ({ style, count }))
-        .sort((a, b) => plCollator.compare(a.style, b.style));
-    })()
+  /** Sorted listings */
+  const sortedListings = $derived(
+    [...categoryListings].sort((a, b) => {
+      if (sortBy === 'city') return plCollator.compare(a.city, b.city);
+      return plCollator.compare(a.name, b.name);
+    })
   );
 
-  const showStyleFilters = $derived(categoryListings.length >= 5 && stylesWithCounts.length >= 3);
+  // ── Pagination ──
+  const PER_PAGE = 24;
+  let currentPage = $state(1);
 
-  function toggleDirectorySort(key: string) {
-    if (sortKey === key) {
-      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      sortKey = key;
-      sortDirection = key === 'rating' ? 'desc' : 'asc';
-    }
-  }
-
-  const directorySortConfig = $derived({
-    key: sortKey,
-    direction: sortDirection,
-    onSort: toggleDirectorySort,
-    sortableColumns: ['name', 'city', 'rating'],
+  $effect(() => {
+    void sortBy;
+    currentPage = 1;
   });
 
-  /** Filtered + sorted for yoga-schools directory */
-  const directorySchools = $derived(
-    [...categoryListings]
-      .filter(s => selectedStyle === "Wszystkie" || s.styles.includes(selectedStyle))
-      .sort((a, b) => {
-        const dir = sortDirection === 'asc' ? 1 : -1;
-        if (sortKey === 'name') return dir * plCollator.compare(a.name, b.name);
-        if (sortKey === 'city') return dir * plCollator.compare(a.city, b.city);
-        if (sortKey === 'rating') return dir * ((a.rating ?? 0) - (b.rating ?? 0));
-        return 0;
-      })
+  const totalPages = $derived(Math.max(1, Math.ceil(sortedListings.length / PER_PAGE)));
+  const paginatedListings = $derived(
+    sortedListings.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
   );
 
-  /** Sorted by rating desc for style hub "all schools" grid */
-  const styleSortedListings = $derived(
-    [...categoryListings].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-  );
-
-  // ── Search integration ──
-  let query = $state('');
-  let autocompleteItems = $state<SearchBoxItem[]>([]);
-  let autocompleteLoading = $state(false);
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  let searchFilter = $state('');
-
-  const searchContext: SearchContext = $derived({ page: 'style', styleSlug: data.slug, styleName: data.styleName ?? '' });
-
-  /** Filtered listings when search filter is active */
-  const filteredListings = $derived.by(() => {
-    if (!searchFilter) return styleSortedListings;
-    const qn = normalizePolish(searchFilter);
-    const tokens = qn.split(/\s+/).filter(Boolean);
-    if (tokens.length === 0) return styleSortedListings;
-    return styleSortedListings.filter((s) => {
-      const haystack = normalizePolish(s.name) + ' ' + normalizePolish(s.city) + ' ' + normalizePolish(s.address ?? '');
-      return tokens.every(t => haystack.includes(t));
-    });
-  });
-
-  function handleSearchInput(_e: Event) {
-    searchFilter = '';
-    if (debounceTimer) clearTimeout(debounceTimer);
-    const q = query.trim();
-    if (q.length < 2) {
-      autocompleteItems = [];
-      autocompleteLoading = false;
-      return;
-    }
-    autocompleteLoading = true;
-    debounceTimer = setTimeout(async () => {
-      try {
-        const params = new URLSearchParams({ q, mode: 'autocomplete', page: 'style', styleSlug: data.slug });
-        const res = await fetch(`/api/search?${params}`);
-        if (!res.ok) { autocompleteItems = []; return; }
-        const json: { results: AutocompleteResult[] } = await res.json();
-        autocompleteItems = json.results.map((r, i): SearchBoxItem => {
-          if (r.type === 'city') return { key: `c-${r.slug ?? i}`, icon: 'pin', text: r.text, group: 'Miasta' };
-          if (r.type === 'style') return { key: `st-${r.slug ?? i}`, icon: 'style', text: r.text, group: 'Style' };
-          return { key: `s-${r.slug ?? i}`, icon: 'school', text: r.text, group: 'Szkoły' };
-        });
-      } catch {
-        autocompleteItems = [];
-      } finally {
-        autocompleteLoading = false;
-      }
-    }, 150);
-  }
-
-  function handleSearchSelect(item: SearchBoxItem, _index: number) {
-    query = item.text;
-    autocompleteItems = [];
-
-    // City suggestion → navigate to city page with style filter
-    if (item.icon === 'pin') {
-      const citySlug = item.key.replace('c-', '');
-      goto(`/${citySlug}?style=${data.slug}`);
-      return;
-    }
-    // School suggestion → navigate to listing
-    if (item.icon === 'school') {
-      const schoolSlug = item.key.replace('s-', '');
-      goto(`/listing/${schoolSlug}`);
-      return;
-    }
-    // Style suggestion → run resolver
-    executeResolverAction();
-  }
-
-  function handleSearchKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter' && autocompleteItems.length === 0) {
-      e.preventDefault();
-      executeResolverAction();
-    }
-  }
-
-  function executeResolverAction() {
-    const action = resolveSearch(query, searchContext, data.lookups);
-    switch (action.action) {
-      case 'route_to_city':
-        goto(`/${action.citySlug}${action.styleFilter ? `?style=${action.styleFilter}` : ''}`);
-        break;
-      case 'route_to_style':
-        goto(`/category/${action.styleSlug}`);
-        break;
-      case 'filter':
-        searchFilter = action.query;
-        autocompleteItems = [];
-        break;
-      case 'show_all':
-        searchFilter = '';
-        query = '';
-        autocompleteItems = [];
-        break;
-      case 'already_here':
-        autocompleteItems = [];
-        break;
-    }
+  function handlePageChange(page: number) {
+    currentPage = page;
+    document.querySelector('.cat-schools')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 </script>
 
@@ -282,619 +128,371 @@
   {@html `<script type="application/ld+json">${JSON.stringify(faqJsonLd).replace(/</g, '\\u003c')}</script>`}
 </svelte:head>
 
-<div class="sf-page-shell">
-  <Breadcrumbs crumbs={[{ label: "szkolyjogi.pl", href: "/" }, { label: displayName }]} />
-
-  {#if slug === "yoga-schools"}
-    <h1 class="page-title">{displayName}</h1>
-
-    {#if showStyleFilters}
-      <div class="filter-bar">
-        <div class="filter-left">
-          <span class="muted filter-label">Filtruj wg stylu:</span>
-          <button
-            class="filter-btn"
-            class:active={selectedStyle === "Wszystkie"}
-            onclick={() => (selectedStyle = "Wszystkie")}
-          >
-            Wszystkie
-          </button>
-          {#each stylesWithCounts as { style, count } (style)}
-            <button
-              class="filter-btn"
-              class:active={selectedStyle === style}
-              onclick={() => (selectedStyle = style)}
-            >
-              {style} <span class="filter-count">({count})</span>
-            </button>
-          {/each}
-        </div>
-      </div>
-    {/if}
-
-    <SchoolList
-      schools={directorySchools}
-      columns={['name', 'city', 'price', 'rating']}
-      sort={directorySortConfig}
-      storageKey="yoga-directory-view"
-    />
-  {:else if categoryListings.length === 0}
-    <h1 class="page-title">{displayName}</h1>
-    <p class="empty-state">Brak wyników dla kategorii: {categoryName}.</p>
+<div class="sf-page-category">
+  {#if categoryListings.length === 0}
+    <div class="cat-empty">
+      <h1 class="cat-empty-title">{displayName}</h1>
+      <p>Brak wyników dla kategorii: {categoryName}.</p>
+    </div>
   {:else}
-    <!-- ── Hero header ── -->
-    <header class="cat-hero">
-      <div class="cat-hero-tag">Styl jogi</div>
-      <h1 class="cat-hero-title">{displayName}</h1>
-      
-      {#if metadata}
-        <div class="style-intro">
-          <p class="style-desc">{metadata.description}</p>
-          
-          <div class="style-specs">
-            <div class="style-spec">
-              <span class="spec-label">Intensywność</span>
-              <span class="spec-value spec-value--{metadata.intensity}">
+    <!-- ── Hero ── -->
+    <section class="cat-hero">
+      <div class="cat-hero-inner">
+        <div class="sf-section-label">STYL</div>
+        <h1 class="cat-hero-title">{shortName}</h1>
+        <p class="cat-hero-sub">
+          {categoryListings.length} szkół w {sortedCities.length} {sortedCities.length === 1 ? 'mieście' : 'miastach'}.
+          {#if metadata}
+            {metadata.description}
+          {/if}
+        </p>
+
+        {#if metadata}
+          <div class="cat-specs">
+            <span class="cat-spec">
+              <span class="cat-spec-label">Intensywność</span>
+              <span class="cat-spec-val cat-spec-val--{metadata.intensity}">
                 {metadata.intensity === 'low' ? 'Niska' : metadata.intensity === 'medium' ? 'Średnia' : 'Wysoka'}
               </span>
-            </div>
-            <div class="style-spec">
-              <span class="spec-label">Tempo</span>
-              <span class="spec-value">
+            </span>
+            <span class="cat-spec">
+              <span class="cat-spec-label">Tempo</span>
+              <span class="cat-spec-val">
                 {metadata.pace === 'slow' ? 'Spokojne' : metadata.pace === 'moderate' ? 'Umiarkowane' : 'Szybkie'}
               </span>
-            </div>
-          </div>
-
-          <div class="style-details">
-            <div class="style-benefits">
-              <h4 class="sf-section-label">Korzyści</h4>
-              <ul>
-                {#each metadata.benefits as benefit}
-                  <li>{benefit}</li>
-                {/each}
-              </ul>
-            </div>
-            <div class="style-for-who">
-              <h4 class="sf-section-label">Dla kogo?</h4>
-              <p>{metadata.forWho}</p>
-            </div>
-          </div>
-        </div>
-      {/if}
-
-      <div class="cat-stats">
-        <div class="cat-stat">
-          <span class="cat-stat-val">{categoryListings.length}</span>
-          <span class="cat-stat-lbl">Studiów</span>
-        </div>
-        <div class="cat-stat">
-          <span class="cat-stat-val">{sortedCities.length}</span>
-          <span class="cat-stat-lbl">Miast</span>
-        </div>
-        {#if avgPrice != null}
-          <div class="cat-stat">
-            <span class="cat-stat-val">{avgPrice} <span class="cat-stat-unit">zł</span></span>
-            <span class="cat-stat-lbl">Średnia cena</span>
+            </span>
+            {#if metadata.benefits.length > 0}
+              <span class="cat-spec">
+                <span class="cat-spec-label">Korzyści</span>
+                <span class="cat-spec-val">{metadata.benefits.slice(0, 3).join(' · ')}</span>
+              </span>
+            {/if}
           </div>
         {/if}
       </div>
-    </header>
-
-    <!-- ── Search within this style ── -->
-    <section class="cat-search">
-      <SearchBox
-        bind:query
-        results={autocompleteItems}
-        loading={autocompleteLoading}
-        placeholder="Szukaj szkoły lub miasta w stylu {categoryName}…"
-        ariaLabel="Szukaj w {categoryName}"
-        onselect={handleSearchSelect}
-        oninput={handleSearchInput}
-        onkeydown={handleSearchKeydown}
-      />
-      {#if searchFilter}
-        <div class="cat-search-info">
-          <span class="cat-search-count">{filteredListings.length} {filteredListings.length === 1 ? 'wynik' : 'wyników'} dla „{searchFilter}"</span>
-          <button class="cat-search-clear" onclick={() => { searchFilter = ''; query = ''; }}>Pokaż wszystkie</button>
-        </div>
-      {/if}
     </section>
 
-    <!-- ── Featured schools ── -->
-    {#if featured.length > 0}
-      <section class="cat-section">
-        <h2 class="cat-section-heading">Najwyżej oceniane</h2>
-        <div class="cat-featured-grid">
-          {#each featured as school, i (school.id)}
-            <a href="/listing/{school.id}" class="cat-featured-card sf-animate" style="animation-delay: {i * 60}ms">
-              <div class="cat-featured-rank">{String(i + 1).padStart(2, "0")}</div>
-              <div class="cat-featured-body">
-                <h3 class="cat-featured-name">{school.name}</h3>
-                <p class="cat-featured-city">{school.city}</p>
-                <div class="cat-featured-tags">
-                  {#each school.styles.slice(0, 3) as style}
-                    <span class="cat-tag">{style}</span>
-                  {/each}
-                </div>
-              </div>
-              <div class="cat-featured-meta">
-                <span class="cat-featured-rating">{fmtRating(school.rating)}</span>
-                {#if school.price}
-                  <span class="cat-featured-price">{fmtPrice(school.price)}</span>
+    <!-- ── Cities ── -->
+    {#if sortedCities.length > 1}
+      <section class="cat-cities">
+        <div class="sf-section-label">MIASTO</div>
+        <div class="cat-cities-flex">
+          {#each sortedCities as { city, count } (city)}
+            <a href="/{city.toLowerCase()}?style={encodeURIComponent(categoryName)}" class="sf-city-pill">
+              <span class="sf-city-name">{city}</span>
+              <span class="sf-city-count">{count}</span>
+            </a>
+          {/each}
+        </div>
+      </section>
+    {/if}
+
+    <!-- ── Schools ── -->
+    <section class="cat-schools">
+      <div class="cat-schools-bar">
+        <div class="sf-sort-toggle" role="radiogroup" aria-label="Sortowanie">
+          <button class:active={sortBy === 'name'} onclick={() => sortBy = 'name'} aria-pressed={sortBy === 'name'}>Nazwa</button>
+          <button class:active={sortBy === 'city'} onclick={() => sortBy = 'city'} aria-pressed={sortBy === 'city'}>Miasto</button>
+        </div>
+      </div>
+
+      {#if sortedListings.length === 0}
+        <div class="cat-no-results">Brak szkół w tej kategorii.</div>
+      {:else}
+        <div class="school-grid">
+          {#each paginatedListings as school (school.id)}
+            <a href="/listing/{school.id}" class="school-card">
+              <span class="school-name">{school.name}</span>
+              <span class="school-city">{school.city}</span>
+              {#if school.address}
+                {@const street = school.address.replace(new RegExp(`,?\\s*${school.city}$`, 'i'), '').trim()}
+                {#if street}
+                  <span class="school-address">{street}</span>
+                {/if}
+              {/if}
+              <div class="school-card-foot">
+                {#if school.styles.length > 1}
+                  <span class="school-styles">{school.styles.filter(s => s !== categoryName).join(', ')}</span>
+                {/if}
+                {#if school.trialPrice === 0}
+                  <span class="trial-badge">Bezpłatne zajęcia</span>
                 {/if}
               </div>
             </a>
           {/each}
         </div>
-      </section>
-    {/if}
-
-    <!-- ── Cities for this style ── -->
-    {#if sortedCities.length > 1}
-      <section class="cat-section">
-        <h2 class="cat-section-heading">Miasta z {categoryName}</h2>
-        <div class="cat-cities-flex">
-          {#each sortedCities as { city, count } (city)}
-            <a href="/{city.toLowerCase()}" class="cat-city-pill">
-              <span class="cat-city-name">{city}</span>
-              <span class="cat-city-count">{count}</span>
-            </a>
-          {/each}
-        </div>
-      </section>
-    {/if}
-
-    <!-- ── All schools ── -->
-    <section class="cat-section">
-      <h2 class="cat-section-heading">Wszystkie studia — {displayName}</h2>
-      <SchoolList
-        schools={filteredListings}
-        columns={['name', 'city', 'price', 'rating']}
-        storageKey="yoga-category-view"
-      />
+        <Pagination currentPage={currentPage} {totalPages} onPageChange={handlePageChange} />
+      {/if}
     </section>
   {/if}
 </div>
 
 <style>
-  /* ── Hero ── */
-  .cat-hero {
+  .sf-page-category {
+    min-height: 80vh;
+  }
+
+  /* ── Empty ── */
+  .cat-empty {
+    padding: 64px var(--sf-gutter);
     text-align: center;
-    padding: 24px 0 48px;
-    max-width: 800px;
+    max-width: var(--sf-container);
     margin: 0 auto;
   }
-
-  .cat-hero-tag {
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--sf-accent);
-    font-weight: 600;
+  .cat-empty-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--sf-dark);
     margin-bottom: 16px;
   }
+  .cat-empty p { color: var(--sf-muted); }
 
+  /* ── Hero (matches main page pattern) ── */
+  .cat-hero {
+    padding: clamp(40px, 6vh, 72px) var(--sf-gutter) clamp(24px, 3vh, 40px);
+    text-align: center;
+    background-image: radial-gradient(ellipse 80% 50% at 50% 18%, var(--sf-ice) 0%, transparent 100%);
+    background-repeat: no-repeat;
+  }
+  .cat-hero-inner {
+    max-width: 680px;
+    margin: 0 auto;
+  }
   .cat-hero-title {
     font-family: var(--font-display);
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
     font-weight: 400;
     color: var(--sf-dark);
     letter-spacing: -0.03em;
-    line-height: 1.1;
-    margin-bottom: 12px;
+    line-height: 1.08;
+    margin-bottom: 16px;
   }
-
-  .style-intro {
-    text-align: left;
-    margin: 32px 0;
-    padding: 32px;
-    background: var(--sf-card);
-    border: 1px solid var(--sf-line);
-    border-radius: var(--radius-lg);
-  }
-
-  .style-desc {
-    font-size: 1.1rem;
-    line-height: 1.7;
+  .cat-hero-sub {
+    font-size: 1.02rem;
+    line-height: 1.65;
     color: var(--sf-text);
-    margin-bottom: 24px;
+    max-width: 580px;
+    margin: 0 auto 24px;
   }
 
-  .style-specs {
-    display: flex;
-    gap: 32px;
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--sf-frost);
-  }
-
-  .style-spec {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .spec-label {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--sf-muted);
-  }
-
-  .spec-value {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--sf-dark);
-  }
-
-  .spec-value--low { color: #16a34a; }
-  .spec-value--medium { color: #f59e0b; }
-  .spec-value--high { color: #ef4444; }
-
-  .style-details {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-  }
-
-  .style-benefits ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  .style-benefits li {
-    position: relative;
-    padding-left: 20px;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-  }
-
-  .style-benefits li::before {
-    content: "→";
-    position: absolute;
-    left: 0;
-    color: var(--sf-accent);
-    font-weight: bold;
-  }
-
-  .style-for-who p {
-    font-size: 0.95rem;
-    line-height: 1.6;
-  }
-
-  .cat-stats {
+  /* ── Specs (inline chips under description) ── */
+  .cat-specs {
     display: flex;
     justify-content: center;
-    gap: 48px;
-    margin-top: 36px;
-    padding-top: 32px;
-    border-top: 1px solid var(--sf-line);
+    gap: 16px;
+    flex-wrap: wrap;
   }
-
-  .cat-stat {
-    display: flex;
-    flex-direction: column;
+  .cat-spec {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-  }
-
-  .cat-stat-val {
-    font-family: var(--font-display);
-    font-size: 2.2rem;
-    font-weight: 400;
-    color: var(--sf-dark);
-    line-height: 1;
-    letter-spacing: -0.03em;
-  }
-
-  .cat-stat-unit {
-    font-size: 1.2rem;
-    color: var(--sf-muted);
-  }
-
-  .cat-stat-lbl {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--sf-muted);
-    font-weight: 600;
-  }
-
-  /* ── Sections ── */
-  .cat-section {
-    padding: 40px 0;
-  }
-
-  .cat-section-heading {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 400;
-    color: var(--sf-dark);
-    letter-spacing: -0.02em;
-    margin-bottom: 28px;
-  }
-
-  /* ── Featured grid (top-rated) ── */
-  .cat-featured-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 16px;
-  }
-
-  .cat-featured-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    padding: 24px 28px;
+    padding: 6px 14px;
     background: var(--sf-card);
     border: 1px solid var(--sf-line);
     border-radius: 20px;
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    text-decoration: none;
-    color: inherit;
   }
-
-  .cat-featured-card:hover {
-    border-color: var(--sf-accent);
-    box-shadow: 0 12px 40px rgba(74, 127, 181, 0.08);
-  }
-
-  .cat-featured-rank {
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    color: var(--sf-frost);
-    font-weight: 500;
-    line-height: 1;
-    min-width: 40px;
-    transition: color 0.3s ease;
-  }
-
-  .cat-featured-card:hover .cat-featured-rank {
-    color: var(--sf-accent);
-  }
-
-  .cat-featured-body {
-    flex: 1;
-  }
-
-  .cat-featured-name {
-    font-family: var(--font-body);
-    font-weight: 600;
-    color: var(--sf-dark);
-    font-size: 1.05rem;
-    margin-bottom: 6px;
-    line-height: 1.3;
-  }
-
-  .cat-featured-city {
-    font-size: 0.85rem;
-    color: var(--sf-muted);
-    margin-bottom: 12px;
-  }
-
-  .cat-featured-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .cat-featured-meta {
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 60px;
-  }
-
-  .cat-featured-rating {
-    font-family: var(--font-display);
-    font-size: 1.4rem;
-    color: var(--sf-warm);
-    font-weight: 500;
-    line-height: 1;
-  }
-
-  .cat-featured-price {
-    font-size: 0.78rem;
-    color: var(--sf-muted);
-    white-space: nowrap;
-  }
-
-  /* ── Shared tag style ── */
-  .cat-tag {
-    font-size: 0.68rem;
-    padding: 4px 12px;
-    border: 1px solid var(--sf-line);
-    border-radius: 20px;
-    color: var(--sf-text);
+  .cat-spec-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 500;
-  }
-
-  .cat-tag--more {
-    background: var(--sf-frost);
-    border-color: transparent;
+    letter-spacing: 0.08em;
     color: var(--sf-muted);
   }
+  .cat-spec-val {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--sf-dark);
+  }
+  .cat-spec-val--low { color: #16a34a; }
+  .cat-spec-val--medium { color: #f59e0b; }
+  .cat-spec-val--high { color: #ef4444; }
 
-  /* ── City pills ── */
+  /* ── Cities (reuse main page pill styles) ── */
+  .cat-cities {
+    max-width: var(--sf-container);
+    margin: 0 auto;
+    padding: 0 var(--sf-gutter) 24px;
+    text-align: center;
+  }
   .cat-cities-flex {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 8px;
   }
-
-  .cat-city-pill {
+  /* Reuse .sf-city-pill, .sf-city-name, .sf-city-count from global */
+  :global(.sf-city-pill) {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     padding: 10px 20px;
     background: var(--sf-card);
     border: 1px solid var(--sf-line);
     border-radius: 30px;
     text-decoration: none;
-    transition: all 0.25s ease;
+    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
   }
-
-  .cat-city-pill:hover {
+  :global(.sf-city-pill:hover) {
     border-color: var(--sf-accent);
     background: var(--sf-frost);
-    box-shadow: 0 4px 16px rgba(74, 127, 181, 0.06);
+  }
+  :global(.sf-city-name) {
+    font-weight: 500;
+    color: var(--sf-dark);
+    font-size: 0.92rem;
+  }
+  :global(.sf-city-count) {
+    font-family: var(--font-mono);
+    color: var(--sf-accent);
+    font-size: 0.72rem;
+    font-weight: 500;
   }
 
-  .cat-city-name {
-    font-weight: 500;
+  /* ── Schools section ── */
+  .cat-schools {
+    max-width: var(--sf-container);
+    margin: 0 auto;
+    padding: 0 var(--sf-gutter) 40px;
+  }
+  .cat-schools-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+  }
+
+  /* Reuse sort toggle from city page */
+  .sf-sort-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--sf-frost);
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+  .sf-sort-toggle button {
+    background: none;
+    border: none;
+    padding: 6px 14px;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: var(--sf-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .sf-sort-toggle button.active {
+    background: var(--sf-card);
+    color: var(--sf-accent);
+    box-shadow: var(--shadow-sm);
+  }
+  .sf-sort-toggle button:hover:not(.active) {
+    color: var(--sf-dark);
+  }
+
+  /* ── Grid (same as city page) ── */
+  .school-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .school-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    border: 1px solid var(--sf-line);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: inherit;
+    background: var(--sf-card);
+    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  }
+  .school-card:hover {
+    border-color: var(--sf-accent);
+    box-shadow: 0 4px 16px rgba(74, 127, 181, 0.08);
+  }
+  .school-name {
+    font-weight: 600;
     color: var(--sf-dark);
     font-size: 0.95rem;
+    line-height: 1.3;
   }
-
-  .cat-city-count {
-    font-family: var(--font-mono);
-    color: var(--sf-accent);
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-
-  .empty-state {
-    font-family: var(--font-mono);
+  .school-city {
+    font-size: 0.82rem;
     color: var(--sf-muted);
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: var(--spacing-xl) 0;
   }
-
-  /* ── Filter bar (yoga-schools directory) ── */
-  .filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-    align-items: flex-start;
-    margin-bottom: var(--spacing-md);
+  .school-address {
+    font-size: 0.82rem;
+    color: var(--sf-text);
   }
-
-  .filter-left {
+  .school-card-foot {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
     align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 6px;
   }
-
-  .filter-label {
-    font-family: var(--font-body);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+  .school-styles {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
     color: var(--sf-muted);
-    margin-right: var(--spacing-xs);
+    letter-spacing: 0.02em;
   }
-
-  .filter-btn {
-    background: var(--sf-card);
-    color: var(--sf-dark);
-    border: 1px solid var(--sf-line);
-    padding: 8px 16px;
-    font-family: var(--font-body);
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    font-weight: 500;
+  .trial-badge {
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
     text-transform: uppercase;
-    cursor: pointer;
-    border-radius: var(--radius-pill);
-    transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease, background-color var(--dur-fast) ease;
-  }
-
-  .filter-btn:hover {
-    border-color: var(--sf-accent);
-    color: var(--sf-accent);
-  }
-
-  .filter-btn.active {
-    background: var(--sf-accent);
-    color: #ffffff;
-    border-color: var(--sf-accent);
+    letter-spacing: 0.06em;
+    color: var(--sf-warm);
     font-weight: 600;
   }
 
-  .filter-count {
-    opacity: 0.65;
-    font-size: 0.64rem;
-  }
-
-  .page-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.6rem, 4vw, 2.4rem);
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    color: var(--sf-dark);
-    margin-bottom: var(--spacing-md);
-    line-height: 1.1;
-  }
-
-  /* ── Search ── */
-  .cat-search {
-    max-width: 600px;
-    margin: 0 auto 24px;
-  }
-
-  .cat-search-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding: 0 8px;
-  }
-
-  .cat-search-count {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+  .cat-no-results {
+    padding: 48px 0;
+    text-align: center;
     color: var(--sf-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
   }
-
-  .cat-search-clear {
+  .cat-clear-btn {
     background: none;
-    border: none;
-    font-family: var(--font-body);
-    font-size: 0.8rem;
+    border: 1px solid var(--sf-line);
     color: var(--sf-accent);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 30px;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: var(--radius-pill);
-    transition: background var(--dur-fast) ease;
+    transition: border-color var(--dur-fast) ease;
   }
-
-  .cat-search-clear:hover {
-    background: var(--sf-frost);
+  .cat-clear-btn:hover {
+    border-color: var(--sf-accent);
   }
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
-    .style-details {
-      grid-template-columns: 1fr;
-      gap: 24px;
-    }
-    .cat-stats {
-      gap: 24px;
-    }
-    .cat-stat-val {
-      font-size: 1.6rem;
-    }
-    .cat-featured-grid {
+    .school-grid {
       grid-template-columns: 1fr;
     }
-  }
-
-  @media (max-width: 480px) {
-    .cat-stats {
-      flex-wrap: wrap;
-      gap: 16px 32px;
+    .cat-cities-flex {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      justify-content: flex-start;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
+    .cat-cities-flex::-webkit-scrollbar { display: none; }
+    .cat-cities-flex .sf-city-pill { flex-shrink: 0; }
   }
 </style>

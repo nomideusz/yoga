@@ -9,6 +9,7 @@
   import LocateButton from "$lib/components/LocateButton.svelte";
   import SearchBox, { type SearchBoxItem } from "$lib/components/SearchBox.svelte";
   import { resolveSearch, type SearchContext, type SearchAction } from '$lib/search';
+  import Pagination from "$lib/components/Pagination.svelte";
 
   let { data }: { data: PageData } = $props();
 
@@ -568,7 +569,7 @@
     if (withTrial.length > 0) {
       faq.push({
         q: `Gdzie w mieście ${data.city} są darmowe pierwsze zajęcia jogi?`,
-        a: `Bezpłatne pierwsze zajęcia oferuje ${withTrial.length} ${withTrial.length === 1 ? "studio" : "studiów"} w mieście ${data.city}, m.in. ${withTrial
+        a: `Bezpłatne pierwsze zajęcia oferuje ${withTrial.length} ${pluralSzkola(withTrial.length)} w mieście ${data.city}, m.in. ${withTrial
           .slice(0, 3)
           .map((s) => s.name)
           .join(", ")}.`,
@@ -639,6 +640,25 @@
       walkingTime: walkingDistances.get(s.id),
     }))
   );
+
+  // ── Pagination ──
+  const PER_PAGE = 24;
+  let currentPage = $state(1);
+
+  $effect(() => {
+    void activeFilterQuery;
+    currentPage = 1;
+  });
+
+  const totalPages = $derived(Math.max(1, Math.ceil(enrichedSchools.length / PER_PAGE)));
+  const paginatedSchools = $derived(
+    enrichedSchools.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
+  );
+
+  function handlePageChange(page: number) {
+    currentPage = page;
+    document.querySelector('.sf-city-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   function handleMapPinClick(id: string) {
     goto(`/listing/${id}`);
@@ -771,7 +791,7 @@
       </div>
     {:else}
       <div class="school-grid">
-        {#each enrichedSchools as school (school.id)}
+        {#each paginatedSchools as school (school.id)}
           <a href="/listing/{school.id}" class="school-card" class:fade-1={school.distance != null && school.distance > 4} class:fade-2={school.distance != null && school.distance > 8}>
             <span class="school-name">{school.name}</span>
             {#if school.styles.length > 0}
@@ -796,6 +816,7 @@
           </a>
         {/each}
       </div>
+      <Pagination currentPage={currentPage} {totalPages} onPageChange={handlePageChange} />
     {/if}
   </div>
 </div>
