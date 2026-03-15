@@ -1,12 +1,15 @@
 <script lang="ts">
-  let { 
-    locating = false, 
-    onclick, 
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
+
+  let {
+    locating = false,
+    onclick,
     size = 20,
-    title = "Użyj mojej lokalizacji"
-  }: { 
-    locating?: boolean; 
-    onclick: () => void; 
+    title,
+  }: {
+    locating?: boolean;
+    onclick: () => void;
     size?: number;
     title?: string;
   } = $props();
@@ -17,8 +20,8 @@
   class="sf-locate-btn"
   {onclick}
   disabled={locating}
-  {title}
-  aria-label={title}
+  title={title ?? t("locate_button")}
+  aria-label={title ?? t("locate_button")}
 >
   {#if locating}
     <span class="sf-loader sf-loader--sm"></span>

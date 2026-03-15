@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
+
   type CityMarker = { city: string; lat: number; lng: number; count: number };
 
   let {
@@ -105,12 +108,12 @@
     {#if !loaded && !error}
       <div class="map-placeholder">
         <span class="sf-loader"></span>
-        <span class="map-loading">Wczytywanie mapy...</span>
+        <span class="map-loading">{t("map_loading")}</span>
       </div>
     {/if}
     {#if error}
       <div class="map-placeholder">
-        <span class="map-error">Nie udało się załadować mapy</span>
+        <span class="map-error">{t("map_error")}</span>
       </div>
     {/if}
   </div>

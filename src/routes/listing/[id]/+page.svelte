@@ -2,6 +2,8 @@
   import type { PageData } from "./$types";
   import { priceFreshness, parsePricingJson, groupTiers, healthDotColor } from "$lib/data";
   import type { ScheduleEntry } from "$lib/data";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
   import {
     createRecurringAdapter,
     createMemoryAdapter,
@@ -84,7 +86,7 @@
         endTime: e.endTime ?? fallbackEnd(e.startTime),
         subtitle: e.teacher ?? undefined,
         tags: [
-          ...(e.isFree ? ["Bezpłatne"] : []),
+          ...(e.isFree ? [t("free_tag")] : []),
           ...(e.level ? [e.level] : []),
         ],
         category: e.style ?? e.className,
@@ -108,7 +110,7 @@
         end: endDate,
         subtitle: e.teacher ?? undefined,
         tags: [
-          ...(e.isFree ? ["Bezpłatne"] : []),
+          ...(e.isFree ? [t("free_tag")] : []),
           ...(e.level ? [e.level] : []),
         ],
         category: e.style ?? e.className,
@@ -146,13 +148,13 @@
       return clean.length > 155 ? clean.slice(0, 152) + "..." : clean;
     }
     const parts: string[] = [
-      `Studio jogi: ${listing.name} (${listing.address ? listing.address + (!listing.address.includes(listing.city) ? `, ${listing.city}` : "") : listing.city}).`,
+      `${t("listing_meta_studio")} ${listing.name} (${listing.address ? listing.address + (!listing.address.includes(listing.city) ? `, ${listing.city}` : "") : listing.city}).`,
     ];
-    if (listing.price) parts.push(`Miesięczny karnet: ${listing.price} PLN.`);
+    if (listing.price) parts.push(t("listing_meta_monthly", { price: listing.price }));
     parts.push(
-      `Style: ${listing.styles.length ? listing.styles.join(", ") : "Joga"}.`,
+      `${t("listing_meta_styles")} ${listing.styles.length ? listing.styles.join(", ") : "Yoga"}.`,
     );
-    parts.push("Sprawdź szczegóły na szkolyjogi.pl.");
+    parts.push(t("listing_meta_check"));
     return parts.join(" ");
   });
 
@@ -238,11 +240,11 @@
     if (listing.singleClassPrice != null) {
       ld.hasOfferCatalog = {
         "@type": "OfferCatalog",
-        name: "Zajęcia jogi",
+        name: t("listing_yoga_classes"),
         itemListElement: [
           {
             "@type": "Offer",
-            name: "Wejście jednorazowe",
+            name: t("listing_single_class"),
             price: listing.singleClassPrice,
             priceCurrency: "PLN",
           },
@@ -262,10 +264,10 @@
   <meta
     property="og:description"
     content="{listing.price
-      ? `Miesięczny karnet: ${listing.price} PLN. `
-      : ''}Style: {listing.styles.length
+      ? t('listing_meta_monthly', { price: listing.price }) + ' '
+      : ''}{t('listing_meta_styles')} {listing.styles.length
       ? listing.styles.join(', ')
-      : 'Joga'}. Sprawdź szczegóły na szkolyjogi.pl"
+      : 'Yoga'}. {t('listing_meta_check')}"
   />
   <meta property="og:type" content="article" />
   {#if listing.imageUrl}
@@ -331,12 +333,12 @@
 
   <footer class="profile-meta">
     <a
-      href="mailto:joga@zaur.app?subject=Korekta%20danych%20studia%3A%20{encodeURIComponent(
+      href="mailto:joga@zaur.app?subject={encodeURIComponent(t("listing_report_subject"))}{encodeURIComponent(
         listing.name,
       )}"
       class="meta-link"
     >
-      Zgłoś błędne dane
+      {t("listing_report")}
     </a>
   </footer>
 </article>

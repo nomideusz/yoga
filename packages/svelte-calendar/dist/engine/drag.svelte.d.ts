@@ -1,0 +1,31 @@
+/**
+ * Reactive drag state — tracks drag-to-create, drag-to-move, and resize operations.
+ *
+ * This is a state machine, not actual DOM event handling.
+ * View components use Svelte `use:` actions (from actions/) to wire
+ * pointer events → this state. The engine reads this state and commits
+ * changes to the event store on drop.
+ */
+export type DragMode = 'none' | 'create' | 'move' | 'resize-start' | 'resize-end';
+export interface DragPayload {
+    /** The event being dragged (null for create) */
+    eventId: string | null;
+    /** Current tentative start */
+    start: Date;
+    /** Current tentative end */
+    end: Date;
+    /** Which day column / row is the pointer over */
+    dayIndex: number;
+}
+export interface DragState {
+    readonly mode: DragMode;
+    readonly payload: DragPayload | null;
+    readonly active: boolean;
+    beginCreate(start: Date, end: Date, dayIndex?: number): void;
+    beginMove(eventId: string, start: Date, end: Date): void;
+    beginResize(eventId: string, edge: 'start' | 'end', start: Date, end: Date): void;
+    updatePointer(start: Date, end: Date, dayIndex?: number): void;
+    commit(): DragPayload | null;
+    cancel(): void;
+}
+export declare function createDragState(): DragState;

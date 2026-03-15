@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Listing } from "$lib/server/db/queries/index";
   import { Calendar } from "@nomideusz/svelte-calendar";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 
   let {
     listing,
@@ -23,7 +25,7 @@
 
 {#if hasSchedule}
   <section class="schedule-calendar-section">
-    <div class="sf-section-label">Grafik zajęć</div>
+    <div class="sf-section-label">{t("schedule_title")}</div>
     {#if datedIsStale}
       <div class="schedule-stale-notice">
         <svg
@@ -45,7 +47,7 @@
             stroke-linecap="round"
           /></svg
         >
-        Grafik może być nieaktualny — ostatnie zajęcia w przeszłości.
+        {t("schedule_stale")}
       </div>
     {/if}
     {#key listing.id}
@@ -80,10 +82,9 @@
 {:else if showScheduleEmpty}
   <section class="schedule-empty-section">
     <div class="schedule-empty-inner">
-      <h2 class="schedule-empty-title">Grafik w przygotowaniu</h2>
+      <h2 class="schedule-empty-title">{t("schedule_preparing")}</h2>
       <p class="schedule-empty-text">
-        Pracujemy nad automatycznym pobieraniem grafiku zajęć dla tego
-        studia. Wkrótce grafik pojawi się na tej stronie.
+        {t("schedule_preparing_text")}
       </p>
     </div>
   </section>
@@ -91,7 +92,7 @@
   <section class="schedule-empty-section schedule-empty-minimal">
     <div class="schedule-empty-inner">
       <p class="schedule-empty-text">
-        Grafik zajęć nie jest jeszcze dostępny dla tego studia.
+        {t("schedule_unavailable")}
       </p>
     </div>
   </section>

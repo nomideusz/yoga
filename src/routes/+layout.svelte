@@ -3,6 +3,8 @@
   import { navigating, page } from "$app/stores";
   import { onNavigate } from "$app/navigation";
   import { setLabels } from "@nomideusz/svelte-calendar";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 
   onNavigate((navigation) => {
     if (!document.startViewTransition) return;
@@ -16,30 +18,34 @@
 
   const isLanding = $derived($page.url.pathname === "/");
 
-  setLabels({
-    today: "Dziś",
-    yesterday: "Wczoraj",
-    tomorrow: "Jutro",
-    day: "Dzień",
-    week: "Tydzień",
-    planner: "Grafik",
-    agenda: "Lista",
-    now: "teraz",
-    free: "wolne",
-    allDay: "Cały dzień",
-    done: "Zakończone",
-    upNext: "Nadchodzące",
-    noEvents: "Brak zajęć",
-    nothingScheduled: "Brak zaplanowanych zajęć",
-    allDoneForToday: "Wszystkie zajęcia na dziś zakończone",
-    goToToday: "Przejdź do dziś",
-    previousWeek: "Poprzedni tydzień",
-    nextWeek: "Następny tydzień",
-    previousDay: "Poprzedni dzień",
-    nextDay: "Następny dzień",
-    calendar: "Kalendarz",
-    nMore: (n) => `+${n} więcej`,
-    nEvents: (n) => `${n} ${n === 1 ? "zajęcia" : "zajęć"}`,
+  // Reactive calendar labels — update when locale changes
+  $effect(() => {
+    void i18n.locale;
+    setLabels({
+      today: t("cal_today"),
+      yesterday: t("cal_yesterday"),
+      tomorrow: t("cal_tomorrow"),
+      day: t("cal_day"),
+      week: t("cal_week"),
+      planner: t("cal_planner"),
+      agenda: t("cal_agenda"),
+      now: t("cal_now"),
+      free: t("cal_free"),
+      allDay: t("cal_all_day"),
+      done: t("cal_done"),
+      upNext: t("cal_up_next"),
+      noEvents: t("cal_no_events"),
+      nothingScheduled: t("cal_nothing_scheduled"),
+      allDoneForToday: t("cal_all_done_today"),
+      goToToday: t("cal_go_to_today"),
+      previousWeek: t("cal_prev_week"),
+      nextWeek: t("cal_next_week"),
+      previousDay: t("cal_prev_day"),
+      nextDay: t("cal_next_day"),
+      calendar: t("cal_calendar"),
+      nMore: (n) => t("cal_n_more", { n }),
+      nEvents: (n) => n === 1 ? t("cal_n_events_one", { n }) : t("cal_n_events_many", { n }),
+    });
   });
 
   let { children } = $props();
@@ -55,7 +61,7 @@
 
   <!-- ── Floating home dot (hidden on landing — logo IS the hero) ── -->
   {#if !isLanding}
-    <a href="/" class="sf-home-dot" title="szkolyjogi.pl" aria-label="Strona główna">
+    <a href="/" class="sf-home-dot" title="szkolyjogi.pl" aria-label={t("home_aria")}>
       <span class="sf-home-dot-inner"></span>
     </a>
   {/if}
@@ -64,18 +70,18 @@
   <div class="sf-lang-float">
     <button
       class="sf-lang-btn"
-      class:is-active={true}
-      onclick={() => {}}
+      class:is-active={i18n.locale === 'pl'}
+      onclick={() => i18n.setLocale('pl')}
     >PL</button>
     <button
       class="sf-lang-btn"
-      class:is-active={false}
-      onclick={() => {}}
+      class:is-active={i18n.locale === 'en'}
+      onclick={() => i18n.setLocale('en')}
     >EN</button>
   </div>
 
   <a href="#main-content" class="sr-only sr-only-focusable"
-    >Przejdź do głównej treści</a
+    >{t("skip_to_content")}</a
   >
 
   <main id="main-content">
@@ -90,7 +96,7 @@
 
   <footer class="sf-site-footer">
     <a href="/" class="sf-footer-link">szkolyjogi.pl</a>
-    <a href="/terms" class="sf-footer-link">regulamin</a>
+    <a href="/terms" class="sf-footer-link">{t("footer_terms")}</a>
   </footer>
 </div>
 

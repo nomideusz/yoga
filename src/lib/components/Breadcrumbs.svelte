@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
+
   type Crumb = { label: string; href?: string; toggleMap?: boolean };
   let {
     crumbs = [],
@@ -18,7 +21,7 @@
         type="button"
         class="sf-crumbs-toggle"
         onclick={() => (mapOpen = !mapOpen)}
-        aria-label={mapOpen ? "Ukryj mapę" : "Pokaż mapę"}
+        aria-label={mapOpen ? t("breadcrumb_hide_map") : t("breadcrumb_show_map")}
         aria-expanded={mapOpen}
       >{mapOpen ? "\u25BE" : "\u25B8"}</button>
     {/if}

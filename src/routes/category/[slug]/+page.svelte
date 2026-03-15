@@ -1,6 +1,8 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import Pagination from '$lib/components/Pagination.svelte';
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 
   let { data } = $props();
   let slug = $derived(data.slug);
@@ -132,16 +134,16 @@
   {#if categoryListings.length === 0}
     <div class="cat-empty">
       <h1 class="cat-empty-title">{displayName}</h1>
-      <p>Brak wyników dla kategorii: {categoryName}.</p>
+      <p>{t("cat_empty_results")} {categoryName}.</p>
     </div>
   {:else}
     <!-- ── Hero ── -->
     <section class="cat-hero">
       <div class="cat-hero-inner">
-        <div class="sf-section-label">STYL</div>
+        <div class="sf-section-label">{t("label_style")}</div>
         <h1 class="cat-hero-title">{shortName}</h1>
         <p class="cat-hero-sub">
-          {categoryListings.length} szkół w {sortedCities.length} {sortedCities.length === 1 ? 'mieście' : 'miastach'}.
+          {categoryListings.length} {t("cat_schools_in")} {sortedCities.length} {sortedCities.length === 1 ? t("cat_cities_one") : t("cat_cities_many")}.
           {#if metadata}
             {metadata.description}
           {/if}
@@ -150,20 +152,20 @@
         {#if metadata}
           <div class="cat-specs">
             <span class="cat-spec">
-              <span class="cat-spec-label">Intensywność</span>
+              <span class="cat-spec-label">{t("cat_intensity")}</span>
               <span class="cat-spec-val cat-spec-val--{metadata.intensity}">
-                {metadata.intensity === 'low' ? 'Niska' : metadata.intensity === 'medium' ? 'Średnia' : 'Wysoka'}
+                {metadata.intensity === 'low' ? t("cat_intensity_low") : metadata.intensity === 'medium' ? t("cat_intensity_medium") : t("cat_intensity_high")}
               </span>
             </span>
             <span class="cat-spec">
-              <span class="cat-spec-label">Tempo</span>
+              <span class="cat-spec-label">{t("cat_pace")}</span>
               <span class="cat-spec-val">
-                {metadata.pace === 'slow' ? 'Spokojne' : metadata.pace === 'moderate' ? 'Umiarkowane' : 'Szybkie'}
+                {metadata.pace === 'slow' ? t("cat_pace_slow") : metadata.pace === 'moderate' ? t("cat_pace_moderate") : t("cat_pace_fast")}
               </span>
             </span>
             {#if metadata.benefits.length > 0}
               <span class="cat-spec">
-                <span class="cat-spec-label">Korzyści</span>
+                <span class="cat-spec-label">{t("cat_benefits")}</span>
                 <span class="cat-spec-val">{metadata.benefits.slice(0, 3).join(' · ')}</span>
               </span>
             {/if}
@@ -175,7 +177,7 @@
     <!-- ── Cities ── -->
     {#if sortedCities.length > 1}
       <section class="cat-cities">
-        <div class="sf-section-label">MIASTO</div>
+        <div class="sf-section-label">{t("label_city")}</div>
         <div class="cat-cities-flex">
           {#each sortedCities as { city, count } (city)}
             <a href="/{city.toLowerCase()}?style={encodeURIComponent(categoryName)}" class="sf-city-pill">
@@ -190,14 +192,14 @@
     <!-- ── Schools ── -->
     <section class="cat-schools">
       <div class="cat-schools-bar">
-        <div class="sf-sort-toggle" role="radiogroup" aria-label="Sortowanie">
-          <button class:active={sortBy === 'name'} onclick={() => sortBy = 'name'} aria-pressed={sortBy === 'name'}>Nazwa</button>
-          <button class:active={sortBy === 'city'} onclick={() => sortBy = 'city'} aria-pressed={sortBy === 'city'}>Miasto</button>
+        <div class="sf-sort-toggle" role="radiogroup" aria-label={t("city_sort_label")}>
+          <button class:active={sortBy === 'name'} onclick={() => sortBy = 'name'} aria-pressed={sortBy === 'name'}>{t("city_sort_name")}</button>
+          <button class:active={sortBy === 'city'} onclick={() => sortBy = 'city'} aria-pressed={sortBy === 'city'}>{t("city_sort_city")}</button>
         </div>
       </div>
 
       {#if sortedListings.length === 0}
-        <div class="cat-no-results">Brak szkół w tej kategorii.</div>
+        <div class="cat-no-results">{t("cat_no_results")}</div>
       {:else}
         <div class="school-grid">
           {#each paginatedListings as school (school.id)}
@@ -215,7 +217,7 @@
                   <span class="school-styles">{school.styles.filter(s => s !== categoryName).join(', ')}</span>
                 {/if}
                 {#if school.trialPrice === 0}
-                  <span class="trial-badge">Bezpłatne zajęcia</span>
+                  <span class="trial-badge">{t("trial_badge")}</span>
                 {/if}
               </div>
             </a>

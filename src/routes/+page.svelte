@@ -4,6 +4,8 @@
     import { normalizePolish } from "$lib/utils/street";
     import LocateButton from "$lib/components/LocateButton.svelte";
     import { resolveSearch, type SearchContext } from "$lib/search";
+    import { i18n } from "$lib/i18n.js";
+    const t = i18n.t;
 
     let { data } = $props();
     const listings = $derived(data.listings);
@@ -25,14 +27,14 @@
             .map(([city]) => city),
     );
 
-    /** Polish plural for "szkoła" */
-    function pluralSzkola(n: number): string {
-        if (n === 1) return "szkoła";
+    function pluralSchool(n: number): string {
+        if (i18n.locale === 'en') return n === 1 ? t("school_one") : t("school_many");
+        if (n === 1) return t("school_one");
         const mod10 = n % 10;
         const mod100 = n % 100;
         if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20))
-            return "szkoły";
-        return "szkół";
+            return t("school_few");
+        return t("school_many");
     }
 
     /** All styles for search */
@@ -276,7 +278,7 @@
     function resultName(r: SearchResult): string {
         if (r.type === "city") return r.city;
         if (r.type === "style") return r.style;
-        if (r.type === "city+style") return `${r.style} w ${r.city}`;
+        if (r.type === "city+style") return `${r.style} ${t("city_style_in")} ${r.city}`;
         if (r.type === "postal") return r.code;
         if (r.type === "google-place") return r.description;
         return r.name;
@@ -542,12 +544,12 @@
     }
 
     function resultLabel(type: string): string {
-        if (type === "postal") return "Kod pocztowy";
-        if (type === "city+style") return "Miasto + styl";
-        if (type === "city") return "Miasta";
-        if (type === "style") return "Style";
-        if (type === "google-place") return "Adresy";
-        return "Studia";
+        if (type === "postal") return t("label_postal_code");
+        if (type === "city+style") return t("label_city_style");
+        if (type === "city") return t("label_cities");
+        if (type === "style") return t("label_styles");
+        if (type === "google-place") return t("label_addresses");
+        return t("label_studios");
     }
 
     // ── Geolocation ──
@@ -598,7 +600,7 @@
                 locating = false;
                 if (nearest) {
                     // Reverse-geocode for a readable label
-                    let label = "Twoja lokalizacja";
+                    let label = t("your_location");
                     try {
                         const res = await fetch(
                             `/api/geocode?revLat=${userLat}&revLng=${userLng}`,
@@ -643,18 +645,18 @@
 
 <svelte:head>
     <link rel="canonical" href="https://szkolyjogi.pl/" />
-    <title>Szkoły Jogi w Polsce — szkolyjogi.pl</title>
+    <title>{t("meta_main_title")}</title>
     <meta
         name="description"
-        content="Katalog szkół jogi w Polsce — znajdź szkołę w swoim mieście."
+        content={t("meta_main_desc")}
     />
     <meta
         property="og:title"
-        content="Katalog Szkół Jogi w Polsce — szkolyjogi.pl"
+        content={t("meta_main_title")}
     />
     <meta
         property="og:description"
-        content="Katalog szkół jogi w Polsce — znajdź szkołę w swoim mieście."
+        content={t("meta_main_desc")}
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://szkolyjogi.pl/" />
@@ -667,11 +669,11 @@
     <!-- ── Hero ── -->
     <section class="sf-hero">
         <section class="sf-hero-inner">
-            <div class="sf-hero-tag">KATALOG</div>
-            <h1 class="sf-hero-title">Szkoły Jogi w Polsce</h1>
+            <div class="sf-hero-tag">{t("hero_tag")}</div>
+            <h1 class="sf-hero-title">{t("hero_title")}</h1>
             <p class="sf-hero-sub">
                 {listings.length}
-                {pluralSzkola(listings.length)} w {allCities.length} miastach.
+                {pluralSchool(listings.length)} {t("city_style_in")} {allCities.length} {t("hero_sub_cities")}.
             </p>
 
             <!-- Unified Search Box -->
@@ -730,8 +732,8 @@
                         autocorrect="off"
                         autocapitalize="off"
                         spellcheck="false"
-                        aria-label="Szukaj miasta, kodu pocztowego, studia lub stylu jogi"
-                        placeholder="Miasto, kod pocztowy, studio lub styl…"
+                        aria-label={t("search_aria")}
+                        placeholder={t("search_placeholder")}
                     />
 
                     <LocateButton {locating} onclick={requestLocation} />
@@ -740,7 +742,7 @@
                         <div class="search-dropdown" role="listbox">
                             {#if query.trim().length === 0}
                                 <div class="dropdown-group-label">
-                                    Popularne miasta
+                                    {t("popular_cities")}
                                 </div>
                             {/if}
                             {#each activeResults as result, i (result.type === "school" ? result.id : result.type === "city" ? result.city : result.type === "city+style" ? `${result.city}+${result.style}` : result.type === "postal" ? result.code : result.type === "google-place" ? result.placeId : result.style)}
@@ -792,8 +794,8 @@
                                         >
                                         <span class="dropdown-item-meta"
                                             >{result.code.length === 6
-                                                ? "szukaj w pobliżu"
-                                                : "wpisz kod XX-XXX"}</span
+                                                ? t("postal_search_nearby")
+                                                : t("postal_enter_code")}</span
                                         >
                                     {:else if result.type === "city+style"}
                                         <span class="dropdown-item-icon">
@@ -816,7 +818,7 @@
                                             >
                                         </span>
                                         <span class="dropdown-item-text"
-                                            >{result.style} w {result.city}</span
+                                            >{result.style} {t("city_style_in")} {result.city}</span
                                         >
                                         <span class="dropdown-item-meta"
                                             >{result.count}</span
@@ -945,7 +947,7 @@
     <section class="sf-main">
         <!-- ── Cities ── -->
         <section class="sf-cities-section">
-            <div class="sf-section-label">MIASTO</div>
+            <div class="sf-section-label">{t("label_city")}</div>
             <div class="sf-cities-flex">
                 {#each visibleCities as city (city)}
                     <a href="/{city.toLowerCase()}" class="sf-city-pill">
@@ -959,14 +961,14 @@
                     class="sf-cities-toggle"
                     onclick={() => (showAllCities = !showAllCities)}
                 >
-                    {showAllCities ? "Zwiń" : `+ ${hiddenCityCount} więcej`}
+                    {showAllCities ? t("cities_collapse") : t("cities_more", { count: hiddenCityCount })}
                 </button>
             {/if}
         </section>
 
         <!-- ── Styles ── -->
         <section class="sf-styles-section">
-            <div class="sf-section-label">STYL</div>
+            <div class="sf-section-label">{t("label_style")}</div>
             <div class="sf-styles-flex">
                 {#each visibleStyles as { style, count } (style)}
                     <a

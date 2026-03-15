@@ -10,6 +10,8 @@
   import SearchBox, { type SearchBoxItem } from "$lib/components/SearchBox.svelte";
   import { resolveSearch, type SearchContext, type SearchAction } from '$lib/search';
   import Pagination from "$lib/components/Pagination.svelte";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 
   let { data }: { data: PageData } = $props();
 
@@ -85,7 +87,7 @@
       })
       .slice(0, 5);
     for (const s of schoolMatches) {
-      items.push({ key: `s-${s.id}`, icon: 'school', text: s.name, meta: s.address || undefined, group: 'Szkoły' });
+      items.push({ key: `s-${s.id}`, icon: 'school', text: s.name, meta: s.address || undefined, group: t("city_autocomplete_schools") });
     }
 
     // Styles
@@ -94,7 +96,7 @@
       .slice(0, 3);
     for (const style of styleMatches) {
       const count = data.schools.filter(s => s.styles.includes(style)).length;
-      items.push({ key: `st-${style}`, icon: 'style', text: style, meta: `${count}`, group: 'Style' });
+      items.push({ key: `st-${style}`, icon: 'style', text: style, meta: `${count}`, group: t("city_autocomplete_styles") });
     }
 
     // Districts
@@ -103,7 +105,7 @@
       .filter(d => expandedTokens.some(t => normalizePolish(d).includes(t)))
       .slice(0, 3);
     for (const d of districtMatches) {
-      items.push({ key: `d-${d}`, icon: 'pin', text: d, group: 'Dzielnice' });
+      items.push({ key: `d-${d}`, icon: 'pin', text: d, group: t("city_autocomplete_districts") });
     }
 
     // If no local results, show Google Places suggestions (populated async)
@@ -120,13 +122,14 @@
 
   const plCollator = new Intl.Collator("pl-PL");
 
-  /** Polish plural for "szkoła" */
-  function pluralSzkola(n: number): string {
-    if (n === 1) return 'szkoła';
+  function pluralSchool(n: number): string {
+    if (i18n.locale === 'en') return n === 1 ? t("school_one") : t("school_many");
+    if (n === 1) return t("school_one");
     const mod10 = n % 10;
     const mod100 = n % 100;
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'szkoły';
-    return 'szkół';
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20))
+        return t("school_few");
+    return t("school_many");
   }
 
   /** Handle selecting a dropdown item */
@@ -162,7 +165,7 @@
         icon: 'pin',
         text: p.description,
         meta: 'Google Maps',
-        group: 'Adresy',
+        group: t("city_autocomplete_addresses"),
       }));
     } catch {
       placeSuggestions = [];
@@ -343,7 +346,7 @@
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
         };
-        locationLabel = "Twoja lokalizacja";
+        locationLabel = t("your_location");
         query = "";
         geocoding = false;
         // Reverse-geocode to get a readable name
@@ -569,7 +572,7 @@
     if (withTrial.length > 0) {
       faq.push({
         q: `Gdzie w mieście ${data.city} są darmowe pierwsze zajęcia jogi?`,
-        a: `Bezpłatne pierwsze zajęcia oferuje ${withTrial.length} ${pluralSzkola(withTrial.length)} w mieście ${data.city}, m.in. ${withTrial
+        a: `Bezpłatne pierwsze zajęcia oferuje ${withTrial.length} ${pluralSchool(withTrial.length)} w mieście ${data.city}, m.in. ${withTrial
           .slice(0, 3)
           .map((s) => s.name)
           .join(", ")}.`,
@@ -671,7 +674,7 @@
     href="https://szkolyjogi.pl/{data.city?.toLowerCase()}"
   />
   <title
-    >Szkoły Jogi {data.city} | Ceny Karnetów, Lokalizacje, Opinie | szkolyjogi.pl</title
+    >{t("meta_yoga_schools")} {data.city} | {t("meta_prices_locations_reviews")} | szkolyjogi.pl</title
   >
   <meta
     name="description"
@@ -680,7 +683,7 @@
   />
   <meta
     property="og:title"
-    content="Szkoły Jogi {data.city} | Ceny Karnetów, Lokalizacje, Opinie"
+    content="{t("meta_yoga_schools")} {data.city} | {t("meta_prices_locations_reviews")}"
   />
   <meta
     property="og:description"
@@ -708,7 +711,7 @@
 </svelte:head>
 
 <div class="sf-page-city">
-  <h1 class="sr-only">Szkoły Jogi {data.city}</h1>
+  <h1 class="sr-only">{t("meta_yoga_schools")} {data.city}</h1>
 
   <!-- ── Map with search overlay ── -->
   <section class="sf-map-hero">
@@ -731,15 +734,15 @@
           bind:query
           results={autocompleteItems}
           loading={placesLoading}
-          placeholder="Szkoła, styl, dzielnica…"
-          ariaLabel="Szukaj szkoły, stylu, dzielnicy lub kodu pocztowego"
+          placeholder={t("city_search_placeholder")}
+          ariaLabel={t("city_search_aria")}
           onselect={handleSearchSelectWrapper}
           oninput={handleSearchInput}
           onkeydown={handleSearchKeydown}
         >
           {#snippet trailing()}
             {#if query}
-              <button class="search-clear" onclick={clearSearch} aria-label="Wyczyść">
+              <button class="search-clear" onclick={clearSearch} aria-label={t("city_clear")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             {/if}
@@ -751,22 +754,22 @@
       {#if geocoding || distantPostal || citySwitchPrompt || geocodeError || (geocodePoint && locationLabel) || activeFilterQuery}
         <div class="sf-chips-row">
           {#if geocoding}
-            <span class="sf-chip">Szukam…</span>
+            <span class="sf-chip">{t("city_searching")}</span>
           {/if}
           {#if distantPostal}
-            <span class="sf-chip">{distantPostal.code} → <a href="/{distantPostal.citySlug}">{distantPostal.cityName}</a> <button class="chip-x" onclick={() => { distantPostal = null; }} aria-label="Zamknij">&times;</button></span>
+            <span class="sf-chip">{distantPostal.code} → <a href="/{distantPostal.citySlug}">{distantPostal.cityName}</a> <button class="chip-x" onclick={() => { distantPostal = null; }} aria-label={t("city_close")}>&times;</button></span>
           {/if}
           {#if citySwitchPrompt}
-            <span class="sf-chip">{citySwitchPrompt.targetCity}? <a href="/{citySwitchPrompt.targetSlug}">Przejdź</a> <button class="chip-x" onclick={() => { citySwitchPrompt = null; query = ''; }} aria-label="Zamknij">&times;</button></span>
+            <span class="sf-chip">{citySwitchPrompt.targetCity}? <a href="/{citySwitchPrompt.targetSlug}">{t("city_go")}</a> <button class="chip-x" onclick={() => { citySwitchPrompt = null; query = ''; }} aria-label={t("city_close")}>&times;</button></span>
           {/if}
           {#if geocodeError}
-            <span class="sf-chip sf-chip--danger">Nie znaleziono <button class="chip-x" onclick={() => { geocodeError = false; }} aria-label="Zamknij">&times;</button></span>
+            <span class="sf-chip sf-chip--danger">{t("city_not_found")} <button class="chip-x" onclick={() => { geocodeError = false; }} aria-label={t("city_close")}>&times;</button></span>
           {/if}
           {#if geocodePoint && locationLabel}
-            <span class="sf-chip sf-chip--accent">{locationLabel} <button class="chip-x" onclick={() => { geocodePoint = null; locationLabel = ''; }} aria-label="Wyczyść">&times;</button></span>
+            <span class="sf-chip sf-chip--accent">{locationLabel} <button class="chip-x" onclick={() => { geocodePoint = null; locationLabel = ''; }} aria-label={t("city_clear")}>&times;</button></span>
           {/if}
           {#if activeFilterQuery}
-            <span class="sf-chip">{activeFilterQuery} <button class="chip-x" onclick={() => { activeFilterQuery = ''; }} aria-label="Wyczyść">&times;</button></span>
+            <span class="sf-chip">{activeFilterQuery} <button class="chip-x" onclick={() => { activeFilterQuery = ''; }} aria-label={t("city_clear")}>&times;</button></span>
           {/if}
         </div>
       {/if}
@@ -776,17 +779,17 @@
   <!-- ── School grid ── -->
   <div class="sf-city-content">
     <div class="sf-list-header">
-      <div class="sf-sort-toggle" role="radiogroup" aria-label="Sortowanie">
-        <button class:active={sortBy === 'distance'} onclick={() => sortBy = 'distance'} aria-pressed={sortBy === 'distance'}>Dystans</button>
-        <button class:active={sortBy === 'name'} onclick={() => sortBy = 'name'} aria-pressed={sortBy === 'name'}>Nazwa</button>
+      <div class="sf-sort-toggle" role="radiogroup" aria-label={t("city_sort_label")}>
+        <button class:active={sortBy === 'distance'} onclick={() => sortBy = 'distance'} aria-pressed={sortBy === 'distance'}>{t("city_sort_distance")}</button>
+        <button class:active={sortBy === 'name'} onclick={() => sortBy = 'name'} aria-pressed={sortBy === 'name'}>{t("city_sort_name")}</button>
       </div>
     </div>
 
     {#if enrichedSchools.length === 0}
       <div class="no-results">
-        Nie znaleziono szkół pasujących do kryteriów.
+        {t("city_no_schools")}
         {#if activeFilterQuery || query}
-          <button class="no-results-btn" onclick={() => { query = ""; activeFilterQuery = ""; }}>Wyczyść wyszukiwanie</button>
+          <button class="no-results-btn" onclick={() => { query = ""; activeFilterQuery = ""; }}>{t("city_clear_search")}</button>
         {/if}
       </div>
     {:else}
@@ -810,7 +813,7 @@
                 <span class="school-distance">{school.distance.toFixed(1)} km</span>
               {/if}
               {#if school.trialPrice === 0}
-                <span class="trial-badge">Bezpłatne zajęcia</span>
+                <span class="trial-badge">{t("trial_badge")}</span>
               {/if}
             </div>
           </a>

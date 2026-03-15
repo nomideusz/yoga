@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Listing, ReviewData } from "$lib/server/db/queries/index";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 
   let {
     listing,
@@ -16,12 +18,12 @@
 
 {#if hasReviews}
   <section class="reviews-section">
-    <div class="sf-section-label">Opinie z Google</div>
+    <div class="sf-section-label">{t("reviews_label")}</div>
     <div class="reviews-list">
       {#each (showAllReviews ? reviews : reviews.slice(0, 1)) as review (review.id)}
         <div class="review-card">
           <div class="review-header">
-            <span class="review-stars" aria-label="{review.rating} z 5 gwiazdek">
+            <span class="review-stars" aria-label={t("reviews_stars", { rating: review.rating })}>
               {#each Array(5) as _, i}
                 <span class="review-star" class:review-star--filled={i < review.rating}>★</span>
               {/each}
@@ -39,11 +41,11 @@
     </div>
     {#if reviews.length > 1 && !showAllReviews}
       <button class="show-more-reviews" onclick={() => showAllReviews = true}>
-        Pokaż wszystkie opinie ({reviews.length})
+        {t("reviews_show_all", { count: reviews.length })}
       </button>
     {/if}
     <div class="reviews-footer">
-      <span class="reviews-attribution">Opinie Google</span>
+      <span class="reviews-attribution">{t("reviews_attribution")}</span>
       {#if listing.googleMapsUrl && (listing.reviews ?? 0) > (showAllReviews ? reviews.length : 1)}
         <a
           href={listing.googleMapsUrl}
@@ -51,7 +53,7 @@
           rel="noopener noreferrer nofollow"
           class="reviews-link"
         >
-          {showAllReviews ? `Zobacz pozostałe ${(listing.reviews ?? reviews.length) - reviews.length}` : `Wszystkie ${listing.reviews}`} opinii ↗
+          {showAllReviews ? t("reviews_see_remaining", { count: (listing.reviews ?? reviews.length) - reviews.length }) : t("reviews_all", { count: listing.reviews ?? 0 })}
         </a>
       {/if}
     </div>

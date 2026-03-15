@@ -1,69 +1,62 @@
 <script lang="ts">
   import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 </script>
 
 <svelte:head>
   <link rel="canonical" href="https://szkolyjogi.pl/post" />
-  <title>Dodaj studio | szkolyjogi.pl</title>
+  <title>{t("post_title")} | szkolyjogi.pl</title>
   <meta
     name="description"
-    content="Dodaj lub przejmij profil swojego studia jogi w katalogu szkolyjogi.pl — bezpłatnie."
+    content={t("post_meta_desc")}
   />
-  <meta property="og:title" content="Dodaj studio | szkolyjogi.pl" />
+  <meta property="og:title" content="{t("post_title")} | szkolyjogi.pl" />
   <meta
     property="og:description"
-    content="Dodaj lub przejmij profil swojego studia jogi w katalogu szkolyjogi.pl — bezpłatnie."
+    content={t("post_meta_desc")}
   />
   <meta property="og:type" content="website" />
 </svelte:head>
 
 <div class="sf-page-shell">
-  <Breadcrumbs crumbs={[{ label: "szkolyjogi.pl", href: "/" }, { label: "DODAJ STUDIO" }]} />
+  <Breadcrumbs crumbs={[{ label: "szkolyjogi.pl", href: "/" }, { label: t("post_breadcrumb") }]} />
 
-  <h1 class="page-title">Dodaj studio</h1>
+  <h1 class="page-title">{t("post_title")}</h1>
 
   <div class="sf-content-prose">
     <section>
-      <h3>Twoje studio jest już w katalogu?</h3>
-      <p>
-        Automatycznie zbieramy dane o szkołach jogi w Polsce. Istnieje duża szansa,
-        że Twoje studio już się tutaj znajduje. Wyszukaj je na
-        <a href="/">stronie głównej</a>, a następnie kliknij "Przejmij ten profil"
-        na stronie studia.
-      </p>
+      <h3>{t("post_already_title")}</h3>
+      <p>{@html t("post_already_text")}</p>
     </section>
 
     <section>
-      <h3>Nie możesz znaleźć swojego studia?</h3>
-      <p>
-        Napisz do nas na
-        <a href="mailto:joga@zaur.app?subject=Nowe%20studio%20jogi">joga@zaur.app</a>
-        z nazwą i adresem studia — dodamy je do katalogu.
-      </p>
+      <h3>{t("post_not_found_title")}</h3>
+      <p>{@html t("post_not_found_text")}</p>
     </section>
 
     <section>
-      <h3>Co zyskujesz?</h3>
+      <h3>{t("post_benefits_title")}</h3>
       <div class="benefits">
         <div class="benefit">
           <span class="benefit-num">1</span>
           <div>
-            <h4 class="benefit-title">Widoczność w katalogu</h4>
-            <p>Twoje studio pojawia się w wynikach wyszukiwania i na stronie miasta.</p>
+            <h4 class="benefit-title">{t("post_benefit1_title")}</h4>
+            <p>{t("post_benefit1_text")}</p>
           </div>
         </div>
         <div class="benefit">
           <span class="benefit-num">2</span>
           <div>
-            <h4 class="benefit-title">Pełna kontrola nad profilem</h4>
-            <p>Edytuj opis, grafik, zdjęcia i dane kontaktowe w dowolnym momencie.</p>
+            <h4 class="benefit-title">{t("post_benefit2_title")}</h4>
+            <p>{t("post_benefit2_text")}</p>
           </div>
         </div>
         <div class="benefit">
           <span class="benefit-num">3</span>
           <div>
-            <h4 class="benefit-title">Bezpłatnie, na zawsze</h4>
-            <p>Katalog jest darmowy — bez ukrytych opłat i limitów czasowych.</p>
+            <h4 class="benefit-title">{t("post_benefit3_title")}</h4>
+            <p>{t("post_benefit3_text")}</p>
           </div>
         </div>
       </div>

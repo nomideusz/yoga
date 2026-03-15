@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
+
   type SchoolPin = { id: string; name: string; lat: number; lng: number; address?: string };
 
   let {
@@ -163,7 +166,7 @@
       userMarker = new google.maps.Marker({
         position: { lat: userLocation.lat, lng: userLocation.lng },
         map,
-        title: userLocation.label ?? 'Twoja lokalizacja',
+        title: userLocation.label ?? t("your_location"),
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
           scale: 10,
@@ -203,12 +206,12 @@
     {#if !loaded && !error}
       <div class="map-placeholder" aria-hidden="true">
         <span class="sf-loader" aria-hidden="true"></span>
-        <span class="map-loading">Wczytywanie mapy\u2026</span>
+        <span class="map-loading">{t("map_loading")}</span>
       </div>
     {/if}
     {#if error}
       <div class="map-placeholder">
-        <span class="map-error">Nie udało się załadować mapy</span>
+        <span class="map-error">{t("map_error")}</span>
       </div>
     {/if}
   </div>

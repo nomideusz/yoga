@@ -2,6 +2,8 @@
   import type { Listing, ScheduleEntry } from "$lib/data";
   import { formatDateEU, formatDatePL, healthSuffix } from "$lib/data";
   import ListingMap from "$lib/components/ListingMap.svelte";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 
   let {
     listing,
@@ -34,7 +36,7 @@
 
 <aside class="listing-sidebar">
   <section class="panel sf-card pricing-card">
-    <div class="sf-section-label">Cennik</div>
+    <div class="sf-section-label">{t("listing_pricing")}</div>
     <div class="price-hero">
       <span class="price-hero-value"
         >{listing.price != null ? `${listing.price}` : "—"}</span
@@ -42,26 +44,26 @@
       <span class="price-hero-unit"
         >{listing.price != null
           ? listing.priceEstimated
-            ? "~PLN / miesiąc"
-            : "PLN / miesiąc"
+            ? `~${t("listing_price_per_month")}`
+            : t("listing_price_per_month")
           : ""}</span
       >
       {#if listing.priceEstimated}
         <span
           class="sf-badge sf-badge--muted"
-          title="Cena szacunkowa obliczona na podstawie pakietów wejść (3x/tydzień)"
-          >szacunkowy</span
+          title={t("listing_price_estimated_title")}
+          >{t("listing_price_estimated")}</span
         >
       {/if}
       {#if listing.trialPrice === 0}
-        <span class="sf-badge sf-badge--warm sf-badge--wrap">Pierwsze zajęcia gratis</span>
+        <span class="sf-badge sf-badge--warm sf-badge--wrap">{t("listing_trial_free")}</span>
       {:else if pricingData?.trial_info && listing.trialPrice !== 0}
         <span class="sf-badge sf-badge--warm sf-badge--wrap">{pricingData.trial_info}</span>
       {/if}
     </div>
     {#if hasTiers || pricingData?.discounts || pricingData?.pricing_notes || listing.singleClassPrice != null || (listing.trialPrice != null && listing.trialPrice > 0) || listing.pricingNotes}
       <details class="pricing-details-toggle">
-        <summary class="pricing-toggle-summary">Szczegóły cennika</summary>
+        <summary class="pricing-toggle-summary">{t("listing_pricing_details")}</summary>
         <div class="pricing-details-content">
           {#if hasTiers}
             <div class="tier-groups">
@@ -99,13 +101,13 @@
             <div class="price-rows">
               {#if listing.singleClassPrice != null}
                 <div class="kv">
-                  <span>Wejście jednorazowe</span>
+                  <span>{t("listing_single_class")}</span>
                   <strong>{listing.singleClassPrice} PLN</strong>
                 </div>
               {/if}
               {#if listing.trialPrice != null && listing.trialPrice > 0}
                 <div class="kv">
-                  <span>Pierwsze zajęcia</span>
+                  <span>{t("listing_first_class")}</span>
                   <strong>{listing.trialPrice} PLN</strong>
                 </div>
               {/if}
@@ -121,7 +123,7 @@
               target="_blank"
               rel="noopener noreferrer nofollow"
               class="pricing-link"
-            >Cennik na stronie ↗</a>
+            >{t("listing_pricing_link")}</a>
           {/if}
         </div>
       </details>
@@ -130,7 +132,7 @@
 
   {#if listing.latitude != null && listing.longitude != null && googleMapsApiKey}
     <section class="panel sf-card map-card">
-      <div class="sf-section-label">Lokalizacja</div>
+      <div class="sf-section-label">{t("listing_location")}</div>
       <div class="map-container">
         <ListingMap
           lat={listing.latitude}
@@ -154,13 +156,10 @@
   {#if isUnclaimed}
     <section class="panel sf-card status-card">
       <p class="status-text">
-        To Twoje studio? Przejmij profil i wyróżnij się wśród {listing.city ===
-        "Warszawa"
-          ? "warszawskich"
-          : "lokalnych"} szkół jogi — bezpłatnie.
+        {listing.city === "Warszawa" ? t("listing_claim_text_warsaw") : t("listing_claim_text")}
       </p>
       <a href="/listing/{listing.id}/claim" class="claim-btn">
-        Przejmij profil
+        {t("listing_claim_btn")}
       </a>
     </section>
   {/if}
@@ -170,13 +169,13 @@
       {#if listing.lastUpdated}
         <div class="freshness-row">
           <span class="freshness-dot freshness-dot--{dotColor}"></span>
-          <span>Dane zaktualizowane: {formatDatePL(listing.lastUpdated)}{healthSuffix(listing.healthStatus)}{isStaleData ? ' · mogą być nieaktualne' : ''}</span>
+          <span>{t("listing_data_updated")} {formatDatePL(listing.lastUpdated)}{healthSuffix(listing.healthStatus)}{isStaleData ? ' · ' + t("listing_data_stale") : ''}</span>
         </div>
       {/if}
       {#if listing.lastPriceCheck}
         <div class="freshness-row freshness-row--pricing">
           <span class="freshness-dot freshness-dot--{freshness === 'fresh' ? 'green' : freshness === 'aging' ? 'amber' : 'red'}"></span>
-          <span>Ceny: {formatDateEU(listing.lastPriceCheck)} {freshness === "fresh" ? "· aktualne" : freshness === "aging" ? "· wymaga sprawdzenia" : "· nieaktualne"}</span>
+          <span>{t("listing_prices_label")} {formatDateEU(listing.lastPriceCheck)} {freshness === "fresh" ? `· ${t("listing_price_fresh")}` : freshness === "aging" ? `· ${t("listing_price_aging")}` : `· ${t("listing_price_stale")}`}</span>
         </div>
       {/if}
     </div>

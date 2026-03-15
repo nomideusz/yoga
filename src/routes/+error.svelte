@@ -1,17 +1,19 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 </script>
 
 <svelte:head>
-  <title>Błąd {page.status} | szkolyjogi.pl</title>
+  <title>{t("error_system")} {page.status} | szkolyjogi.pl</title>
 </svelte:head>
 
 <section class="error-shell">
   <div class="error-card sf-card">
-    <p class="error-kicker">Błąd systemu</p>
+    <p class="error-kicker">{t("error_system")}</p>
     <h1 class="error-title">{page.status}</h1>
-    <p class="error-message">{page.error?.message || "Nie znaleziono żądanej strony."}</p>
-    <a href="/" class="primary-button">Wróć na stronę główną</a>
+    <p class="error-message">{page.error?.message || t("error_page_not_found")}</p>
+    <a href="/" class="primary-button">{t("error_go_home")}</a>
   </div>
 </section>
 

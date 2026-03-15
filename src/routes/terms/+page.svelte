@@ -1,69 +1,68 @@
 <script lang="ts">
   import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 </script>
 
 <svelte:head>
   <link rel="canonical" href="https://szkolyjogi.pl/terms" />
-  <title>Regulamin | szkolyjogi.pl</title>
+  <title>{t("terms_title")} | szkolyjogi.pl</title>
   <meta
     name="description"
-    content="Regulamin serwisu szkolyjogi.pl — katalog szkół jogi w Polsce."
+    content={t("terms_meta_desc")}
   />
-  <meta property="og:title" content="Regulamin | szkolyjogi.pl" />
+  <meta property="og:title" content="{t("terms_title")} | szkolyjogi.pl" />
   <meta
     property="og:description"
-    content="Regulamin serwisu szkolyjogi.pl — katalog szkół jogi w Polsce."
+    content={t("terms_meta_desc")}
   />
   <meta property="og:type" content="website" />
 </svelte:head>
 
 <div class="sf-page-shell">
-  <Breadcrumbs crumbs={[{ label: "szkolyjogi.pl", href: "/" }, { label: "REGULAMIN" }]} />
+  <Breadcrumbs crumbs={[{ label: "szkolyjogi.pl", href: "/" }, { label: t("terms_breadcrumb") }]} />
 
-  <h1 class="page-title">Regulamin</h1>
+  <h1 class="page-title">{t("terms_title")}</h1>
 
   <div class="sf-content-prose">
     <section>
-      <h3>§1 Postanowienia ogólne</h3>
+      <h3>{t("terms_s1_title")}</h3>
       <ol>
-        <li>Serwis szkolyjogi.pl (dalej: „Serwis") jest katalogiem szkół jogi działających na terenie Polski.</li>
-        <li>Administratorem Serwisu jest szkolyjogi.pl.</li>
-        <li>Korzystanie z Serwisu jest bezpłatne.</li>
+        <li>{t("terms_s1_1")}</li>
+        <li>{t("terms_s1_2")}</li>
+        <li>{t("terms_s1_3")}</li>
       </ol>
     </section>
 
     <section>
-      <h3>§2 Zakres usług</h3>
+      <h3>{t("terms_s2_title")}</h3>
       <ol>
-        <li>Serwis udostępnia informacje o szkołach jogi, w tym: nazwy, adresy, ceny karnetów, style jogi, grafiki zajęć i dane kontaktowe.</li>
-        <li>Informacje prezentowane w Serwisie mają charakter informacyjny i mogą nie odzwierciedlać aktualnego stanu oferty danej szkoły.</li>
-        <li>Serwis nie pośredniczy w rezerwacji zajęć ani w płatnościach między użytkownikami a szkołami jogi.</li>
+        <li>{t("terms_s2_1")}</li>
+        <li>{t("terms_s2_2")}</li>
+        <li>{t("terms_s2_3")}</li>
       </ol>
     </section>
 
     <section>
-      <h3>§3 Dane szkół jogi</h3>
+      <h3>{t("terms_s3_title")}</h3>
       <ol>
-        <li>Dane szkół jogi są zbierane automatycznie ze źródeł publicznie dostępnych.</li>
-        <li>Właściciel studia jogi może przejąć profil swojej szkoły, kontaktując się z administratorem na adres <a href="mailto:joga@zaur.app">joga@zaur.app</a>.</li>
-        <li>Administrator dokłada starań, aby prezentowane dane były aktualne, jednak nie gwarantuje ich poprawności.</li>
+        <li>{t("terms_s3_1")}</li>
+        <li>{@html t("terms_s3_2")}</li>
+        <li>{t("terms_s3_3")}</li>
       </ol>
     </section>
 
     <section>
-      <h3>§4 Odpowiedzialność</h3>
+      <h3>{t("terms_s4_title")}</h3>
       <ol>
-        <li>Administrator nie ponosi odpowiedzialności za treści zamieszczone przez szkoły jogi, które przejęły swoje profile.</li>
-        <li>Administrator nie ponosi odpowiedzialności za decyzje podjęte na podstawie informacji prezentowanych w Serwisie.</li>
+        <li>{t("terms_s4_1")}</li>
+        <li>{t("terms_s4_2")}</li>
       </ol>
     </section>
 
     <section>
-      <h3>§5 Kontakt</h3>
-      <p>
-        W sprawach związanych z Serwisem prosimy o kontakt na adres
-        <a href="mailto:joga@zaur.app">joga@zaur.app</a>.
-      </p>
+      <h3>{t("terms_s5_title")}</h3>
+      <p>{@html t("terms_s5_text")}</p>
     </section>
   </div>
 </div>

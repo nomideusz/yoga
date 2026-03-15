@@ -1,0 +1,9 @@
+/**
+ * Replace {variable} placeholders in a string with values from params.
+ * Missing params are left as-is (e.g. "{name}" stays if name not provided).
+ *
+ * @example
+ * interpolate("Hello {name}, you have {count} items", { name: "Jan", count: 3 })
+ * // → "Hello Jan, you have 3 items"
+ */
+export declare function interpolate(template: string, params?: Record<string, string | number>): string;

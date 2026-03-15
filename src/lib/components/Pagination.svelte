@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
+
   let {
     currentPage = 1,
     totalPages = 1,
@@ -52,12 +55,12 @@
 </script>
 
 {#if totalPages > 1}
-  <nav class="pagination" aria-label="Paginacja">
+  <nav class="pagination" aria-label={t("pagination_label")}>
     <button
       class="pg-btn pg-prev"
       disabled={currentPage === 1}
       onclick={() => goTo(currentPage - 1)}
-      aria-label="Poprzednia strona"
+      aria-label={t("pagination_prev")}
     >
       ←
     </button>
@@ -70,7 +73,7 @@
           class="pg-btn pg-num"
           class:active={item === currentPage}
           onclick={() => goTo(item)}
-          aria-label="Strona {item}"
+          aria-label={t("pagination_page", { page: item })}
           aria-current={item === currentPage ? 'page' : undefined}
         >
           {item}
@@ -82,7 +85,7 @@
       class="pg-btn pg-next"
       disabled={currentPage === totalPages}
       onclick={() => goTo(currentPage + 1)}
-      aria-label="Następna strona"
+      aria-label={t("pagination_next")}
     >
       →
     </button>

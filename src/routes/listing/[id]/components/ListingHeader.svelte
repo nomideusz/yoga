@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Listing } from "$lib/data";
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 
   let { listing }: { listing: Listing } = $props();
 </script>
@@ -78,7 +80,7 @@
             stroke-linecap="round"
           /></svg
         >
-        E-mail
+        {t("listing_email")}
       </a>
     {/if}
     {#if listing.websiteUrl}
@@ -97,7 +99,7 @@
         >
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M8 1.5A6.5 6.5 0 1 0 14.5 8M8 1.5v13M1.5 8h13m-2.2-6.5A13.2 13.2 0 0 1 8 14.5m4.3-13A13.2 13.2 0 0 0 8 14.5"/>
         </svg>
-        Strona WWW
+        {t("listing_website")}
       </a>
     {/if}
   </div>

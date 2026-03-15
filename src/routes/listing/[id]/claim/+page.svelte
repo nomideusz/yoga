@@ -1,24 +1,26 @@
 <script lang="ts">
   import type { PageData, ActionData } from './$types';
   import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
+  import { i18n } from "$lib/i18n.js";
+  const t = i18n.t;
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   let listing = $derived(data.listing);
 </script>
 
 <svelte:head>
-  <title>Przejmij profil — {listing.name} | szkolyjogi.pl</title>
-  <meta name="description" content="Przejmij profil studia {listing.name} w katalogu szkolyjogi.pl." />
-  <meta property="og:title" content="Przejmij profil — {listing.name} | szkolyjogi.pl" />
+  <title>{t("claim_title")} — {listing.name} | szkolyjogi.pl</title>
+  <meta name="description" content="{t('claim_title')} — {listing.name} | szkolyjogi.pl" />
+  <meta property="og:title" content="{t('claim_title')} — {listing.name} | szkolyjogi.pl" />
   <link rel="canonical" href="https://szkolyjogi.pl/listing/{listing.id}/claim" />
 </svelte:head>
 
 <div class="sf-page-shell">
   <Breadcrumbs crumbs={[
-    { label: "Wszystkie szkoły", href: "/" },
+    { label: t("claim_all_schools"), href: "/" },
     { label: listing.city, href: `/${listing.city.toLowerCase()}` },
     { label: listing.name, href: `/listing/${listing.id}` },
-    { label: "Przejmij profil" },
+    { label: t("claim_title") },
   ]} />
 
   <div class="claim-layout">
@@ -29,19 +31,17 @@
             <circle cx="12" cy="12" r="10" stroke="var(--sf-accent)" stroke-width="1.5"/>
             <path d="M8 12.5l2.5 2.5L16 9.5" stroke="var(--sf-accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <h1 class="success-title">Zgłoszenie wysłane</h1>
+          <h1 class="success-title">{t("claim_success_title")}</h1>
           <p class="success-text">
-            Dziękujemy! Twoje zgłoszenie dotyczące studia <strong>{listing.name}</strong> zostało zapisane.
-            Skontaktujemy się z Tobą w ciągu 2 dni roboczych, aby potwierdzić tożsamość.
+            {@html t("claim_success_text", { name: listing.name }).replace(listing.name, `<strong>${listing.name}</strong>`)}
           </p>
-          <a href="/listing/{listing.id}" class="back-link">← Wróć do profilu studia</a>
+          <a href="/listing/{listing.id}" class="back-link">{t("claim_back")}</a>
         </div>
       {:else}
         <header class="claim-header">
-          <h1 class="claim-title">Przejmij profil</h1>
+          <h1 class="claim-title">{t("claim_title")}</h1>
           <p class="claim-subtitle">
-            Wypełnij formularz, aby przejąć zarządzanie profilem studia <strong>{listing.name}</strong>.
-            Zweryfikujemy Twoją tożsamość i skontaktujemy się w ciągu 2 dni roboczych.
+            {@html t("claim_subtitle", { name: listing.name }).replace(listing.name, `<strong>${listing.name}</strong>`)}
           </p>
         </header>
 
@@ -54,7 +54,7 @@
 
         <form method="POST" class="claim-form" novalidate>
           <div class="field">
-            <label for="name" class="field-label">Imię i nazwisko <span class="required">*</span></label>
+            <label for="name" class="field-label">{t("claim_name_label")} <span class="required">*</span></label>
             <input
               type="text"
               id="name"
@@ -69,7 +69,7 @@
           </div>
 
           <div class="field">
-            <label for="email" class="field-label">E-mail <span class="required">*</span></label>
+            <label for="email" class="field-label">{t("claim_email_label")} <span class="required">*</span></label>
             <input
               type="email"
               id="email"
@@ -84,7 +84,7 @@
           </div>
 
           <div class="field">
-            <label for="phone" class="field-label">Telefon</label>
+            <label for="phone" class="field-label">{t("claim_phone_label")}</label>
             <input
               type="tel"
               id="phone"
@@ -96,34 +96,34 @@
           </div>
 
           <div class="field">
-            <label for="role" class="field-label">Rola w studiu <span class="required">*</span></label>
+            <label for="role" class="field-label">{t("claim_role_label")} <span class="required">*</span></label>
             <select id="role" name="role" class="field-input" required aria-required="true">
-              <option value="" disabled selected={!form?.role}>Wybierz...</option>
-              <option value="owner" selected={form?.role === 'owner'}>Właściciel/ka</option>
-              <option value="manager" selected={form?.role === 'manager'}>Manager/ka</option>
-              <option value="instructor" selected={form?.role === 'instructor'}>Instruktor/ka</option>
+              <option value="" disabled selected={!form?.role}>{t("claim_role_select")}</option>
+              <option value="owner" selected={form?.role === 'owner'}>{t("claim_role_owner")}</option>
+              <option value="manager" selected={form?.role === 'manager'}>{t("claim_role_manager")}</option>
+              <option value="instructor" selected={form?.role === 'instructor'}>{t("claim_role_instructor")}</option>
             </select>
           </div>
 
           <div class="field">
-            <label for="message" class="field-label">Dodatkowa wiadomość</label>
+            <label for="message" class="field-label">{t("claim_message_label")}</label>
             <textarea
               id="message"
               name="message"
               rows="3"
               class="field-input field-textarea"
-              placeholder="Np. link do strony studia potwierdzający powiązanie..."
+              placeholder={t("claim_message_placeholder")}
             >{form?.message ?? ''}</textarea>
           </div>
 
-          <button type="submit" class="submit-btn">Wyślij zgłoszenie</button>
+          <button type="submit" class="submit-btn">{t("claim_submit")}</button>
         </form>
       {/if}
     </div>
 
     <aside class="claim-sidebar">
       <div class="sf-card panel studio-preview">
-        <span class="panel-label">Studio</span>
+        <span class="panel-label">{t("claim_studio")}</span>
         <h2 class="preview-name">{listing.name}</h2>
         <p class="preview-address">{listing.address}{listing.address && !listing.address.includes(listing.city) ? `, ${listing.city}` : !listing.address ? listing.city : ''}</p>
         {#if listing.styles.length > 0}
@@ -132,14 +132,14 @@
       </div>
 
       <div class="sf-card panel info-panel">
-        <span class="panel-label">Jak to działa?</span>
+        <span class="panel-label">{t("claim_how_it_works")}</span>
         <ol class="info-steps">
-          <li>Wypełnij formularz obok</li>
-          <li>Zweryfikujemy Twoją tożsamość</li>
-          <li>Otrzymasz pełną kontrolę nad profilem</li>
+          <li>{t("claim_step_1")}</li>
+          <li>{t("claim_step_2")}</li>
+          <li>{t("claim_step_3")}</li>
         </ol>
         <p class="info-note">
-          Przejęcie profilu jest bezpłatne i nie wymaga zobowiązań.
+          {t("claim_free_note")}
         </p>
       </div>
     </aside>
