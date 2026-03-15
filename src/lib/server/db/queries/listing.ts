@@ -1,69 +1,7 @@
-import { db } from './index';
-import { schools, styles, schoolStyles, scheduleEntries } from './schema';
-import { eq, sql } from 'drizzle-orm';
-
-// ── Exported client-facing types ────────────────────────────────────────────
-
-export interface ScheduleEntryData {
-  id: number;
-  schoolId: string;
-  scheduleType: string;            // 'weekly' | 'dated'
-  dayOfWeek: number;               // 0=Mon … 6=Sun
-  date: string | null;             // "2026-03-05" for dated entries
-  startTime: string;               // "07:00"
-  endTime: string | null;
-  duration: number | null;
-  className: string;
-  classDescription: string | null;
-  teacher: string | null;
-  level: string | null;
-  style: string | null;
-  location: string | null;
-  totalCapacity: number | null;
-  spotsLeft: number | null;
-  waitingListCapacity: number | null;
-  isCancelled: boolean;
-  isFree: boolean;
-  isBookableOnline: boolean;
-  source: string;
-  externalId: string | null;
-  bookingUrl: string | null;
-  metadata: unknown;
-  lastSeenAt: string | null;
-  createdAt: string | null;
-}
-
-export interface Listing {
-  id: string;
-  name: string;
-  city: string;
-  address: string;
-  websiteUrl: string | null;
-  phone: string | null;
-  email: string | null;
-  price: number | null;
-  priceEstimated: boolean;
-  trialPrice: number | null;
-  singleClassPrice: number | null;
-  pricingNotes: string | null;
-  rating: number | null;
-  reviews: number | null;
-  description: string | null;
-  editorialSummary: string | null;
-  openingHours: string | null;
-  imageUrl: string | null;
-  neighborhood: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  googleMapsUrl: string | null;
-  scheduleUrl: string | null;
-  scheduleSource: string | null;
-  lastPriceCheck: string | null;
-  lastUpdated: string | null;
-  source: string | null;
-  styles: string[];
-  schedule: ScheduleEntryData[];
-}
+import { db } from '../index';
+import { schools, styles, schoolStyles, scheduleEntries } from '../schema';
+import { eq, and, sql } from 'drizzle-orm';
+import type { Listing, ScheduleEntryData } from './types';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -116,6 +54,8 @@ function buildListing(
     trialPrice: school.trialPrice,
     singleClassPrice: school.singleClassPrice,
     pricingNotes: school.pricingNotes,
+    pricingUrl: school.pricingUrl,
+    healthStatus: school.healthStatus,
     rating: school.rating,
     reviews: school.reviews,
     description: school.description,
@@ -139,7 +79,7 @@ function buildListing(
 // ── Public queries ──────────────────────────────────────────────────────────
 
 export async function getAllListings(): Promise<Listing[]> {
-  const allSchools = await db.select().from(schools);
+  const allSchools = await db.select().from(schools).where(eq(schools.isListed, true));
 
   // Batch-load all styles joins
   const allSchoolStyles = await db
@@ -186,44 +126,15 @@ export async function getListingById(id: string): Promise<Listing | null> {
     .from(scheduleEntries)
     .where(eq(scheduleEntries.schoolId, id));
 
-  return buildListing(
-    school,
-    schoolStyleRows.map((r) => r.name),
-    schedRows.map(mapScheduleRow),
-  );
-}
-
-export async function getUniqueCities(): Promise<string[]> {
-  const rows = await db
-    .selectDistinct({ city: schools.city })
-    .from(schools)
-    .where(sql`${schools.city} != ''`);
-  return rows.map((r) => r.city).sort();
-}
-
-export async function getUniqueStyles(): Promise<string[]> {
-  const rows = await db.select({ name: styles.name }).from(styles);
-  return rows.map((r) => r.name).sort();
-}
-
-export async function getCityCoords(): Promise<Record<string, { lat: number; lng: number }>> {
-  const rows = await db
-    .select({
-      city: schools.city,
-      lat: sql<number>`avg(${schools.latitude})`,
-      lng: sql<number>`avg(${schools.longitude})`,
-    })
-    .from(schools)
-    .where(sql`${schools.latitude} IS NOT NULL AND ${schools.city} != ''`)
-    .groupBy(schools.city);
-
-  const result: Record<string, { lat: number; lng: number }> = {};
-  for (const r of rows) {
-    if (r.lat != null && r.lng != null) {
-      result[r.city] = { lat: r.lat, lng: r.lng };
-    }
-  }
-  return result;
+  return {
+    ...buildListing(
+      school,
+      schoolStyleRows.map((r) => r.name),
+      schedRows.map(mapScheduleRow),
+    ),
+    pricingJson: school.pricingJson,
+    descriptionRaw: school.descriptionRaw,
+  };
 }
 
 export async function getListingsByStyle(styleName: string): Promise<Listing[]> {
@@ -251,7 +162,7 @@ export async function getListingsByStyle(styleName: string): Promise<Listing[]> 
   const matchedSchools = await db
     .select()
     .from(schools)
-    .where(sql`${schools.id} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
+    .where(and(sql`${schools.id} IN (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`, eq(schools.isListed, true)));
 
   // Batch-load styles for those schools
   const allSchoolStyles = await db
@@ -289,7 +200,7 @@ export async function getListingsByCity(city: string): Promise<Listing[]> {
   const matchedSchools = await db
     .select()
     .from(schools)
-    .where(sql`lower(${schools.city}) = lower(${city})`);
+    .where(and(sql`lower(${schools.city}) = lower(${city})`, eq(schools.isListed, true)));
 
   if (matchedSchools.length === 0) return [];
 

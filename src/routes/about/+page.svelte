@@ -1,6 +1,5 @@
 <script lang="ts">
   import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
-  import PageHero from "$lib/components/PageHero.svelte";
 </script>
 
 <svelte:head>
@@ -19,78 +18,32 @@
 </svelte:head>
 
 <div class="sf-page-shell">
-  <Breadcrumbs crumbs={[
-    { label: "Strona główna", href: "/" },
-    { label: "O projekcie" },
-  ]} />
+  <Breadcrumbs crumbs={[{ label: "szkolyjogi.pl", href: "/" }, { label: "O PROJEKCIE" }]} />
 
-  <PageHero
-    tag="O projekcie"
-    titleLines={["Joga w jednym", "miejscu"]}
-    subtitle="Katalog szkół jogi w Polsce — przejrzysty, aktualny, bezpłatny."
-    compact
-  />
+  <h1 class="page-title">O projekcie</h1>
 
-  <div class="about-content">
-    <section class="about-section">
-      <h2 class="section-title">Czym jest szkolyjogi.pl?</h2>
+  <div class="sf-content-prose">
+    <section>
+      <h3>Misja: Prosta Praktyka</h3>
       <p>
-        szkolyjogi.pl to katalog szkół jogi w Polsce. Zbieramy informacje o studiach jogi
-        z całego kraju — ich cenach, stylach, grafikach zajęć i lokalizacjach — i udostępniamy
-        je w jednym, przejrzystym zestawieniu.
+        <strong>szkolyjogi.pl</strong> to niezależna baza szkół jogi w Polsce. Powstała z prostej potrzeby: 
+        chcieliśmy mieć jedno miejsce, w którym można sprawdzić aktualne ceny i grafiki bez przeklikiwania się przez dziesiątki nieczytelnych stron.
       </p>
       <p>
-        Naszym celem jest ułatwienie wyboru szkoły jogi zarówno osobom rozpoczynającym
-        przygodę z jogą, jak i doświadczonym praktykującym szukającym nowego studia.
+        Naszym celem jest usunięcie szumu informacyjnego. Porządkujemy rozproszone dane, byś Ty mógł skupić się na tym, co ważne – na praktyce.
       </p>
     </section>
 
-    <section class="about-section">
-      <h2 class="section-title">Dla prowadzących studia</h2>
+    <section>
+      <h3>Dla właścicieli studiów</h3>
       <p>
-        Jeśli prowadzisz studio jogi, Twoja szkoła może już być w naszym katalogu.
-        Przejmij swój profil, aby zarządzać informacjami — zaktualizować grafik, dodać
-        zdjęcia i opis. Jest to całkowicie bezpłatne.
+        Twoja szkoła prawdopodobnie już znajduje się w naszym katalogu. Możesz 
+        <strong>bezpłatnie przejąć swój profil</strong>, aby samodzielnie aktualizować grafik, dodać zdjęcia i opis.
       </p>
       <p>
-        Masz pytania? Napisz do nas na
+        Masz pytania lub chcesz dodać nowe studio? Napisz do nas: 
         <a href="mailto:joga@zaur.app">joga@zaur.app</a>.
       </p>
     </section>
   </div>
 </div>
-
-<style>
-  .about-content {
-    max-width: 640px;
-    padding-bottom: var(--spacing-xl);
-  }
-
-  .about-section {
-    margin-bottom: var(--spacing-lg);
-  }
-
-  .section-title {
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: var(--sf-dark);
-    margin-bottom: 12px;
-  }
-
-  .about-content p {
-    font-size: 0.95rem;
-    line-height: 1.8;
-    color: var(--sf-text);
-    margin-bottom: 12px;
-  }
-
-  .about-content a {
-    color: var(--sf-accent);
-    text-decoration: none;
-  }
-  .about-content a:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-</style>

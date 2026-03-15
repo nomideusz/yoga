@@ -1,0 +1,91 @@
+<h2>City Page Polish — Design Audit</h2>
+<p class="subtitle">Comparing main page patterns with the current city page to identify consistency gaps</p>
+
+<div class="section">
+  <h3>Main Page Header (current — polished)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Homepage Hero</div>
+    <div class="mockup-body" style="text-align:center; padding:40px 24px; background: radial-gradient(ellipse 80% 50% at 50% 18%, #d0e4f7 0%, transparent 100%);">
+      <div style="font-family:monospace; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.18em; color:#4a7fb5; font-weight:600; margin-bottom:12px;">KATALOG</div>
+      <div style="font-family:Georgia,serif; font-size:2.4rem; font-weight:400; color:#1a2233; letter-spacing:-0.03em; line-height:1.08; margin-bottom:12px;">Szkoly Jogi w Polsce</div>
+      <div style="font-size:0.95rem; color:#3a4558; margin-bottom:24px;">487 szkol w 42 miastach. Bez reklam.</div>
+      <div style="max-width:420px; margin:0 auto; background:#fff; border:1px solid #4a7fb5; border-radius:64px; padding:10px 20px; display:flex; align-items:center; gap:12px; box-shadow: 0 16px 64px rgba(74,127,181,0.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a7fb5" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span style="color:#8a95a8; opacity:0.5; font-size:0.9rem;">Miasto, kod pocztowy, studio lub styl…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>City Page Header (current — needs polish)</h3>
+  <div class="mockup">
+    <div class="mockup-header">City Page: /warszawa</div>
+    <div class="mockup-body" style="padding:32px 24px;">
+      <div style="font-family:monospace; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; color:#1a2233; font-weight:600; margin-bottom:48px;">WARSZAWA</div>
+      <div style="font-family:Georgia,serif; font-size:2.2rem; font-weight:400; color:#1a2233; letter-spacing:-0.02em; line-height:1.1; margin-bottom:12px;">Warszawa</div>
+      <div style="font-size:1rem; color:#3a4558; margin-bottom:32px;">120 studiow jogi. Wpisz adres, by zobaczyc odleglosci pieszo.</div>
+      <div style="max-width:480px; background:#fff; border:1px solid #dce4ee; border-radius:64px; padding:10px 20px; display:flex; align-items:center; gap:12px; box-shadow: 0 12px 48px rgba(0,0,0,0.03);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a95a8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span style="color:#8a95a8; opacity:0.5; font-size:0.9rem;">Szukaj szkoly, stylu, dzielnicy lub kodu pocztowego…</span>
+      </div>
+      <div style="margin-top:24px; display:flex; flex-wrap:wrap; gap:6px; padding-bottom:16px; border-bottom:1px solid #e8f0fa;">
+        <span style="background:transparent; border:1px solid #dce4ee; padding:6px 14px; border-radius:30px; font-size:0.72rem; color:#8a95a8;">Hatha Yoga</span>
+        <span style="background:transparent; border:1px solid #dce4ee; padding:6px 14px; border-radius:30px; font-size:0.72rem; color:#8a95a8;">Vinyasa</span>
+        <span style="background:transparent; border:1px solid #dce4ee; padding:6px 14px; border-radius:30px; font-size:0.72rem; color:#8a95a8;">Ashtanga</span>
+        <span style="background:transparent; border:1px solid #dce4ee; padding:6px 14px; border-radius:30px; font-size:0.72rem; color:#c94040;">Stretching</span>
+        <span style="background:transparent; border:1px solid #dce4ee; padding:6px 14px; border-radius:30px; font-size:0.72rem; color:#c94040;">Pilates Reformer</span>
+        <span style="background:transparent; border:1px solid #dce4ee; padding:6px 14px; border-radius:30px; font-size:0.72rem; color:#c94040;">Barre</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Issues Identified</h3>
+  <div class="options" data-multiselect>
+    <div class="option" data-choice="header" onclick="toggleSelect(this)">
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>Header hierarchy mismatch</h3>
+        <p>Main page has: TAG → Title → Subtitle. City page has: Breadcrumb (WARSZAWA) → h1 (Warszawa) → subtitle. The breadcrumb acts as both navigation and tag, and the city name repeats redundantly.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="gradient" onclick="toggleSelect(this)">
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>No gradient / visual warmth</h3>
+        <p>Main page has the radial ice gradient covering nav+hero. City page is flat white — feels disconnected from the brand.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="styles" onclick="toggleSelect(this)">
+      <div class="letter">3</div>
+      <div class="content">
+        <h3>Non-yoga styles showing (Stretching, Barre, etc.)</h3>
+        <p>Main page filters these out. City page shows all styles including Stretching, Pilates Reformer, Barre, Tai Chi — should match the main page filtering.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="breadcrumb" onclick="toggleSelect(this)">
+      <div class="letter">4</div>
+      <div class="content">
+        <h3>Breadcrumb is minimal — no back link</h3>
+        <p>Just shows "WARSZAWA" as current page. No "szkolyjogi.pl /" prefix for navigation back to main page.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="responsive" onclick="toggleSelect(this)">
+      <div class="letter">5</div>
+      <div class="content">
+        <h3>Missing responsive breakpoints</h3>
+        <p>Main page has min-height 900px, 1100px, 1400px breakpoints for tall screens. City page has empty @media block. No scaling for 2K/4K.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="mobile-chips" onclick="toggleSelect(this)">
+      <div class="letter">6</div>
+      <div class="content">
+        <h3>Style chips not horizontal-scroll on mobile</h3>
+        <p>Main page pills scroll horizontally on mobile. City page style chips wrap, which can take a lot of vertical space.</p>
+      </div>
+    </div>
+  </div>
+  <p class="subtitle" style="margin-top:16px;">Select the issues you agree with, or tell me in the terminal if I'm missing something.</p>
+</div>

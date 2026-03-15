@@ -2,8 +2,8 @@
 // Pages get data via server load functions; this module provides
 // shared types and pure utility helpers that run on both server & client.
 
-export type { Listing, ScheduleEntryData as ScheduleEntry } from '$lib/server/db/queries';
-import type { Listing } from '$lib/server/db/queries';
+export type { Listing, ScheduleEntryData as ScheduleEntry } from '$lib/server/db/queries/index';
+import type { Listing } from '$lib/server/db/queries/index';
 
 // ── Pure utility helpers (server & client) ──────────────────────────────────
 
@@ -64,4 +64,73 @@ export const DAY_NAMES_PL: Record<number, string> = {
   5: 'Sobota',
   6: 'Niedziela',
 };
+
+// ── Structured pricing (parsed from pricingJson) ─────────────────────────
+
+export interface PricingTier {
+  name: string;
+  price_pln: number;
+  tier_type: 'unlimited' | 'pack' | 'single' | 'trial' | 'membership' | 'private' | 'intro_pack' | 'other';
+  entries?: number | null;
+  validity_days?: number | null;
+  class_types?: string[] | null;
+  notes?: string | null;
+}
+
+export interface PricingData {
+  tiers: PricingTier[];
+  trial_info?: string | null;
+  discounts?: string | null;
+  pricing_notes?: string | null;
+  monthly_pass_pln?: number | null;
+  trial_price_pln?: number | null;
+  single_class_pln?: number | null;
+}
+
+/** Safely parse pricingJson string into PricingData. Returns null on failure. */
+export function parsePricingJson(json: string | null | undefined): PricingData | null {
+  if (!json) return null;
+  try {
+    const data = JSON.parse(json) as PricingData;
+    if (!data.tiers || data.tiers.length === 0) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/** Tier type grouping order and Polish labels */
+export const TIER_GROUPS: Array<{ types: string[]; label: string }> = [
+  { types: ['unlimited'], label: 'Bez limitu' },
+  { types: ['pack'], label: 'Pakiety' },
+  { types: ['single', 'trial'], label: 'Pojedyncze' },
+  { types: ['membership'], label: 'Subskrypcja' },
+  { types: ['intro_pack'], label: 'Oferta startowa' },
+  { types: ['private'], label: 'Indywidualne' },
+  { types: ['other'], label: 'Inne' },
+];
+
+/** Group tiers by tier_type following TIER_GROUPS order. Omits empty groups. */
+export function groupTiers(tiers: PricingTier[]): Array<{ label: string; tiers: PricingTier[] }> {
+  return TIER_GROUPS
+    .map(g => ({
+      label: g.label,
+      tiers: tiers.filter(t => g.types.includes(t.tier_type)),
+    }))
+    .filter(g => g.tiers.length > 0);
+}
+
+/** Health status dot color */
+export function healthDotColor(status: string | null): 'green' | 'amber' | 'red' {
+  if (!status || status === 'healthy') return 'green';
+  if (status === 'redirected' || status === 'timeout') return 'amber';
+  return 'red';
+}
+
+/** Health status suffix text */
+export function healthSuffix(status: string | null): string {
+  if (status === 'dead') return ' · strona niedostępna';
+  if (status === 'timeout') return ' · strona wolno odpowiada';
+  return '';
+}
 

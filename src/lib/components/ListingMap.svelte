@@ -87,6 +87,7 @@
   <div class="listing-map" bind:this={mapEl}>
     {#if !loaded && !error}
       <div class="map-placeholder">
+        <span class="sf-loader"></span>
         <span class="map-loading">Wczytywanie mapy...</span>
       </div>
     {/if}
@@ -115,8 +116,10 @@
 
   .map-placeholder {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 10px;
     height: 100%;
     width: 100%;
     position: absolute;

@@ -11,11 +11,16 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"db:push": "drizzle-kit push",
-		"db:seed": "tsx scripts/seed-db.ts",
-		"db:seed-schedule": "tsx src/scripts/seed-schedule.ts",
+		"db:seed-schedule": "tsx scripts/seed-schedule.ts",
 		"db:detect-schedule": "tsx scripts/detect-schedule-type.ts",
-		"db:seed-styles": "tsx scripts/seed-styles.ts",
-		"db:reset": "tsx scripts/seed-db.ts --clear"
+		"db:reset": "tsx scripts/seed-db.ts --clear",
+		"db:migrate-search": "tsx scripts/migrate-search.ts",
+		"db:migrate-search:dry": "tsx scripts/migrate-search.ts --dry-run",
+		"worktree:setup": "git -C ../.. worktree add .worktrees/design-proposal-2 design-proposal-2 && git -C ../.. worktree add .worktrees/search-first redesign/yoga-homepage-search-first && (cd ../../.worktrees/design-proposal-2 && pnpm install) && (cd ../../.worktrees/search-first && pnpm install) && cp .env ../../.worktrees/design-proposal-2/apps/yoga/.env && cp .env ../../.worktrees/search-first/apps/yoga/.env",
+		"worktree:cleanup": "git -C ../.. worktree remove .worktrees/design-proposal-2 && git -C ../.. worktree remove .worktrees/search-first",
+		"dev:proposal-2": "cd ../../.worktrees/design-proposal-2/apps/yoga && pnpm dev -- --port 5174",
+		"dev:search-first": "cd ../../.worktrees/search-first/apps/yoga && pnpm dev -- --port 5175",
+		"dev:compare": "pnpm dev & pnpm run dev:proposal-2 & pnpm run dev:search-first & wait"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
@@ -31,6 +36,10 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
+		"@fontsource-variable/dm-sans": "^5.2.8",
+		"@fontsource-variable/jetbrains-mono": "^5.2.8",
+		"@fontsource-variable/karla": "^5.2.8",
+		"@fontsource-variable/playfair-display": "^5.2.8",
 		"@libsql/client": "^0.17.0",
 		"@nomideusz/svelte-calendar": "^0.6.3",
 		"dotenv": "^17.3.1",

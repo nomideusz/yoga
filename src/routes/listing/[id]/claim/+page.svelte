@@ -362,11 +362,4 @@
     }
     .claim-sidebar { position: static; }
   }
-
-  @media (max-width: 480px) {
-    .claim-form { max-width: 100%; }
-    .panel { padding: var(--spacing-sm); }
-    .success-card { padding: 32px 16px; }
-    .submit-btn { width: 100%; }
-  }
 </style>

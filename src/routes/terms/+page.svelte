@@ -1,6 +1,5 @@
 <script lang="ts">
   import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
-  import PageHero from "$lib/components/PageHero.svelte";
 </script>
 
 <svelte:head>
@@ -19,21 +18,13 @@
 </svelte:head>
 
 <div class="sf-page-shell">
-  <Breadcrumbs crumbs={[
-    { label: "Strona główna", href: "/" },
-    { label: "Regulamin" },
-  ]} />
+  <Breadcrumbs crumbs={[{ label: "szkolyjogi.pl", href: "/" }, { label: "REGULAMIN" }]} />
 
-  <PageHero
-    tag="Regulamin"
-    titleLines={["Warunki", "korzystania"]}
-    subtitle="Zasady korzystania z serwisu szkolyjogi.pl."
-    compact
-  />
+  <h1 class="page-title">Regulamin</h1>
 
-  <div class="terms-content">
-    <section class="terms-section">
-      <h2 class="section-title">§1 Postanowienia ogólne</h2>
+  <div class="sf-content-prose">
+    <section>
+      <h3>§1 Postanowienia ogólne</h3>
       <ol>
         <li>Serwis szkolyjogi.pl (dalej: „Serwis") jest katalogiem szkół jogi działających na terenie Polski.</li>
         <li>Administratorem Serwisu jest szkolyjogi.pl.</li>
@@ -41,8 +32,8 @@
       </ol>
     </section>
 
-    <section class="terms-section">
-      <h2 class="section-title">§2 Zakres usług</h2>
+    <section>
+      <h3>§2 Zakres usług</h3>
       <ol>
         <li>Serwis udostępnia informacje o szkołach jogi, w tym: nazwy, adresy, ceny karnetów, style jogi, grafiki zajęć i dane kontaktowe.</li>
         <li>Informacje prezentowane w Serwisie mają charakter informacyjny i mogą nie odzwierciedlać aktualnego stanu oferty danej szkoły.</li>
@@ -50,8 +41,8 @@
       </ol>
     </section>
 
-    <section class="terms-section">
-      <h2 class="section-title">§3 Dane szkół jogi</h2>
+    <section>
+      <h3>§3 Dane szkół jogi</h3>
       <ol>
         <li>Dane szkół jogi są zbierane automatycznie ze źródeł publicznie dostępnych.</li>
         <li>Właściciel studia jogi może przejąć profil swojej szkoły, kontaktując się z administratorem na adres <a href="mailto:joga@zaur.app">joga@zaur.app</a>.</li>
@@ -59,16 +50,16 @@
       </ol>
     </section>
 
-    <section class="terms-section">
-      <h2 class="section-title">§4 Odpowiedzialność</h2>
+    <section>
+      <h3>§4 Odpowiedzialność</h3>
       <ol>
         <li>Administrator nie ponosi odpowiedzialności za treści zamieszczone przez szkoły jogi, które przejęły swoje profile.</li>
         <li>Administrator nie ponosi odpowiedzialności za decyzje podjęte na podstawie informacji prezentowanych w Serwisie.</li>
       </ol>
     </section>
 
-    <section class="terms-section">
-      <h2 class="section-title">§5 Kontakt</h2>
+    <section>
+      <h3>§5 Kontakt</h3>
       <p>
         W sprawach związanych z Serwisem prosimy o kontakt na adres
         <a href="mailto:joga@zaur.app">joga@zaur.app</a>.
@@ -76,47 +67,3 @@
     </section>
   </div>
 </div>
-
-<style>
-  .terms-content {
-    max-width: 640px;
-    padding-bottom: var(--spacing-xl);
-  }
-
-  .terms-section {
-    margin-bottom: var(--spacing-lg);
-  }
-
-  .section-title {
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: var(--sf-dark);
-    margin-bottom: 12px;
-  }
-
-  .terms-content p,
-  .terms-content li {
-    font-size: 0.95rem;
-    line-height: 1.8;
-    color: var(--sf-text);
-  }
-
-  .terms-content ol {
-    padding-left: 20px;
-    margin-bottom: 0;
-  }
-
-  .terms-content li {
-    margin-bottom: 8px;
-  }
-
-  .terms-content a {
-    color: var(--sf-accent);
-    text-decoration: none;
-  }
-  .terms-content a:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-</style>

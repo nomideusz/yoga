@@ -1,4 +1,4 @@
-import { getAllListings, getUniqueCities, getUniqueStyles } from '$lib/server/db/queries';
+import { getAllListings, getUniqueCities, getUniqueStyles } from '$lib/server/db/queries/index';
 import type { RequestHandler } from './$types';
 
 const BASE = 'https://szkolyjogi.pl';

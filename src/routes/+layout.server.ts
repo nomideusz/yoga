@@ -1,4 +1,4 @@
-import { getAllListings, getUniqueCities, getUniqueStyles, getCityCoords } from '$lib/server/db/queries';
+import { getAllListings, getUniqueCities, getUniqueStyles, getCityCoords } from '$lib/server/db/queries/index';
 import { env } from '$env/dynamic/private';
 
 export async function load() {

@@ -1,5 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { getListingById } from '$lib/server/db/queries';
+import { getListingById } from '$lib/server/db/queries/index';
 import { db } from '$lib/server/db';
 import { claimRequests } from '$lib/server/db/schema';
 import { sendClaimNotification } from '$lib/server/email';

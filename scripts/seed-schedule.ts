@@ -7,22 +7,22 @@
  *   • 'auto'   → use multi-week repeat detection; fallback to dated
  *
  * Usage:
- *   npx tsx src/scripts/seed-schedule.ts
- *   npx tsx src/scripts/seed-schedule.ts --clear   # wipe schedule_entries first
+ *   npx tsx scripts/seed-schedule.ts
+ *   npx tsx scripts/seed-schedule.ts --clear   # wipe schedule_entries first
  */
 
 import 'dotenv/config';
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import { eq, sql } from 'drizzle-orm';
-import * as schema from '../lib/server/db/schema';
+import * as schema from '../src/lib/server/db/schema';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const JSON_PATH = path.resolve(__dirname, '../../schedules_20260303_013514.json');
+const JSON_PATH = path.resolve(__dirname, './data/schedules_20260303_013514.json');
 
 const client = createClient({
   url: process.env.TURSO_DATABASE_URL!,
