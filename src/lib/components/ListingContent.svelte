@@ -174,16 +174,7 @@
         return descriptionFull.slice(0, 277) + "...";
     });
 
-    // ── Pricing toggle ──────────────────────────────────────
-    let pricingExpanded = $state(false);
-    let hasDetailedPricing = $derived(
-        hasTiers ||
-            pricingData?.discounts ||
-            pricingData?.pricing_notes ||
-            listing.singleClassPrice != null ||
-            (listing.trialPrice != null && listing.trialPrice > 0) ||
-            listing.pricingNotes,
-    );
+
 </script>
 
 <div class="lc" class:lc--page={isPage}>
@@ -327,6 +318,121 @@
         {/if}
     </div>
 
+    <!-- ═══ PRICING (collapsible, first reveal section) ═══ -->
+    {#if hasAnyPrice}
+        <details class="lc-section lc-section--border lc-pricing-reveal">
+            <summary class="lc-pricing-summary">
+                <span class="lc-section-label">{t("listing_pricing")}</span>
+                <span class="lc-pricing-hint">
+                    {#if listing.price != null}
+                        <span class="lc-pricing-hint-price">{listing.price} zł</span>
+                        <span class="lc-pricing-hint-unit">
+                            {listing.priceEstimated ? "~" : ""}{t("listing_price_per_month")}
+                        </span>
+                    {:else if listing.singleClassPrice != null}
+                        <span class="lc-pricing-hint-price">{listing.singleClassPrice} zł</span>
+                        <span class="lc-pricing-hint-unit">{t("listing_single_class")}</span>
+                    {/if}
+                    {#if listing.trialPrice === 0}
+                        <span class="lc-price-badge">{t("listing_trial_free")}</span>
+                    {/if}
+                </span>
+                <span class="lc-pricing-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="lc-pricing-content">
+                <div class="lc-price-row">
+                    {#if listing.price != null}
+                        <div class="lc-price-item">
+                            <span class="lc-price-value">{listing.price} zł</span>
+                            <span class="lc-price-unit">
+                                {listing.priceEstimated
+                                    ? `~${t("listing_price_per_month")}`
+                                    : t("listing_price_per_month")}
+                            </span>
+                        </div>
+                    {/if}
+                    {#if listing.singleClassPrice != null}
+                        <div class="lc-price-item">
+                            <span class="lc-price-value">{listing.singleClassPrice} zł</span>
+                            <span class="lc-price-unit">{t("listing_single_class")}</span>
+                        </div>
+                    {/if}
+                    {#if listing.trialPrice != null && listing.trialPrice > 0}
+                        <div class="lc-price-item">
+                            <span class="lc-price-value">{listing.trialPrice} zł</span>
+                            <span class="lc-price-unit">{t("listing_first_class")}</span>
+                        </div>
+                    {/if}
+                </div>
+
+                {#if listing.priceEstimated || listing.trialPrice === 0 || (pricingData?.trial_info && listing.trialPrice !== 0)}
+                    <div class="lc-price-notes">
+                        {#if listing.priceEstimated}
+                            <span class="lc-price-note">{t("listing_price_estimated_title")}</span>
+                        {/if}
+                        {#if listing.trialPrice === 0}
+                            <span class="lc-price-badge">{t("listing_trial_free")}</span>
+                        {:else if pricingData?.trial_info && listing.trialPrice !== 0}
+                            <span class="lc-price-badge">{pricingData.trial_info}</span>
+                        {/if}
+                    </div>
+                {/if}
+
+                {#if hasTiers}
+                    {#each tierGroups as group}
+                        <div class="lc-tier-group">
+                            <span class="lc-tier-label">{group.label}</span>
+                            {#each group.tiers as tier}
+                                <div class="lc-kv">
+                                    <span>{tier.name}</span>
+                                    <strong>{Math.round(tier.price_pln)} zł</strong>
+                                </div>
+                                {#if tier.notes}
+                                    <p class="lc-tier-note">{tier.notes}</p>
+                                {/if}
+                                {#if tier.class_types && tier.class_types.length > 0}
+                                    <div class="lc-tier-tags">
+                                        {#each tier.class_types as ct}
+                                            <span class="lc-tier-tag">{ct}</span>
+                                        {/each}
+                                    </div>
+                                {/if}
+                            {/each}
+                        </div>
+                    {/each}
+                    {#if pricingData?.discounts}
+                        <div class="lc-pricing-discounts">{pricingData.discounts}</div>
+                    {/if}
+                    {#if pricingData?.pricing_notes}
+                        <p class="lc-pricing-notes">{pricingData.pricing_notes}</p>
+                    {/if}
+                {:else if listing.pricingNotes}
+                    <p class="lc-pricing-notes">{listing.pricingNotes}</p>
+                {/if}
+
+                {#if listing.lastPriceCheck}
+                    <div class="lc-pricing-freshness">
+                        {formatDateEU(listing.lastPriceCheck)}
+                        {freshness === "fresh"
+                            ? `· ${t("listing_price_fresh")}`
+                            : freshness === "aging"
+                              ? `· ${t("listing_price_aging")}`
+                              : `· ${t("listing_price_stale")}`}
+                    </div>
+                {/if}
+
+                {#if listing.pricingUrl}
+                    <a
+                        href={listing.pricingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        class="lc-pricing-link"
+                    >{t("listing_pricing_link")}</a>
+                {/if}
+            </div>
+        </details>
+    {/if}
+
     <!-- ═══ SCHEDULE (only if we have data) ═══ -->
     {#if hasSchedule}
         <section class="lc-section lc-section--border">
@@ -401,147 +507,6 @@
             <div class="lc-reviews-footer">
                 <span class="lc-reviews-attr">{t("reviews_attribution")}</span>
             </div>
-        </section>
-    {/if}
-
-    <!-- ═══ PRICING (contextual, not prominent) ═══ -->
-    {#if hasAnyPrice}
-        <section class="lc-section lc-section--border lc-pricing">
-            <div class="lc-section-head">
-                <div class="lc-section-heading">
-                    <div class="lc-section-label">{t("listing_pricing")}</div>
-                    {#if listing.lastPriceCheck}
-                        <div class="lc-section-meta">
-                            <span>
-                                {formatDateEU(listing.lastPriceCheck)}
-                                {freshness === "fresh"
-                                    ? `· ${t("listing_price_fresh")}`
-                                    : freshness === "aging"
-                                      ? `· ${t("listing_price_aging")}`
-                                      : `· ${t("listing_price_stale")}`}
-                            </span>
-                        </div>
-                    {/if}
-                </div>
-                {#if listing.pricingUrl}
-                    <a
-                        href={listing.pricingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow"
-                        class="lc-pricing-link">{t("listing_pricing_link")}</a
-                    >
-                {/if}
-            </div>
-
-            <div class="lc-price-row">
-                {#if listing.price != null}
-                    <div class="lc-price-item">
-                        <span class="lc-price-value">{listing.price} zł</span>
-                        <span class="lc-price-unit">
-                            {listing.priceEstimated
-                                ? `~${t("listing_price_per_month")}`
-                                : t("listing_price_per_month")}
-                        </span>
-                    </div>
-                {/if}
-                {#if listing.singleClassPrice != null}
-                    <div class="lc-price-item">
-                        <span class="lc-price-value"
-                            >{listing.singleClassPrice} zł</span
-                        >
-                        <span class="lc-price-unit"
-                            >{t("listing_single_class")}</span
-                        >
-                    </div>
-                {/if}
-            </div>
-
-            {#if listing.priceEstimated || listing.trialPrice === 0 || (pricingData?.trial_info && listing.trialPrice !== 0)}
-                <div class="lc-price-notes">
-                    {#if listing.priceEstimated}
-                        <span class="lc-price-note"
-                            >{t("listing_price_estimated_title")}</span
-                        >
-                    {/if}
-
-                    {#if listing.trialPrice === 0 || (pricingData?.trial_info && listing.trialPrice !== 0)}
-                        <div class="lc-price-tags">
-                            {#if listing.trialPrice === 0}
-                                <span class="lc-price-badge"
-                                    >{t("listing_trial_free")}</span
-                                >
-                            {:else if pricingData?.trial_info && listing.trialPrice !== 0}
-                                <span class="lc-price-badge"
-                                    >{pricingData.trial_info}</span
-                                >
-                            {/if}
-                        </div>
-                    {/if}
-                </div>
-            {/if}
-
-            {#if hasDetailedPricing}
-                <details class="lc-pricing-details" bind:open={pricingExpanded}>
-                    <summary class="lc-pricing-toggle"
-                        >{t("listing_pricing_details")}</summary
-                    >
-                    <div class="lc-pricing-body">
-                        {#if hasTiers}
-                            {#each tierGroups as group}
-                                <div class="lc-tier-group">
-                                    <span class="lc-tier-label"
-                                        >{group.label}</span
-                                    >
-                                    {#each group.tiers as tier}
-                                        <div class="lc-kv">
-                                            <span>{tier.name}</span>
-                                            <strong
-                                                >{Math.round(tier.price_pln)} zł</strong
-                                            >
-                                        </div>
-                                        {#if tier.notes}
-                                            <p class="lc-tier-note">
-                                                {tier.notes}
-                                            </p>
-                                        {/if}
-                                        {#if tier.class_types && tier.class_types.length > 0}
-                                            <div class="lc-tier-tags">
-                                                {#each tier.class_types as ct}
-                                                    <span class="lc-tier-tag"
-                                                        >{ct}</span
-                                                    >
-                                                {/each}
-                                            </div>
-                                        {/if}
-                                    {/each}
-                                </div>
-                            {/each}
-                            {#if pricingData?.discounts}
-                                <div class="lc-pricing-discounts">
-                                    {pricingData.discounts}
-                                </div>
-                            {/if}
-                            {#if pricingData?.pricing_notes}
-                                <p class="lc-pricing-notes">
-                                    {pricingData.pricing_notes}
-                                </p>
-                            {/if}
-                        {:else}
-                            {#if listing.trialPrice != null && listing.trialPrice > 0}
-                                <div class="lc-kv">
-                                    <span>{t("listing_first_class")}</span>
-                                    <strong>{listing.trialPrice} PLN</strong>
-                                </div>
-                            {/if}
-                            {#if listing.pricingNotes}
-                                <p class="lc-pricing-notes">
-                                    {listing.pricingNotes}
-                                </p>
-                            {/if}
-                        {/if}
-                    </div>
-                </details>
-            {/if}
         </section>
     {/if}
 
@@ -714,21 +679,6 @@
             color-mix(in srgb, var(--sf-line) 52%, transparent);
     }
 
-    .lc-section-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px 18px;
-        flex-wrap: wrap;
-    }
-
-    .lc-section-heading {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        min-width: 0;
-    }
-
     .lc-section-label {
         font-family: var(--font-mono);
         font-size: 0.7rem;
@@ -736,18 +686,6 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: var(--sf-muted);
-    }
-
-    .lc-section-meta {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-family: var(--font-mono);
-        font-size: 0.64rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: color-mix(in srgb, var(--sf-text) 60%, var(--sf-muted) 40%);
     }
 
     /* ═══ Description ═══ */
@@ -899,7 +837,85 @@
         display: none;
     }
 
-    /* ═══ Pricing (contextual, not hero) ═══ */
+    /* ═══ Pricing (collapsible reveal) ═══ */
+    .lc-pricing-reveal {
+        border-top: 1px solid color-mix(in srgb, var(--sf-line) 52%, transparent);
+        padding-top: 18px;
+    }
+    .lc-pricing-reveal > summary {
+        list-style: none;
+    }
+    .lc-pricing-reveal > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .lc-pricing-summary {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+        padding: 0;
+        transition: color var(--dur-fast) ease;
+    }
+    .lc-pricing-summary:hover {
+        color: var(--sf-text);
+    }
+
+    .lc-pricing-hint {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+    .lc-pricing-hint-price {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--sf-dark);
+    }
+    .lc-pricing-hint-unit {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--sf-muted);
+    }
+
+    .lc-pricing-chevron {
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+        position: relative;
+        transition: transform var(--dur-fast) ease;
+    }
+    .lc-pricing-chevron::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 7px;
+        height: 7px;
+        border-right: 1.5px solid var(--sf-muted);
+        border-bottom: 1.5px solid var(--sf-muted);
+        transform: translate(-50%, -65%) rotate(45deg);
+        transition: border-color var(--dur-fast) ease;
+    }
+    .lc-pricing-reveal[open] .lc-pricing-chevron {
+        transform: rotate(180deg);
+    }
+    .lc-pricing-summary:hover .lc-pricing-chevron::before {
+        border-color: var(--sf-text);
+    }
+
+    .lc-pricing-content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--sf-frost);
+    }
+
     .lc-price-row {
         display: flex;
         flex-wrap: wrap;
@@ -925,7 +941,8 @@
 
     .lc-price-notes {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
         gap: 8px;
     }
 
@@ -934,13 +951,6 @@
         color: var(--sf-muted);
         line-height: 1.55;
         max-width: 60ch;
-    }
-
-    .lc-price-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        align-items: center;
     }
 
     .lc-price-badge {
@@ -953,52 +963,6 @@
         font-size: 0.66rem;
         font-weight: 700;
         letter-spacing: 0.03em;
-        align-self: flex-start;
-    }
-
-    /* Pricing details toggle */
-    .lc-pricing-details {
-        margin-top: 4px;
-    }
-    .lc-pricing-details > summary {
-        list-style: none;
-    }
-    .lc-pricing-details > summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .lc-pricing-toggle {
-        display: inline-flex;
-        align-items: center;
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: color-mix(in srgb, var(--sf-text) 70%, var(--sf-muted) 30%);
-        cursor: pointer;
-        user-select: none;
-        padding: 0;
-        background: transparent;
-        border-radius: 0;
-        transition: color var(--dur-fast) ease;
-    }
-    .lc-pricing-toggle:hover {
-        color: var(--sf-text);
-    }
-    .lc-pricing-toggle::after {
-        content: "↓";
-        margin-left: 6px;
-        transition: transform var(--dur-fast) ease;
-    }
-    .lc-pricing-details[open] .lc-pricing-toggle::after {
-        transform: rotate(180deg);
-    }
-
-    .lc-pricing-body {
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px dashed var(--sf-frost);
     }
 
     .lc-tier-group {
@@ -1067,23 +1031,28 @@
         font-size: 0.82rem;
         line-height: 1.6;
         color: var(--sf-dark);
-        margin-top: 8px;
         white-space: pre-line;
     }
 
     .lc-pricing-notes {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid var(--sf-frost);
         color: var(--sf-muted);
         font-size: 0.78rem;
         line-height: 1.7;
+        margin: 0;
+    }
+
+    .lc-pricing-freshness {
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: color-mix(in srgb, var(--sf-text) 60%, var(--sf-muted) 40%);
     }
 
     .lc-pricing-link {
         display: inline-flex;
         align-items: center;
-        margin-top: 0;
         padding: 0;
         font-family: var(--font-mono);
         font-size: 0.66rem;
@@ -1092,13 +1061,10 @@
         text-transform: uppercase;
         color: color-mix(in srgb, var(--sf-text) 70%, var(--sf-muted) 30%);
         text-decoration: none;
-        transition:
-            color var(--dur-fast) ease,
-            opacity var(--dur-fast) ease;
+        transition: color var(--dur-fast) ease;
     }
     .lc-pricing-link:hover {
         color: var(--sf-text);
-        opacity: 1;
     }
 
     /* ═══ Data freshness ═══ */
@@ -1247,14 +1213,6 @@
 
         .lc-cta {
             font-size: 0.68rem;
-        }
-
-        .lc-section-head {
-            gap: 8px;
-        }
-
-        .lc-pricing-link {
-            font-size: 0.64rem;
         }
 
         .lc-footer {
