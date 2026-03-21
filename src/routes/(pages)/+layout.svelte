@@ -39,7 +39,15 @@
         if (routeId === "/(pages)/[city]") {
             backLabel = slugToTitle(from.params?.city ?? "");
         } else if (routeId?.includes("/(pages)/[city]/[listing]")) {
-            backLabel = slugToTitle(from.params?.city ?? "");
+            // When navigating from a listing back to the same city page,
+            // don't show "← Kraków" — you're already on Kraków
+            const fromCity = from.params?.city ?? "";
+            const toCity = to?.params?.city ?? "";
+            if (to?.route?.id === "/(pages)/[city]" && fromCity === toCity) {
+                backLabel = null;
+            } else {
+                backLabel = slugToTitle(fromCity);
+            }
         } else if (routeId === "/(pages)/category/[slug]") {
             backLabel = slugToTitle(from.params?.slug ?? "");
         } else if (routeId.startsWith("/(pages)/listing")) {

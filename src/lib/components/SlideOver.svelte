@@ -29,6 +29,9 @@
         if (open) {
             closing = false;
             visible = true;
+        } else if (visible && !closing) {
+            // open was set to false externally (e.g. popstate) — close immediately
+            visible = false;
         }
     });
 
@@ -375,6 +378,7 @@
         .so-backdrop {
             top: 60px;
             inset-inline: 0 0;
+            border-radius: 16px 16px 0 0;
         }
 
         .so-panel {

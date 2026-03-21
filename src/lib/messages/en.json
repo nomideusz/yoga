@@ -26,6 +26,8 @@
   "label_studios": "Studios",
   "label_city": "CITY",
   "label_style": "STYLE",
+  "label_practice": "PRACTICE",
+  "label_other_activity": "ACTIVITY",
   "cities_collapse": "Show less",
   "cities_more": "+ {count} more",
 

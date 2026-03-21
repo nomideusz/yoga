@@ -2,6 +2,7 @@
     import { goto } from "$app/navigation";
     import { haversine } from "$lib/utils/haversine";
     import { normalizePolish } from "$lib/utils/street";
+    import { styleDisplayName } from "$lib/styles-metadata";
     import {
         getCityPath,
         getCitySlug,
@@ -186,7 +187,27 @@
         // Strip stop words before matching
         const raw = normalizePolish(query.trim());
         const qn = stripStopWords(raw);
-        if (!qn) return []; // All stop words → show topCities via activeResults
+
+        // When query is entirely stop words (e.g. "joga", "yoga"),
+        // still match schools whose names contain those words
+        if (!qn) {
+            const rawLongTokens = raw.split(/\s+/).filter(t => t.length >= MIN_SEARCH_TOKEN_LENGTH);
+            if (rawLongTokens.length === 0) return [];
+            const nameMatches = autocomplete
+                .filter((l) => {
+                    const nameWords = normalizePolish(l.name).split(/[\s\-]+/);
+                    return rawLongTokens.every((t) =>
+                        nameWords.some((w) => w.startsWith(t)),
+                    );
+                })
+                .slice(0, 8);
+            return nameMatches.map((s) => ({
+                type: "school" as const,
+                id: s.id,
+                name: s.name,
+                city: s.city,
+            }));
+        }
 
         // Expand each token via synonyms for style/city matching
         const qnParts = qn.split(/\s+/);
@@ -750,9 +771,9 @@
 
     function resultName(r: SearchResult): string {
         if (r.type === "city") return r.city;
-        if (r.type === "style") return r.style;
+        if (r.type === "style") return styleDisplayName(r.style);
         if (r.type === "city+style")
-            return `${r.style} ${t("city_style_in")} ${i18n.locale === "pl" ? getCityLocative(r.city) : r.city}`;
+            return `${styleDisplayName(r.style)} ${t("city_style_in")} ${i18n.locale === "pl" ? getCityLocative(r.city) : r.city}`;
         if (r.type === "postal") return r.code;
         if (r.type === "google-place") return r.description;
         if (r.type === "place-redirect") return r.from;
@@ -1032,10 +1053,7 @@
             goto(getCityPath(result.city));
         } else if (result.type === "school") {
             goto(
-                getListingPath({
-                    id: result.id,
-                    city: result.city,
-                }),
+                `${getCityPath(result.city)}?listing=${encodeURIComponent(result.id)}`,
             );
         } else if (result.type === "style") {
             goto(getStylePath(result.style));
@@ -1421,7 +1439,6 @@
     // ── Style pills (filtered, sorted by count) ──
     const NON_YOGA_STYLES = new Set([
         "Stretching",
-        "Pilates Reformer",
         "Barre",
         "Tai Chi",
     ]);
@@ -1626,7 +1643,7 @@
                                         >
                                     </span>
                                     <span class="dropdown-item-text"
-                                        >{result.style}
+                                        >{styleDisplayName(result.style)}
                                         {t("city_style_in")}
                                         {i18n.locale === "pl"
                                             ? getCityLocative(result.city)
@@ -1683,7 +1700,7 @@
                                         >
                                     </span>
                                     <span class="dropdown-item-text"
-                                        >{result.style}</span
+                                        >{styleDisplayName(result.style)}</span
                                     >
                                     <span class="dropdown-item-meta"
                                         >{result.count}</span
@@ -1866,14 +1883,13 @@
             </div>
         </div>
         <div class="chip-section">
-            <div class="chip-label">{t("label_style")}</div>
             <div class="chip-scroll">
                 {#each topStyles as { style, count } (style)}
                     <a
                         href={getStylePath(style)}
                         class="chip-pill chip-pill--subtle"
                     >
-                        <span class="chip-pill-name">{style}</span>
+                        <span class="chip-pill-name">{styleDisplayName(style)}</span>
                         <span class="chip-pill-count">{count}</span>
                     </a>
                 {/each}
@@ -1932,7 +1948,7 @@
         width: 100%;
         max-width: 580px;
         position: relative;
-        margin-bottom: 48px;
+        margin-bottom: 40px;
     }
     .sf-hero-search-box {
         position: relative;
@@ -2100,7 +2116,7 @@
         text-align: center;
     }
     .chip-section + .chip-section {
-        margin-top: 28px;
+        margin-top: 36px;
     }
 
     .chip-label {
@@ -2108,9 +2124,9 @@
         font-size: 0.64rem;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        color: var(--sf-muted);
+        color: var(--sf-accent);
         font-weight: 600;
-        margin-bottom: 10px;
+        margin-bottom: 14px;
     }
 
     /* ── Chip scroll (mobile: horizontal, desktop: wrap) ── */
@@ -2234,10 +2250,10 @@
             margin-bottom: 40px;
         }
         .sf-hero-search {
-            margin-bottom: 56px;
+            margin-bottom: 48px;
         }
         .chip-section + .chip-section {
-            margin-top: 32px;
+            margin-top: 40px;
         }
     }
 

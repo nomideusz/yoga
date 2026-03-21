@@ -10,6 +10,7 @@
         getListingPath,
     } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
+    import { styleDisplayName } from "$lib/styles-metadata";
     const t = i18n.t;
 
     let { data } = $props();
@@ -228,7 +229,7 @@
         <!-- ── Hero ── -->
         <section class="cat-hero">
             <div class="cat-hero-inner">
-                <div class="cat-kicker">{t("label_style")}</div>
+                <div class="cat-kicker">{metadata?.category === 'practice' ? t("label_practice") : metadata?.category === 'other' ? t("label_other_activity") : t("label_style")}</div>
                 <h1 class="cat-hero-title">{shortName}</h1>
                 {#if metadata}
                     <p class="cat-hero-sub">
@@ -298,30 +299,10 @@
                             }}
                         >
                             <span class="school-name">{school.name}</span>
-                            <span class="school-city">{school.city}</span>
-                            {#if school.address}
-                                {@const street = school.address
-                                    .replace(
-                                        new RegExp(
-                                            `,?\\s*${school.city}$`,
-                                            "i",
-                                        ),
-                                        "",
-                                    )
-                                    .trim()}
-                                {#if street}
-                                    <span class="school-address">{street}</span>
-                                {/if}
+                            {#if school.styles.length > 0}
+                                <span class="school-styles">{#each school.styles as style, i}{#if i > 0}{", "}{/if}<span class:style-highlight={style.toLowerCase() === categoryName.toLowerCase()}>{styleDisplayName(style)}</span>{/each}</span>
                             {/if}
-                            <div class="school-card-foot">
-                                {#if school.styles.length > 1}
-                                    <span class="school-styles"
-                                        >{school.styles
-                                            .filter((s) => s !== categoryName)
-                                            .join(", ")}</span
-                                    >
-                                {/if}
-                            </div>
+                            <span class="school-city">{school.city}</span>
                         </a>
                     {/each}
                 </div>
@@ -523,17 +504,17 @@
         color: var(--sf-dark);
     }
 
-    /* ── Grid (same as city page) ── */
+    /* ── Grid (matches city page layout) ── */
     .school-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
     .school-card {
         display: flex;
         flex-direction: column;
         gap: 4px;
-        padding: 16px;
+        padding: 16px 20px;
         border: 1px solid var(--sf-line);
         border-radius: var(--radius-sm);
         text-decoration: none;
@@ -541,11 +522,15 @@
         background: var(--sf-card);
         transition:
             border-color var(--dur-fast) ease,
-            box-shadow var(--dur-fast) ease;
+            box-shadow var(--dur-fast) ease,
+            transform var(--dur-fast) ease;
     }
     .school-card:hover {
         border-color: var(--sf-accent);
         box-shadow: 0 4px 16px rgba(74, 127, 181, 0.08);
+    }
+    .school-card:active {
+        transform: scale(0.98);
     }
     .school-name {
         font-weight: 600;
@@ -553,26 +538,20 @@
         font-size: 0.95rem;
         line-height: 1.3;
     }
-    .school-city {
-        font-size: 0.82rem;
-        color: var(--sf-muted);
-    }
-    .school-address {
-        font-size: 0.82rem;
-        color: var(--sf-text);
-    }
-    .school-card-foot {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: auto;
-        padding-top: 6px;
-    }
     .school-styles {
         font-family: var(--font-mono);
         font-size: 0.66rem;
         color: var(--sf-muted);
         letter-spacing: 0.02em;
+    }
+    .style-highlight {
+        color: var(--sf-accent);
+        font-weight: 600;
+    }
+    .school-city {
+        font-size: 0.82rem;
+        color: var(--sf-text);
+        line-height: 1.4;
     }
     .cat-no-results {
         padding: 48px 0;
@@ -585,10 +564,12 @@
     }
 
     /* ── Responsive ── */
-    @media (max-width: 768px) {
+    @media (min-width: 769px) {
         .school-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
         }
+    }
+    @media (max-width: 768px) {
         .cat-cities-flex {
             flex-wrap: nowrap;
             overflow-x: auto;
@@ -699,5 +680,19 @@
     }
     .so-error-retry:hover {
         border-color: var(--sf-accent);
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+        .school-card {
+            transition: none !important;
+        }
+        .school-card:active {
+            transform: none;
+        }
+        @keyframes shimmer {
+            from { opacity: 0.7; }
+            to { opacity: 0.7; }
+        }
     }
 </style>

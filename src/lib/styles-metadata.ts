@@ -1,3 +1,11 @@
+export type StyleCategory = 'style' | 'practice' | 'other';
+
+/** Map a DB style name to its Polish display name. Falls back to the original name. */
+export function styleDisplayName(dbName: string): string {
+  const key = dbName.toLowerCase();
+  return STYLES_METADATA[key]?.displayName ?? dbName;
+}
+
 export interface StyleMetadata {
   displayName: string;
   description: string;
@@ -5,6 +13,7 @@ export interface StyleMetadata {
   forWho: string;
   intensity: 'low' | 'medium' | 'high';
   pace: 'slow' | 'moderate' | 'fast';
+  category?: StyleCategory;
 }
 
 export const STYLES_METADATA: Record<string, StyleMetadata> = {
@@ -54,11 +63,12 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Wzmocnienie odporności psychicznej', 'Balans emocjonalny', 'Zwiększenie witalności', 'Głęboki rozwój duchowy'],
     forWho: 'Dla osób szukających w jodze czegoś więcej niż tylko gimnastyki – pracy z energią i umysłem.',
     intensity: 'medium',
-    pace: 'moderate'
+    pace: 'moderate',
+    category: 'practice'
   },
-  'yin restorative': {
-    displayName: 'Yin / Restorative',
-    description: 'Łagodna praktyka łącząca elementy yin jogi z jogą regeneracyjną (restorative). Pozycje utrzymywane są przez dłuższy czas z pełnym podparciem ciała za pomocą koców, poduszek i bolsterów, co pozwala na głębokie odprężenie.',
+  'restorative': {
+    displayName: 'Restorative',
+    description: 'Joga regeneracyjna, w której pozycje utrzymywane są przez dłuższy czas z pełnym podparciem ciała za pomocą koców, poduszek i bolsterów. Praktyka skupia się na głębokim odprężeniu i regeneracji układu nerwowego.',
     benefits: ['Regeneracja układu nerwowego', 'Redukcja chronicznego napięcia', 'Poprawa jakości snu', 'Głęboki relaks bez wysiłku'],
     forWho: 'Dla osób zmęczonych, zestresowanych lub po kontuzji — każdy, kto potrzebuje odpoczynku i odbudowy.',
     intensity: 'low',
@@ -86,7 +96,8 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Łagodzenie bólów kręgosłupa', 'Przygotowanie do porodu', 'Poprawa krążenia', 'Kontakt z dzieckiem'],
     forWho: 'Dla kobiet w ciąży (po konsultacji z lekarzem), niezależnie od wcześniejszego doświadczenia z jogą.',
     intensity: 'low',
-    pace: 'slow'
+    pace: 'slow',
+    category: 'practice'
   },
   'nidra': {
     displayName: 'Joga Nidra',
@@ -94,7 +105,8 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Redukcja stresu i lęku', 'Poprawa jakości snu', 'Regeneracja psychiczna', 'Wzmocnienie uważności'],
     forWho: 'Dla każdego — nie wymaga sprawności fizycznej. Szczególnie pomocna przy bezsenności, wypaleniu i przewlekłym stresie.',
     intensity: 'low',
-    pace: 'slow'
+    pace: 'slow',
+    category: 'practice'
   },
   'mysore': {
     displayName: 'Mysore',
@@ -120,13 +132,14 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     intensity: 'high',
     pace: 'fast'
   },
-  'pilates': {
-    displayName: 'Pilates',
-    description: 'System ćwiczeń opracowany przez Josepha Pilatesa, skupiający się na wzmacnianiu mięśni głębokich, stabilizacji tułowia i kontroli ruchowej. Poprawia postawę ciała i wspomaga rehabilitację.',
+  'pilates mat': {
+    displayName: 'Pilates Mat',
+    description: 'System ćwiczeń opracowany przez Josepha Pilatesa, wykonywany na macie. Skupia się na wzmacnianiu mięśni głębokich, stabilizacji tułowia i kontroli ruchowej. Poprawia postawę ciała i wspomaga rehabilitację.',
     benefits: ['Wzmocnienie mięśni core', 'Korekta postawy', 'Zapobieganie kontuzjom', 'Poprawa świadomości ciała'],
     forWho: 'Dla osób w każdym wieku szukających wzmocnienia głębokich mięśni, poprawy postawy lub uzupełnienia praktyki jogi.',
     intensity: 'medium',
-    pace: 'moderate'
+    pace: 'moderate',
+    category: 'other'
   },
   'pilates reformer': {
     displayName: 'Pilates Reformer',
@@ -134,7 +147,8 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Precyzyjna praca mięśniowa', 'Rehabilitacja z kontrolowanym obciążeniem', 'Rzeźbienie sylwetki', 'Zwiększenie zakresu ruchu'],
     forWho: 'Dla osób chcących pogłębić praktykę pilatesu, w rehabilitacji lub szukających efektywnego treningu całego ciała.',
     intensity: 'medium',
-    pace: 'moderate'
+    pace: 'moderate',
+    category: 'other'
   },
   'stretching': {
     displayName: 'Stretching',
@@ -142,7 +156,8 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Zwiększenie elastyczności', 'Rozluźnienie napiętych mięśni', 'Zapobieganie kontuzjom', 'Poprawa regeneracji'],
     forWho: 'Dla każdego — od osób siedzących przy biurku po sportowców szukających lepszej regeneracji i mobilności.',
     intensity: 'low',
-    pace: 'slow'
+    pace: 'slow',
+    category: 'other'
   },
   'meditation': {
     displayName: 'Medytacja',
@@ -150,7 +165,8 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Redukcja stresu i lęku', 'Poprawa koncentracji', 'Lepsze zarządzanie emocjami', 'Większa jasność umysłu'],
     forWho: 'Dla każdego szukającego wyciszenia i narzędzi do pracy z umysłem — nie wymaga sprawności fizycznej.',
     intensity: 'low',
-    pace: 'slow'
+    pace: 'slow',
+    category: 'practice'
   },
   'pranayama': {
     displayName: 'Pranayama',
@@ -158,7 +174,8 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Regulacja układu nerwowego', 'Zwiększenie pojemności płuc', 'Redukcja lęku', 'Poprawa koncentracji'],
     forWho: 'Dla praktykujących jogę chcących pogłębić pracę z oddechem oraz dla każdego szukającego naturalnych metod radzenia sobie ze stresem.',
     intensity: 'low',
-    pace: 'slow'
+    pace: 'slow',
+    category: 'practice'
   },
   'therapeutic': {
     displayName: 'Joga terapeutyczna',
@@ -166,7 +183,8 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Łagodzenie bólu chronicznego', 'Rehabilitacja pooperacyjna', 'Wsparcie w leczeniu depresji', 'Przywrócenie zakresu ruchu'],
     forWho: 'Dla osób z problemami zdrowotnymi, po kontuzjach lub operacjach, szukających bezpiecznej, nadzorowanej praktyki.',
     intensity: 'low',
-    pace: 'slow'
+    pace: 'slow',
+    category: 'practice'
   },
   'tai chi': {
     displayName: 'Tai Chi',
@@ -174,7 +192,8 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Poprawa równowagi', 'Redukcja ryzyka upadków', 'Wyciszenie umysłu', 'Wzmocnienie stawów'],
     forWho: 'Dla osób w każdym wieku, szczególnie seniorów i osób szukających łagodnej formy ruchu poprawiającej równowagę.',
     intensity: 'low',
-    pace: 'slow'
+    pace: 'slow',
+    category: 'other'
   },
   'barre': {
     displayName: 'Barre',
@@ -182,6 +201,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     benefits: ['Wyrzeźbiona sylwetka', 'Smukłe, długie mięśnie', 'Poprawa postawy', 'Wzmocnienie nóg i pośladków'],
     forWho: 'Dla osób szukających elegancji baletu w połączeniu z efektywnym treningiem całego ciała.',
     intensity: 'medium',
-    pace: 'moderate'
+    pace: 'moderate',
+    category: 'other'
   },
 };

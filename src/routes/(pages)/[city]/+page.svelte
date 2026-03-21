@@ -23,6 +23,7 @@
     import Pagination from "$lib/components/Pagination.svelte";
     import SlideOver from "$lib/components/SlideOver.svelte";
     import ListingContent from "$lib/components/ListingContent.svelte";
+    import { styleDisplayName } from "$lib/styles-metadata";
     import { i18n } from "$lib/i18n.js";
     const t = i18n.t;
 
@@ -202,11 +203,25 @@
         _initStyleParam ? [resolveStyleName(_initStyleParam)] : [],
     );
     let activeDistrict = $state<string | undefined>(_initDistrict ?? undefined);
+    let chipScrollEl: HTMLElement | undefined = $state();
 
     $effect(() => {
         void activeStyles;
         void activeDistrict;
         currentPage = 1;
+    });
+
+    // Scroll selected style chip into view (centered) on mobile
+    $effect(() => {
+        if (!chipScrollEl || activeStyles.length === 0) return;
+        // Small delay to ensure DOM is rendered
+        const timer = setTimeout(() => {
+            const selected = chipScrollEl?.querySelector('.chip-pill--selected') as HTMLElement | null;
+            if (selected) {
+                selected.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }, 100);
+        return () => clearTimeout(timer);
     });
 
     // ── Autocomplete state ──
@@ -244,7 +259,6 @@
 
     const NON_YOGA_STYLES = new Set([
         "Stretching",
-        "Pilates Reformer",
         "Barre",
         "Tai Chi",
     ]);
@@ -266,7 +280,28 @@
         // Strip stop words before matching
         const raw = normalizePolish(q);
         const qn = stripStopWords(raw);
-        if (!qn) return []; // All stop words → empty (shows nothing, query is generic)
+
+        // When query is entirely stop words (e.g. "joga", "yoga"),
+        // still match schools whose names contain those words
+        if (!qn) {
+            const rawLongTokens = raw.split(/\s+/).filter(t => t.length >= MIN_SEARCH_TOKEN_LENGTH);
+            if (rawLongTokens.length === 0) return [];
+            const nameMatches = data.schools
+                .filter((s) => {
+                    const nameWords = normalizePolish(s.name).split(/[\s\-]+/);
+                    return rawLongTokens.every((t) =>
+                        nameWords.some((w) => w.startsWith(t)),
+                    );
+                })
+                .slice(0, 8);
+            return nameMatches.map((s): SearchBoxItem => ({
+                key: `s-${s.id}`,
+                icon: "school",
+                text: s.name,
+                meta: s.address || undefined,
+                group: t("city_autocomplete_schools"),
+            }));
+        }
 
         const qnParts = qn.split(/\s+/);
         const rawParts = raw.split(/\s+/).filter(Boolean);
@@ -346,7 +381,7 @@
             items.push({
                 key: `st-${style}`,
                 icon: "style",
-                text: style,
+                text: styleDisplayName(style),
                 meta: `${count}`,
                 group: t("city_autocomplete_styles"),
             });
@@ -1874,7 +1909,7 @@
     <!-- ── Style chips (browse) ── -->
     {#if !activeFilterQuery}
         <div class="city-chips">
-            <div class="chip-scroll">
+            <div class="chip-scroll" bind:this={chipScrollEl}>
                 {#each allStyles as style}
                     <button
                         class="chip-pill chip-pill--subtle"
@@ -1885,7 +1920,7 @@
                                 : [...activeStyles, style];
                         }}
                     >
-                        <span class="chip-pill-name">{style}</span>
+                        <span class="chip-pill-name">{styleDisplayName(style)}</span>
                         <span class="chip-pill-count"
                             >{data.schools.filter((s) =>
                                 s.styles.includes(style),
@@ -1931,9 +1966,7 @@
                     >
                         <span class="school-name">{school.name}</span>
                         {#if school.styles.length > 0}
-                            <span class="school-styles"
-                                >{school.styles.join(", ")}</span
-                            >
+                            <span class="school-styles">{#each school.styles as style, i}{#if i > 0}{", "}{/if}<span class:style-highlight={activeStyles.includes(style)}>{styleDisplayName(style)}</span>{/each}</span>
                         {/if}
                         {#if school.address}
                             {@const street = school.address
@@ -1952,6 +1985,7 @@
                                 >{school.neighborhood}</span
                             >
                         {/if}
+                        {#if school.walkingTime || (school.distance != null && school.distance > 0)}
                         <div class="school-card-foot">
                             {#if school.walkingTime}
                                 {@const km =
@@ -1983,6 +2017,7 @@
                                 {/if}
                             {/if}
                         </div>
+                        {/if}
                     </a>
                 {/each}
             </div>
@@ -2461,6 +2496,10 @@
         font-size: 0.66rem;
         color: var(--sf-muted);
         letter-spacing: 0.02em;
+    }
+    .style-highlight {
+        color: var(--sf-accent);
+        font-weight: 600;
     }
     .school-address {
         font-size: 0.82rem;
