@@ -1,5 +1,5 @@
 import { db } from '../index';
-import { schools, styles, geocodedStreets } from '../schema';
+import { schools, styles, geocodedStreets, cities } from '../schema';
 import { eq, and, sql } from 'drizzle-orm';
 
 let _citiesCache: string[] | null = null;
@@ -27,6 +27,26 @@ export async function getUniqueStyles(): Promise<string[]> {
   _stylesCache = rows.map((r) => r.name).sort();
   _stylesCacheTs = Date.now();
   return _stylesCache;
+}
+
+let _cityCenterCache: Record<string, { lat: number; lng: number }> | null = null;
+let _cityCenterCacheTs = 0;
+const CITY_CENTER_CACHE_TTL = 10 * 60 * 1000;
+
+/** City center coordinates from the cities table (real city center, not school average). */
+export async function getCityCenterCoords(): Promise<Record<string, { lat: number; lng: number }>> {
+  if (_cityCenterCache && Date.now() - _cityCenterCacheTs < CITY_CENTER_CACHE_TTL) return _cityCenterCache;
+  const rows = await db
+    .select({ name: cities.name, lat: cities.lat, lng: cities.lng })
+    .from(cities);
+
+  const result: Record<string, { lat: number; lng: number }> = {};
+  for (const r of rows) {
+    result[r.name] = { lat: r.lat, lng: r.lng };
+  }
+  _cityCenterCache = result;
+  _cityCenterCacheTs = Date.now();
+  return result;
 }
 
 let _cityCoordsCache: Record<string, { lat: number; lng: number }> | null = null;

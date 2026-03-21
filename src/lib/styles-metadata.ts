@@ -9,7 +9,7 @@ export interface StyleMetadata {
 
 export const STYLES_METADATA: Record<string, StyleMetadata> = {
   'hatha': {
-    displayName: 'Hatha Joga',
+    displayName: 'Hatha',
     description: 'Klasyczna ścieżka jogi skupiająca się na harmonii ciała i umysłu poprzez asany (pozycje), pranajamę (oddech) i relaksację. Jest to fundament większości współczesnych stylów jogi.',
     benefits: ['Zwiększenie elastyczności', 'Redukcja stresu', 'Poprawa postawy', 'Wzmocnienie kręgosłupa'],
     forWho: 'Idealna dla początkujących oraz osób szukających spokojnej, zrównoważonej praktyki.',
@@ -17,7 +17,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'moderate'
   },
   'vinyasa': {
-    displayName: 'Vinyasa Joga',
+    displayName: 'Vinyasa',
     description: 'Dynamiczny styl jogi, w którym ruch jest płynnie połączony z oddechem. Przejścia między pozycjami przypominają taniec, a intensywność sesji pomaga budować siłę i wytrzymałość.',
     benefits: ['Poprawa kondycji', 'Detoksykacja organizmu', 'Budowa siły mięśniowej', 'Poprawa koncentracji'],
     forWho: 'Dla osób lubiących ruch, dynamikę i chcących popracować nad kondycją fizyczną.',
@@ -25,7 +25,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'fast'
   },
   'ashtanga': {
-    displayName: 'Ashtanga Joga',
+    displayName: 'Ashtanga',
     description: 'Tradycyjny, uporządkowany styl jogi polegający na wykonywaniu stałych sekwencji pozycji. Charakteryzuje się dużą intensywnością i dyscypliną, budując wewnętrzny ogień.',
     benefits: ['Głębokie wzmocnienie ciała', 'Zwiększenie dyscypliny', 'Oczyszczenie organizmu', 'Poprawa wydolności'],
     forWho: 'Dla osób szukających wyzwań fizycznych i lubiących powtarzalną, ustrukturyzowaną praktykę.',
@@ -33,7 +33,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'fast'
   },
   'yin': {
-    displayName: 'Yin Joga',
+    displayName: 'Yin',
     description: 'Spokojna, medytacyjna forma jogi skupiająca się na tkankach głębokich – powięziach, więzadłach i stawach. Pozycje utrzymuje się przez kilka minut, co pozwala na głęboki relaks i puszczenie napięć.',
     benefits: ['Zwiększenie zakresu ruchu w stawach', 'Głębokie uspokojenie układu nerwowego', 'Nawilżenie tkanek', 'Poprawa przepływu energii'],
     forWho: 'Dla każdego, kto potrzebuje wyciszenia, regeneracji i przeciwwagi dla aktywnego trybu życia.',
@@ -41,7 +41,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'slow'
   },
   'iyengar': {
-    displayName: 'Iyengar Joga',
+    displayName: 'Iyengar',
     description: 'Precyzyjna metoda jogi opracowana przez B.K.S. Iyengara, kładąca nacisk na idealne ustawienie ciała w każdej pozycji. Wykorzystuje rekwizyty — pasy, klocki, koce i ławki — aby pozycje były dostępne dla każdego.',
     benefits: ['Korekta postawy ciała', 'Wzmocnienie głębokich mięśni', 'Precyzja w pozycjach', 'Pomoc w rehabilitacji'],
     forWho: 'Dla osób ceniących precyzję, pracujących z problemami ortopedycznymi lub szukających bezpiecznej, metodycznej praktyki.',
@@ -49,7 +49,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'slow'
   },
   'kundalini': {
-    displayName: 'Kundalini Joga',
+    displayName: 'Kundalini',
     description: 'Praktyka łącząca asany, techniki oddechowe, mantry i medytacje. Skupia się na przebudzeniu energii życiowej i harmonizacji centrów energetycznych (czakr).',
     benefits: ['Wzmocnienie odporności psychicznej', 'Balans emocjonalny', 'Zwiększenie witalności', 'Głęboki rozwój duchowy'],
     forWho: 'Dla osób szukających w jodze czegoś więcej niż tylko gimnastyki – pracy z energią i umysłem.',
@@ -65,7 +65,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'slow'
   },
   'aerial': {
-    displayName: 'Aerial Joga',
+    displayName: 'Aerial',
     description: 'Innowacyjna metoda ćwiczeń z wykorzystaniem specjalnego hamaka podwieszonego pod sufitem. Pozwala na odciążenie stawów i kręgosłupa oraz ułatwia wykonywanie pozycji odwróconych.',
     benefits: ['Dekompresja kręgosłupa', 'Zwiększenie zaufania do siebie', 'Świetna zabawa', 'Rozciąganie bez wysiłku'],
     forWho: 'Dla osób szukających nowych wrażeń i chcących poczuć lekkość w ruchu.',
@@ -73,7 +73,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'moderate'
   },
   'hot yoga': {
-    displayName: 'Hot Joga',
+    displayName: 'Hot Yoga',
     description: 'Joga praktykowana w podgrzanym pomieszczeniu (zazwyczaj 35–40°C). Ciepło wspomaga rozciąganie mięśni, przyspiesza detoksykację przez pot i intensyfikuje pracę serca.',
     benefits: ['Głębsze rozciąganie', 'Intensywna detoksykacja', 'Spalanie kalorii', 'Poprawa krążenia'],
     forWho: 'Dla osób lubiących intensywny wysiłek i ciepło, bez problemów z sercem i ciśnieniem.',
@@ -105,7 +105,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'moderate'
   },
   'power yoga': {
-    displayName: 'Power Joga',
+    displayName: 'Power Yoga',
     description: 'Intensywna, fitnessowa odmiana jogi inspirowana ashtangą. Skupia się na budowaniu siły, wytrzymałości i elastyczności bez tradycyjnego nacisku na duchowość.',
     benefits: ['Szybkie spalanie kalorii', 'Rzeźbienie sylwetki', 'Wzmocnienie całego ciała', 'Poprawa sprawności'],
     forWho: 'Dla osób aktywnych, które chcą intensywnego treningu fizycznego.',
@@ -113,7 +113,7 @@ export const STYLES_METADATA: Record<string, StyleMetadata> = {
     pace: 'fast'
   },
   'jivamukti': {
-    displayName: 'Jivamukti Joga',
+    displayName: 'Jivamukti',
     description: 'Holistyczny styl jogi założony w Nowym Jorku, łączący dynamiczną praktykę fizyczną z filozofią, muzyką, śpiewem i medytacją. Każdy miesiąc ma inny temat przewodni oparty na jogicznych tekstach.',
     benefits: ['Rozwój duchowy w ruchu', 'Silna praktyka fizyczna', 'Inspiracja filozoficzna', 'Integracja jogi z życiem codziennym'],
     forWho: 'Dla osób szukających praktyki łączącej wymagające ćwiczenia z głęboką refleksją i inspiracją.',

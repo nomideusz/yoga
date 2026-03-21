@@ -29,8 +29,10 @@ export interface ScheduleEntryData {
 
 export interface Listing {
   id: string;
+  slug: string | null;
   name: string;
   city: string;
+  citySlug: string;
   address: string;
   websiteUrl: string | null;
   phone: string | null;
@@ -77,8 +79,10 @@ export interface ReviewData {
 /** Minimal type for homepage autocomplete/search — no prices, ratings, or descriptions */
 export interface AutocompleteEntry {
   id: string;
+  slug: string | null;
   name: string;
   city: string;
+  citySlug: string;
   address: string;
   neighborhood: string | null;
   styles: string[];
@@ -87,8 +91,10 @@ export interface AutocompleteEntry {
 /** Card type for city/category list views — adds coords for map pins */
 export interface ListingCard {
   id: string;
+  slug: string | null;
   name: string;
   city: string;
+  citySlug: string;
   address: string;
   neighborhood: string | null;
   latitude: number | null;

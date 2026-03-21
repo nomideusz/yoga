@@ -23,6 +23,7 @@
     placeholder = 'Szukaj…',
     ariaLabel = 'Szukaj',
     showAttribution = false,
+    dark = false,
     onselect,
     oninput,
     onkeydown: onkeydownProp,
@@ -36,6 +37,7 @@
     placeholder?: string;
     ariaLabel?: string;
     showAttribution?: boolean;
+    dark?: boolean;
     onselect?: (item: SearchBoxItem, index: number) => void;
     oninput?: (e: Event) => void;
     onkeydown?: (e: KeyboardEvent) => void;
@@ -46,13 +48,13 @@
 
   let inputEl: HTMLInputElement | undefined = $state();
   let showDropdown = $state(false);
-  let activeIndex = $state(0);
+  let activeIndex = $state(-1);
 
   const isOpen = $derived(showDropdown && results.length > 0);
 
   function handleInput(e: Event) {
     query = (e.target as HTMLInputElement).value;
-    activeIndex = 0;
+    activeIndex = -1;
     showDropdown = query.trim().length > 0;
     oninput?.(e);
   }
@@ -63,7 +65,7 @@
       if (results.length > 0) activeIndex = Math.min(activeIndex + 1, results.length - 1);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      activeIndex = Math.max(activeIndex - 1, 0);
+      activeIndex = Math.max(activeIndex - 1, -1);
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (isOpen && activeIndex >= 0 && activeIndex < results.length) {
@@ -96,7 +98,7 @@
   // Reset active index when results change
   $effect(() => {
     results; // track
-    activeIndex = 0;
+    activeIndex = -1;
   });
 
   // Icon SVGs as raw strings to avoid repetition
@@ -121,7 +123,7 @@
   }
 </script>
 
-<div class="sb-box" class:sb-open={isOpen}>
+<div class="sb-box" class:sb-open={isOpen} class:sb-dark={dark}>
   <div class="sb-icon-wrap">
     {#if loading}
       <svg class="sb-icon-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -228,7 +230,7 @@
   .sb-input {
     flex: 1;
     font-family: var(--font-body);
-    font-size: 0.95rem;
+    font-size: 1rem; /* ≥16px prevents iOS Safari auto-zoom on focus */
     color: var(--sf-dark);
     background: transparent;
     border: none;
@@ -317,6 +319,30 @@
     color: var(--sf-muted);
     opacity: 0.5;
     border-top: 1px solid var(--sf-frost);
+  }
+
+  /* ── Dark mode ── */
+  .sb-dark {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+  }
+  .sb-dark .sb-input {
+    color: white;
+  }
+  .sb-dark .sb-input::placeholder {
+    color: var(--sf-muted);
+    opacity: 1;
+  }
+  .sb-dark:focus-within {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+  }
+  .sb-dark .sb-icon-wrap {
+    color: var(--sf-muted);
+  }
+  .sb-dark:focus-within .sb-icon-wrap {
+    color: rgba(255, 255, 255, 0.6);
   }
 
   @media (max-width: 768px) {

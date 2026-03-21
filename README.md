@@ -1,40 +1,18 @@
-# szkolyjogi.pl Directory Platform
+# szkolyjogi.pl
 
-Yoga school directory and booking platform for Poland, built with SvelteKit.
+Yoga school directory for Poland. Built with SvelteKit 5, Turso (libsql), Drizzle ORM.
 
-## Documentation
-
-Project strategy, roadmap, and implementation docs are in [docs/README.md](./docs/README.md).
-
-Recommended starting points:
-
-- [Project Charter](./docs/project-charter.md)
-- [Product Specification](./docs/product-spec.md)
-- [90-Day Roadmap](./docs/roadmap-90-days.md)
-- [Execution Checklists](./docs/checklists.md)
+Live at [szkolyjogi.pl](https://szkolyjogi.pl).
 
 ## Development
 
-Install dependencies:
-
 ```sh
 pnpm install
-```
-
-Run local dev server:
-
-```sh
 pnpm dev
 ```
 
-Build production bundle:
+## Search
 
-```sh
-pnpm build
-```
+Search system spec (not yet fully integrated): [docs/search-spec.md](./docs/search-spec.md)
 
-Preview production build:
-
-```sh
-pnpm preview
-```
+Implementation lives in `src/lib/search/` — engine, resolver, normalize, geo, indexer.

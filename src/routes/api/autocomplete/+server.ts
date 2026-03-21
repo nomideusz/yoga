@@ -1,20 +1,23 @@
 import { json, error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { getCityCoords, checkPlacesBudget, recordPlacesCall } from '$lib/server/db/queries/index';
+import { getCityCenterCoords, getCityCoords, checkPlacesBudget, recordPlacesCall } from '$lib/server/db/queries/index';
 
+/** Response shape: { suggestions: [...], error?: 'budget' | 'api_error' } */
 export async function GET({ url }) {
   const input = url.searchParams.get('input')?.trim();
   const city = url.searchParams.get('city')?.trim();
+  const lat = url.searchParams.get('lat');
+  const lng = url.searchParams.get('lng');
   const sessionToken = url.searchParams.get('sessionToken')?.trim();
 
-  if (!input || input.length < 3) return json([]);
+  if (!input || input.length < 3) return json({ suggestions: [] });
 
   const apiKey = env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) throw error(500, 'Google Maps API key not configured');
 
   // Monthly Places API budget check
   const budget = await checkPlacesBudget();
-  if (!budget.allowed) return json([]);
+  if (!budget.allowed) return json({ suggestions: [], error: 'budget' });
 
   try {
     // Always send the full input to Google — let the API handle city+street
@@ -28,9 +31,10 @@ export async function GET({ url }) {
 
     if (city) {
       // City-scoped mode: bias toward city center (not restrict — allows
-      // nearby results and avoids dropping valid streets at city edges)
-      const cityCoords = await getCityCoords();
-      const center = cityCoords[city];
+      // nearby results and avoids dropping valid streets at city edges).
+      // Prefer cities table coords (real city center) over school-average coords.
+      const cityCenterCoords = await getCityCenterCoords();
+      const center = cityCenterCoords[city] ?? (await getCityCoords())[city];
       if (center) {
         body.locationBias = {
           circle: {
@@ -38,16 +42,26 @@ export async function GET({ url }) {
             radius: 15000.0,
           },
         };
+        // Set origin so Google ranks results by distance from city center
+        body.origin = { latitude: center.lat, longitude: center.lng };
       }
-    } else {
-      // Homepage mode: Poland center, 500km radius
+      // Filter to addresses and geocoded results only — excludes hospitals,
+      // restaurants, and other irrelevant establishment types. The user is
+      // searching for a yoga school's street address, not a business name.
+      body.includedPrimaryTypes = ['address', 'geocode', 'route', 'street_address'];
+    } else if (lat && lng) {
+      // User location available — bias around their position
       body.locationBias = {
         circle: {
-          center: { latitude: 51.9194, longitude: 19.1451 },
-          radius: 500000.0,
+          center: { latitude: parseFloat(lat), longitude: parseFloat(lng) },
+          radius: 50000.0,
         },
       };
     }
+    // No bias when neither city nor user location is known —
+    // includedRegionCodes: ['pl'] is enough. A 500km circle around
+    // Poland's center was too vague and caused Google to return empty
+    // for street names like "bydgoskiej".
 
     if (sessionToken) {
       body.sessionToken = sessionToken;
@@ -62,7 +76,10 @@ export async function GET({ url }) {
       body: JSON.stringify(body),
     });
 
-    if (!res.ok) return json([]);
+    if (!res.ok) {
+      console.error(`Places API error: ${res.status} ${res.statusText}`);
+      return json({ suggestions: [], error: 'api_error' });
+    }
     await recordPlacesCall();
 
     const data = await res.json();
@@ -84,8 +101,9 @@ export async function GET({ url }) {
         placeId: s.placePrediction.placeId,
       }));
 
-    return json(suggestions);
-  } catch {
-    return json([]);
+    return json({ suggestions });
+  } catch (err) {
+    console.error('Places autocomplete error:', err);
+    return json({ suggestions: [], error: 'api_error' });
   }
 }

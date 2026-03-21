@@ -16,6 +16,19 @@ import {
 } from './normalize';
 import { haversineKm, walkingMinutes, boundingBox } from './geo';
 
+// ── Query timeout ─────────────────────────────────────────
+
+const FTS_TIMEOUT_MS = 5_000;
+const FUZZY_TIMEOUT_MS = 3_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    promise,
+    new Promise<T>(resolve => { timer = setTimeout(() => resolve(fallback), ms); }),
+  ]).finally(() => clearTimeout(timer!));
+}
+
 // ── Types ──────────────────────────────────────────────────
 
 export interface SearchParams {
@@ -45,6 +58,14 @@ export interface SearchResult {
   distanceKm: number | null;
   walkingMin: number | null;
   score: number;
+  /** @internal Used by quality gate — true if result came from FTS5 */
+  _hasFts?: boolean;
+  /** @internal Normalized name for quality check */
+  _nameN?: string;
+  /** @internal Normalized city for quality check */
+  _cityN?: string;
+  /** @internal Normalized styles for quality check */
+  _stylesN?: string;
 }
 
 export interface SearchResponse {
@@ -90,21 +111,43 @@ export async function search(db: Client, params: SearchParams): Promise<SearchRe
   const ftsQuery = buildFtsQuery(expanded);
 
   // Step 3: FTS5 search (with optional city/style constraint)
-  const ftsResults = await ftsSearch(db, ftsQuery, citySlug, styleSlug, limit * 3);
+  const ftsResults = await withTimeout(
+    ftsSearch(db, ftsQuery, citySlug, styleSlug, limit * 3),
+    FTS_TIMEOUT_MS, [],
+  );
 
   // Step 4: Trigram fallback if FTS returned few results
   let fuzzyResults: any[] = [];
   if (ftsResults.length < 5 && normalized.length >= 3) {
-    fuzzyResults = await trigramFuzzySearch(db, normalized, citySlug, limit * 2);
+    fuzzyResults = await withTimeout(
+      trigramFuzzySearch(db, normalized, citySlug, limit * 2),
+      FUZZY_TIMEOUT_MS, [],
+    );
   }
 
   // Step 5: Merge, score, and rank
   const merged = deduplicateById([...ftsResults, ...fuzzyResults]);
   const scored = scoreResults(merged, normalized, lat, lng, geoIntent);
-  scored.sort((a, b) => b.score - a.score);
+
+  // Step 5b: Quality gate — fuzzy-only results (no FTS match) must have
+  // high Levenshtein similarity to at least one indexed field. Prevents
+  // "inowroclaw" → "wroclaw" false positives (0.70 similarity) while
+  // keeping genuine typo corrections like "hata" → "hatha" (0.80).
+  const qualified = scored.filter(r => {
+    // FTS results are already high-precision
+    if (r._hasFts) return true;
+    // For fuzzy-only: best field similarity must be >= 0.75
+    const best = Math.max(
+      levenshteinSimilarity(normalized, r._nameN || ''),
+      levenshteinSimilarity(normalized, r._cityN || ''),
+      levenshteinSimilarity(normalized, r._stylesN || ''),
+    );
+    return best >= 0.75;
+  });
+  qualified.sort((a, b) => b.score - a.score);
 
   // Step 6: Apply relevance boundaries
-  return applyRelevanceBoundaries(db, scored, lat, lng, citySlug, normalized, limit, offset);
+  return applyRelevanceBoundaries(db, qualified, lat, lng, citySlug, normalized, limit, offset);
 }
 
 // ── City-scoped: all schools (default view for city page) ──
@@ -117,9 +160,10 @@ async function searchAllInCity(
   const args: any[] = [citySlug];
 
   if (styleSlug) {
-    // Filter by style using JSON
-    sql += " AND EXISTS (SELECT 1 FROM json_each(styles) WHERE LOWER(value) LIKE ?)";
-    args.push(`%${normalize(styleSlug.replace('-yoga', ''))}%`);
+    // Filter by normalized style name in styles_n (space-separated normalized names)
+    const styleName = normalize(styleSlug.replace('-yoga', ''));
+    sql += ' AND styles_n LIKE ?';
+    args.push(`%${styleName}%`);
   }
   sql += ' LIMIT ?';
   args.push(limit);
@@ -210,7 +254,12 @@ async function trigramFuzzySearch(
     args.push(citySlug);
   }
 
-  const minOverlap = Math.max(1, Math.floor(queryTrigrams.length * 0.3));
+  // Scale minimum overlap with query length to prevent coincidental matches.
+  // Short queries (3-4 chars, 1-2 trigrams): need 1-2 matches.
+  // Long queries (8+ trigrams): need ~50% overlap to be meaningful.
+  const minOverlap = queryTrigrams.length <= 3
+    ? Math.max(1, queryTrigrams.length - 1)
+    : Math.max(2, Math.ceil(queryTrigrams.length * 0.45));
   sql += ` GROUP BY t.school_id HAVING COUNT(DISTINCT t.trigram) >= ? ORDER BY _fuzzyScore DESC LIMIT ?`;
   args.push(minOverlap, limit);
 
@@ -224,34 +273,36 @@ async function expandSynonyms(db: Client, normalized: string): Promise<string[]>
   const tokens = normalized.split(/\s+/).filter(Boolean);
   const expanded: string[] = [...tokens];
 
-  // Single-token synonyms
-  for (const token of tokens) {
-    const result = await db.execute({
-      sql: 'SELECT canonical FROM search_synonyms WHERE alias = ?', args: [token],
-    });
-    for (const row of result.rows as any[]) {
-      if (!expanded.includes(row.canonical)) expanded.push(row.canonical);
-    }
-  }
-  // Bigram synonyms: "hatha joga" → "hatha yoga"
+  // Collect all aliases to look up: single tokens + bigrams
+  const aliases: string[] = [...tokens];
   for (let i = 0; i < tokens.length - 1; i++) {
-    const bigram = `${tokens[i]} ${tokens[i + 1]}`;
+    aliases.push(`${tokens[i]} ${tokens[i + 1]}`);
+  }
+
+  // Batch lookup in a single query
+  if (aliases.length > 0) {
+    const placeholders = aliases.map(() => '?').join(',');
     const result = await db.execute({
-      sql: 'SELECT canonical FROM search_synonyms WHERE alias = ?', args: [bigram],
+      sql: `SELECT canonical FROM search_synonyms WHERE alias IN (${placeholders})`,
+      args: aliases,
     });
     for (const row of result.rows as any[]) {
-      if (!expanded.includes(row.canonical)) expanded.push(row.canonical);
+      if (!expanded.includes(row.canonical)) expanded.push(row.canonical as string);
     }
   }
+
   return expanded;
 }
 
 // ── FTS query builder ──────────────────────────────────────
 
+const MAX_FTS_TERMS = 6;
+
 function buildFtsQuery(tokens: string[]): string {
   const terms = tokens
     .map(t => t.replace(/['"(){}*:^~\-]/g, ''))
     .filter(Boolean)
+    .slice(0, MAX_FTS_TERMS)
     .map(t => `"${t}"*`);
   if (terms.length === 0) return '';
   return terms.length === 1 ? terms[0] : terms.join(' OR ');
@@ -296,11 +347,19 @@ function scoreResults(
       if (geoBoost) score += proxScore * 0.25;
     }
 
+    // Parse styles from JSON column (actual names) with fallback to normalized
+    let styles: string[];
+    try {
+      styles = row.styles ? JSON.parse(row.styles) : [];
+    } catch {
+      styles = (row.styles_n || '').split(/\s+/).filter(Boolean);
+    }
+
     return {
       id: row.id,
       name: row.name,
       slug: row.slug,
-      styles: (row.styles_n || '').split(/\s+/).filter(Boolean),
+      styles,
       street: row.address || null,
       district: row.neighborhood || row.district_n || null,
       city: row.city,
@@ -313,6 +372,11 @@ function scoreResults(
       distanceKm,
       walkingMin,
       score,
+      // Internal: used by quality gate, stripped before response
+      _hasFts: row._ftsRank != null,
+      _nameN: row.name_n || '',
+      _cityN: row.city_n || '',
+      _stylesN: row.styles_n || '',
     };
   });
 }
@@ -329,7 +393,7 @@ async function applyRelevanceBoundaries(
 ): Promise<SearchResponse> {
   // If scoped to a city, no boundary logic needed — it's already filtered
   if (citySlug) {
-    const capped = scored.slice(offset, offset + limit);
+    const capped = stripInternal(scored.slice(offset, offset + limit));
     return {
       results: capped, nearby: [], noLocalResults: capped.length === 0,
       searchedPlace, nearestCityWithSchools: null,
@@ -339,7 +403,7 @@ async function applyRelevanceBoundaries(
 
   // If no user location, skip distance-based boundaries
   if (lat == null || lng == null) {
-    const capped = scored.slice(offset, offset + limit);
+    const capped = stripInternal(scored.slice(offset, offset + limit));
     return {
       results: capped, nearby: [], noLocalResults: capped.length === 0,
       searchedPlace, nearestCityWithSchools: null,
@@ -368,8 +432,8 @@ async function applyRelevanceBoundaries(
   }
 
   return {
-    results: primary.slice(offset, offset + limit),
-    nearby: nearby.slice(0, 5),
+    results: stripInternal(primary.slice(offset, offset + limit)),
+    nearby: stripInternal(nearby.slice(0, 5)),
     noLocalResults: false, searchedPlace,
     nearestCityWithSchools: null,
     totalFound: primary.length + nearby.length,
@@ -422,8 +486,7 @@ export async function autocomplete(
     await addSchoolsWithStyle(db, n, context.styleSlug, results);
     await addCitiesWithStyle(db, n, context.styleSlug, results);
   } else {
-    // Main page: schools first, then cities, then styles
-    await addGlobalSchoolSuggestions(db, n, results);
+    // Main page: cities first, then styles, then schools
     await addCitySuggestions(db, n, results);
     await addGlobalStyleSuggestions(db, n, results);
     await addGlobalSchoolSuggestions(db, n, results);
@@ -464,7 +527,7 @@ async function addGlobalStyleSuggestions(db: Client, n: string, out: Autocomplet
 async function addGlobalSchoolSuggestions(db: Client, n: string, out: AutocompleteResult[]) {
   const r = await db.execute({
     sql: 'SELECT id, slug, name, city FROM schools WHERE name_n LIKE ? LIMIT 4',
-    args: [`%${n}%`],
+    args: [`${n}%`],
   });
   for (const row of r.rows as any[]) {
     out.push({ text: `${row.name} — ${row.city}`, type: 'school', slug: (row.slug ?? row.id) as string });
@@ -542,11 +605,18 @@ function toSearchResult(row: any, lat?: number, lng?: number): SearchResult {
     distanceKm = haversineKm(lat, lng, row.latitude, row.longitude);
     walkingMin = walkingMinutes(distanceKm);
   }
+  // Parse styles from JSON column (actual names) with fallback to normalized
+  let styles: string[];
+  try {
+    styles = row.styles ? JSON.parse(row.styles) : [];
+  } catch {
+    styles = (row.styles_n || '').split(/\s+/).filter(Boolean);
+  }
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
-    styles: (row.styles_n || '').split(/\s+/).filter(Boolean),
+    styles,
     street: row.address || null,
     district: row.neighborhood || row.district_n || null,
     city: row.city,
@@ -560,6 +630,11 @@ function toSearchResult(row: any, lat?: number, lng?: number): SearchResult {
     walkingMin,
     score: 0,
   };
+}
+
+/** Strip internal quality-gate fields before sending to client */
+function stripInternal(results: SearchResult[]): SearchResult[] {
+  return results.map(({ _hasFts, _nameN, _cityN, _stylesN, ...rest }) => rest);
 }
 
 function deduplicateById(rows: any[]): any[] {

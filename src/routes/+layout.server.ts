@@ -2,6 +2,7 @@ import { getUniqueCities, getUniqueStyles, getCityCoords } from '$lib/server/db/
 import { loadResolverLookups } from '$lib/search';
 import { client } from '$lib/server/db/index';
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 
 export async function load() {
   const [cities, styles, cityCoords, lookups] = await Promise.all([
@@ -11,5 +12,5 @@ export async function load() {
     loadResolverLookups(client),
   ]);
 
-  return { cities, styles, cityCoords, lookups, googleMapsApiKey: env.GOOGLE_MAPS_API_KEY ?? '' };
+  return { cities, styles, cityCoords, lookups, googleMapsApiKey: publicEnv.PUBLIC_GOOGLE_MAPS_API_KEY ?? '' };
 }

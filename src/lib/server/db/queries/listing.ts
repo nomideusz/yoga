@@ -1,11 +1,18 @@
-import { db } from '../index';
-import { schools, styles, schoolStyles, scheduleEntries } from '../schema';
-import { eq, and, sql } from 'drizzle-orm';
-import type { Listing, ScheduleEntryData, AutocompleteEntry, ListingCard } from './types';
+import { db } from "../index";
+import { schools, styles, schoolStyles, scheduleEntries } from "../schema";
+import { eq, and, or, sql } from "drizzle-orm";
+import type {
+  Listing,
+  ScheduleEntryData,
+  AutocompleteEntry,
+  ListingCard,
+} from "./types";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function mapScheduleRow(row: typeof scheduleEntries.$inferSelect): ScheduleEntryData {
+function mapScheduleRow(
+  row: typeof scheduleEntries.$inferSelect,
+): ScheduleEntryData {
   return {
     id: row.id,
     schoolId: row.schoolId,
@@ -43,9 +50,11 @@ function buildListing(
 ): Listing {
   return {
     id: school.id,
+    slug: school.slug,
     name: school.name,
     city: school.city,
-    address: school.address ?? '',
+    citySlug: school.citySlug ?? "",
+    address: school.address ?? "",
     websiteUrl: school.websiteUrl,
     phone: school.phone,
     email: school.email,
@@ -78,14 +87,26 @@ function buildListing(
 
 /** Build a lean card from explicit column selection */
 function buildCard(
-  row: { id: string; name: string; city: string; address: string | null; neighborhood: string | null; latitude: number | null; longitude: number | null },
+  row: {
+    id: string;
+    slug: string | null;
+    name: string;
+    city: string;
+    citySlug: string | null;
+    address: string | null;
+    neighborhood: string | null;
+    latitude: number | null;
+    longitude: number | null;
+  },
   styleNames: string[],
 ): ListingCard {
   return {
     id: row.id,
+    slug: row.slug,
     name: row.name,
     city: row.city,
-    address: row.address ?? '',
+    citySlug: row.citySlug ?? "",
+    address: row.address ?? "",
     neighborhood: row.neighborhood,
     latitude: row.latitude,
     longitude: row.longitude,
@@ -99,12 +120,13 @@ export async function getAllListings(): Promise<Listing[]> {
   // Run schools + styles queries in parallel (skip schedule entries — not needed for cards)
   const [allSchools, allSchoolStyles] = await Promise.all([
     db.select().from(schools).where(eq(schools.isListed, true)),
-    db.select({
-      schoolId: schoolStyles.schoolId,
-      styleName: styles.name,
-    })
-    .from(schoolStyles)
-    .innerJoin(styles, eq(schoolStyles.styleId, styles.id)),
+    db
+      .select({
+        schoolId: schoolStyles.schoolId,
+        styleName: styles.name,
+      })
+      .from(schoolStyles)
+      .innerJoin(styles, eq(schoolStyles.styleId, styles.id)),
   ]);
 
   const stylesBySchool = new Map<string, string[]>();
@@ -126,24 +148,33 @@ let _autocompleteCacheTs = 0;
 const AUTOCOMPLETE_CACHE_TTL = 10 * 60 * 1000;
 
 export async function getAutocompleteIndex(): Promise<AutocompleteEntry[]> {
-  if (_autocompleteCache && Date.now() - _autocompleteCacheTs < AUTOCOMPLETE_CACHE_TTL) {
+  if (
+    _autocompleteCache &&
+    Date.now() - _autocompleteCacheTs < AUTOCOMPLETE_CACHE_TTL
+  ) {
     return _autocompleteCache;
   }
 
   const [rows, allSchoolStyles] = await Promise.all([
-    db.select({
-      id: schools.id,
-      name: schools.name,
-      city: schools.city,
-      address: schools.address,
-      neighborhood: schools.neighborhood,
-    }).from(schools).where(eq(schools.isListed, true)),
-    db.select({
-      schoolId: schoolStyles.schoolId,
-      styleName: styles.name,
-    })
-    .from(schoolStyles)
-    .innerJoin(styles, eq(schoolStyles.styleId, styles.id)),
+    db
+      .select({
+        id: schools.id,
+        slug: schools.slug,
+        name: schools.name,
+        city: schools.city,
+        citySlug: schools.citySlug,
+        address: schools.address,
+        neighborhood: schools.neighborhood,
+      })
+      .from(schools)
+      .where(eq(schools.isListed, true)),
+    db
+      .select({
+        schoolId: schoolStyles.schoolId,
+        styleName: styles.name,
+      })
+      .from(schoolStyles)
+      .innerJoin(styles, eq(schoolStyles.styleId, styles.id)),
   ]);
 
   const stylesBySchool = new Map<string, string[]>();
@@ -155,9 +186,11 @@ export async function getAutocompleteIndex(): Promise<AutocompleteEntry[]> {
 
   const result = rows.map((s) => ({
     id: s.id,
+    slug: s.slug,
     name: s.name,
     city: s.city,
-    address: s.address ?? '',
+    citySlug: s.citySlug ?? "",
+    address: s.address ?? "",
     neighborhood: s.neighborhood,
     styles: stylesBySchool.get(s.id) ?? [],
   }));
@@ -168,17 +201,20 @@ export async function getAutocompleteIndex(): Promise<AutocompleteEntry[]> {
 }
 
 export async function getListingById(id: string): Promise<Listing | null> {
-  const [school] = await db.select().from(schools).where(eq(schools.id, id)).limit(1);
+  const [school] = await db
+    .select()
+    .from(schools)
+    .where(eq(schools.id, id))
+    .limit(1);
   if (!school) return null;
 
   const [schoolStyleRows, schedRows] = await Promise.all([
-    db.select({ name: styles.name })
+    db
+      .select({ name: styles.name })
       .from(schoolStyles)
       .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
       .where(eq(schoolStyles.schoolId, id)),
-    db.select()
-      .from(scheduleEntries)
-      .where(eq(scheduleEntries.schoolId, id)),
+    db.select().from(scheduleEntries).where(eq(scheduleEntries.schoolId, id)),
   ]);
 
   return {
@@ -192,19 +228,72 @@ export async function getListingById(id: string): Promise<Listing | null> {
   };
 }
 
-const _listingsByCityCache = new Map<string, { data: ListingCard[]; ts: number }>();
-const _listingsByStyleCache = new Map<string, { data: ListingCard[]; ts: number }>();
+export async function getListingByIdentifier(
+  identifier: string,
+): Promise<Listing | null> {
+  const [school] = await db
+    .select()
+    .from(schools)
+    .where(or(eq(schools.id, identifier), eq(schools.slug, identifier)))
+    .limit(1);
+
+  if (!school) return null;
+
+  const [schoolStyleRows, schedRows] = await Promise.all([
+    db
+      .select({ name: styles.name })
+      .from(schoolStyles)
+      .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
+      .where(eq(schoolStyles.schoolId, school.id)),
+    db
+      .select()
+      .from(scheduleEntries)
+      .where(eq(scheduleEntries.schoolId, school.id)),
+  ]);
+
+  return {
+    ...buildListing(
+      school,
+      schoolStyleRows.map((r) => r.name),
+      schedRows.map(mapScheduleRow),
+    ),
+    pricingJson: school.pricingJson,
+    descriptionRaw: school.descriptionRaw,
+  };
+}
+
+const _listingsByCityCache = new Map<
+  string,
+  { data: ListingCard[]; ts: number }
+>();
+const _listingsByStyleCache = new Map<
+  string,
+  { data: ListingCard[]; ts: number }
+>();
 const LISTINGS_CACHE_TTL = 10 * 60 * 1000;
 
-export async function getListingsByStyle(styleName: string): Promise<ListingCard[]> {
-  const key = styleName.toLowerCase();
+export async function getListingsByStyle(
+  styleName: string,
+  styleSlug?: string,
+): Promise<ListingCard[]> {
+  const key = (styleSlug ?? styleName).toLowerCase();
   const cached = _listingsByStyleCache.get(key);
   if (cached && Date.now() - cached.ts < LISTINGS_CACHE_TTL) return cached.data;
 
-  const matchedStyles = await db
-    .select({ id: styles.id })
-    .from(styles)
-    .where(sql`lower(${styles.name}) = lower(${styleName})`);
+  // Try slug first (reliable), then fall back to name match
+  let matchedStyles = styleSlug
+    ? await db
+        .select({ id: styles.id })
+        .from(styles)
+        .where(sql`${styles.slug} = ${styleSlug}`)
+    : [];
+
+  if (matchedStyles.length === 0) {
+    matchedStyles = await db
+      .select({ id: styles.id })
+      .from(styles)
+      .where(sql`lower(${styles.name}) = lower(${styleName})`);
+  }
 
   if (matchedStyles.length === 0) return [];
 
@@ -212,27 +301,39 @@ export async function getListingsByStyle(styleName: string): Promise<ListingCard
     .select({ schoolId: schoolStyles.schoolId })
     .from(schoolStyles)
     .where(
-      sql`${schoolStyles.styleId} IN (${sql.join(matchedStyles.map((s) => sql`${s.id}`), sql`, `)})`
+      sql`${schoolStyles.styleId} IN (${sql.join(
+        matchedStyles.map((s) => sql`${s.id}`),
+        sql`, `,
+      )})`,
     );
 
   if (schoolIds.length === 0) return [];
 
   const ids = schoolIds.map((r) => r.schoolId);
-  const idsSql = sql.join(ids.map((id) => sql`${id}`), sql`, `);
+  const idsSql = sql.join(
+    ids.map((id) => sql`${id}`),
+    sql`, `,
+  );
 
   const [matchedSchools, allSchoolStyles] = await Promise.all([
-    db.select({
-      id: schools.id,
-      name: schools.name,
-      city: schools.city,
-      address: schools.address,
-      neighborhood: schools.neighborhood,
-      latitude: schools.latitude,
-      longitude: schools.longitude,
-    })
-    .from(schools)
-    .where(and(sql`${schools.id} IN (${idsSql})`, eq(schools.isListed, true))),
-    db.select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
+    db
+      .select({
+        id: schools.id,
+        slug: schools.slug,
+        name: schools.name,
+        city: schools.city,
+        citySlug: schools.citySlug,
+        address: schools.address,
+        neighborhood: schools.neighborhood,
+        latitude: schools.latitude,
+        longitude: schools.longitude,
+      })
+      .from(schools)
+      .where(
+        and(sql`${schools.id} IN (${idsSql})`, eq(schools.isListed, true)),
+      ),
+    db
+      .select({ schoolId: schoolStyles.schoolId, styleName: styles.name })
       .from(schoolStyles)
       .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
       .where(sql`${schoolStyles.schoolId} IN (${idsSql})`),
@@ -260,20 +361,30 @@ export async function getListingsByCity(city: string): Promise<ListingCard[]> {
   const matchedSchools = await db
     .select({
       id: schools.id,
+      slug: schools.slug,
       name: schools.name,
       city: schools.city,
+      citySlug: schools.citySlug,
       address: schools.address,
       neighborhood: schools.neighborhood,
       latitude: schools.latitude,
       longitude: schools.longitude,
     })
     .from(schools)
-    .where(and(sql`lower(${schools.city}) = lower(${city})`, eq(schools.isListed, true)));
+    .where(
+      and(
+        sql`lower(${schools.city}) = lower(${city})`,
+        eq(schools.isListed, true),
+      ),
+    );
 
   if (matchedSchools.length === 0) return [];
 
   const ids = matchedSchools.map((s) => s.id);
-  const idsSql = sql.join(ids.map((id) => sql`${id}`), sql`, `);
+  const idsSql = sql.join(
+    ids.map((id) => sql`${id}`),
+    sql`, `,
+  );
 
   const allSchoolStyles = await db
     .select({ schoolId: schoolStyles.schoolId, styleName: styles.name })

@@ -819,7 +819,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 10px 20px;
+		padding: 8px 20px;
 	}
 	.ag-wday-head-left {
 		display: flex;
@@ -855,7 +855,7 @@
 	}
 
 	.ag-wday-empty {
-		padding: 2px 20px 10px;
+		padding: 2px 20px 6px;
 		font-size: 11px;
 		color: var(--dt-text-3, rgba(255, 255, 255, 0.2));
 		font-style: italic;
@@ -900,14 +900,16 @@
 
 	/* Compact day events */
 	.ag-wday-compact {
-		padding: 0 20px 10px;
+		padding: 0 20px 6px;
 	}
 	.ag-compact {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 4px 0;
+		gap: 6px;
+		padding: 3px 0;
 		cursor: pointer;
+		min-width: 0;
+		overflow: hidden;
 	}
 	.ag-compact--selected {
 		background: color-mix(in srgb, var(--ev-color) 10%, transparent);
@@ -933,14 +935,16 @@
 		font-size: 11px;
 		font-family: var(--dt-mono, monospace);
 		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
-		min-width: 64px;
+		min-width: 40px;
 		flex-shrink: 0;
+		white-space: nowrap;
 	}
 	.ag-compact-title {
 		font-size: 12px;
 		font-weight: 500;
 		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
 		flex: 1;
+		min-width: 0;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -951,17 +955,25 @@
 		font-family: var(--dt-mono, monospace);
 		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
 		flex-shrink: 0;
+		white-space: nowrap;
 	}
 	.ag-compact-sub {
 		font-size: 10px;
 		color: var(--dt-text-3, rgba(255, 255, 255, 0.35));
 		flex-shrink: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 120px;
 	}
 	.ag-compact-loc {
 		font-size: 9px;
 		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
 		flex-shrink: 0;
 		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100px;
 	}
 	.ag-compact--cancelled {
 		opacity: 0.5;
@@ -986,6 +998,9 @@
 		border-radius: 3px;
 		white-space: nowrap;
 		flex-shrink: 0;
+		max-width: 80px;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.ag-compact-more {
 		font-size: 11px;

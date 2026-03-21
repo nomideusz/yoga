@@ -1,6 +1,8 @@
 {
   "skip_to_content": "Przejdź do głównej treści",
   "home_aria": "Strona główna",
+  "back": "Wróć",
+  "close": "Zamknij",
   "footer_terms": "regulamin",
 
   "error_system": "Błąd systemu",
@@ -31,12 +33,16 @@
   "school_few": "szkoły",
   "school_many": "szkół",
 
+  "city_change": "Zmień miasto",
   "city_search_placeholder": "Szkoła, styl, dzielnica…",
   "city_search_aria": "Szukaj szkoły, stylu, dzielnicy lub kodu pocztowego",
   "city_clear": "Wyczyść",
   "city_close": "Zamknij",
   "city_searching": "Szukam…",
   "city_not_found": "Nie znaleziono",
+  "geolocation_denied": "Brak dostępu do lokalizacji",
+  "geolocation_unavailable": "Lokalizacja niedostępna",
+  "geolocation_timeout": "Upłynął limit czasu lokalizacji",
   "city_go": "Przejdź",
   "city_clear_search": "Wyczyść wyszukiwanie",
   "city_no_schools": "Nie znaleziono szkół pasujących do kryteriów.",
@@ -48,8 +54,17 @@
   "city_autocomplete_styles": "Style",
   "city_autocomplete_districts": "Dzielnice",
   "city_autocomplete_addresses": "Adresy",
+  "address_search_nearby": "Szukaj szkół w pobliżu",
+  "address_go_to_city": "Przejdź do {city}",
+  "label_address_search": "Adres",
+  "city_no_schools_nearest": "Brak szkół. Najbliżej: {city} ({count})",
+  "city_no_schools_redirect": "Brak szkół → {city} ({distance} km)",
+  "place_redirect": "{from} → {city} ({distance} km)",
   "trial_badge": "Bezpłatne zajęcia",
   "your_location": "Twoja lokalizacja",
+  "filter_style": "Styl",
+  "filter_district": "Dzielnica",
+  "filter_near_me": "Blisko mnie",
 
   "cat_intensity": "Intensywność",
   "cat_intensity_low": "Niska",
@@ -87,8 +102,12 @@
   "listing_price_fresh": "aktualne",
   "listing_price_aging": "wymaga sprawdzenia",
   "listing_price_stale": "nieaktualne",
+  "listing_desc_more": "Więcej",
+  "listing_desc_less": "Mniej",
   "listing_report": "Zgłoś błędne dane",
   "listing_report_subject": "Korekta danych studia: ",
+  "listing_load_error": "Nie udało się załadować danych szkoły.",
+  "retry": "Spróbuj ponownie",
   "listing_yoga_classes": "Zajęcia jogi",
 
   "listing_meta_studio": "Studio jogi:",
@@ -135,7 +154,6 @@
 
   "about_title": "O projekcie",
   "about_meta_desc": "szkolyjogi.pl to katalog szkół jogi w Polsce — porównuj ceny, style i lokalizacje w jednym miejscu.",
-  "about_breadcrumb": "O PROJEKCIE",
   "about_mission_title": "Misja: Prosta Praktyka",
   "about_mission_p1": "<strong>szkolyjogi.pl</strong> to niezależna baza szkół jogi w Polsce. Powstała z prostej potrzeby: chcieliśmy mieć jedno miejsce, w którym można sprawdzić aktualne ceny i grafiki bez przeklikiwania się przez dziesiątki nieczytelnych stron.",
   "about_mission_p2": "Naszym celem jest usunięcie szumu informacyjnego. Porządkujemy rozproszone dane, byś Ty mógł skupić się na tym, co ważne – na praktyce.",
@@ -145,7 +163,6 @@
 
   "terms_title": "Regulamin",
   "terms_meta_desc": "Regulamin serwisu szkolyjogi.pl — katalog szkół jogi w Polsce.",
-  "terms_breadcrumb": "REGULAMIN",
   "terms_s1_title": "§1 Postanowienia ogólne",
   "terms_s1_1": "Serwis szkolyjogi.pl (dalej: \u201eSerwis\u201D) jest katalogiem szkół jogi działających na terenie Polski.",
   "terms_s1_2": "Administratorem Serwisu jest szkolyjogi.pl.",
@@ -166,7 +183,6 @@
 
   "post_title": "Dodaj studio",
   "post_meta_desc": "Dodaj lub przejmij profil swojego studia jogi w katalogu szkolyjogi.pl — bezpłatnie.",
-  "post_breadcrumb": "DODAJ STUDIO",
   "post_already_title": "Twoje studio jest już w katalogu?",
   "post_already_text": "Automatycznie zbieramy dane o szkołach jogi w Polsce. Istnieje duża szansa, że Twoje studio już się tutaj znajduje. Wyszukaj je na <a href=\"/\">stronie głównej</a>, a następnie kliknij \"Przejmij ten profil\" na stronie studia.",
   "post_not_found_title": "Nie możesz znaleźć swojego studia?",
@@ -187,8 +203,6 @@
   "locate_button": "Użyj mojej lokalizacji",
   "map_loading": "Wczytywanie mapy…",
   "map_error": "Nie udało się załadować mapy",
-  "breadcrumb_hide_map": "Ukryj mapę",
-  "breadcrumb_show_map": "Pokaż mapę",
 
   "health_site_down": "strona niedostępna",
   "health_site_slow": "strona wolno odpowiada",
@@ -230,6 +244,10 @@
   "meta_yoga_schools": "Szkoły Jogi",
   "meta_prices_locations_reviews": "Ceny Karnetów, Lokalizacje, Opinie",
   "meta_city_desc": "Baza szkół jogi: {city}. Sprawdź opinie, porównaj miesięczne ceny karnetów i znajdź najlepsze studio z darmowymi pierwszymi zajęciami. Zestawienie {count} placówek.",
+  "footer_schools": "szkół",
+  "footer_cities": "miast",
+  "footer_styles": "stylów",
+
   "meta_main_title": "Szkoły Jogi w Polsce — szkolyjogi.pl",
   "meta_main_desc": "Katalog szkół jogi w Polsce — znajdź szkołę w swoim mieście."
 }

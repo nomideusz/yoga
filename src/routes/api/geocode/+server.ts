@@ -1,5 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 import {
   getGeocodedStreet,
   upsertGeocodedStreet,
@@ -32,6 +33,25 @@ export async function GET({ url }) {
 
   const apiKey = env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) throw error(500, 'Google Maps API key not configured');
+
+  // ── IP-based geolocation fallback (when browser geolocation fails) ──
+  const ipGeo = url.searchParams.get('ipGeo')?.trim();
+  if (ipGeo === '1') {
+    const geoKey = publicEnv.PUBLIC_GOOGLE_MAPS_API_KEY || apiKey;
+    try {
+      const res = await fetch(
+        `https://www.googleapis.com/geolocation/v1/geolocate?key=${geoKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"considerIp": true}' }
+      );
+      const data = await res.json();
+      if (data?.location) {
+        return json({ latitude: data.location.lat, longitude: data.location.lng, accuracy: data.accuracy });
+      }
+      return json(null);
+    } catch {
+      return json(null);
+    }
+  }
 
   // ── Nearest city from our DB (no Google API call) ──
   const ncLat = url.searchParams.get('ncLat')?.trim();

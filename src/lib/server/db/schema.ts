@@ -1,4 +1,4 @@
-import { sqliteTable, text, real, integer, unique } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, real, integer, unique, index } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 // ── Schools (main listing) ──────────────────────────────────────────────────
@@ -67,7 +67,9 @@ export const schools = sqliteTable('schools', {
   descriptionN: text('description_n').default(''),
   postcode: text('postcode'),                  // extracted or manual "XX-XXX"
   slug: text('slug'),                          // URL-friendly unique slug
-});
+}, (table) => ({
+  idxCityDistrict: index('idx_schools_city_district').on(table.citySlug, table.districtN),
+}));
 
 // ── Styles (many-to-many via junction) ──────────────────────────────────────
 
@@ -225,6 +227,7 @@ export const apiUsage = sqliteTable('api_usage', {
 export const cities = sqliteTable('cities', {
   slug: text('slug').primaryKey(),             // "krakow"
   name: text('name').notNull(),                // "Kraków"
+  nameLoc: text('name_loc'),                   // "Krakowie" (Polish locative for "w Krakowie")
   nameN: text('name_n').notNull(),             // "krakow"
   lat: real('lat').notNull(),
   lng: real('lng').notNull(),
@@ -250,6 +253,23 @@ export const schoolTrigrams = sqliteTable('school_trigrams', {
   field: text('field').notNull(),              // 'name','city','style','district','street'
 });
 
+// ── Search Events (user behaviour tracking for self-improving search) ────────
+
+export const searchEvents = sqliteTable('search_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  query: text('query').notNull(),
+  queryNormalized: text('query_normalized'),
+  page: text('page').notNull(),                     // 'main' | 'city' | 'style'
+  cityContext: text('city_context'),                 // null on main, citySlug on city/style pages
+  action: text('action').notNull(),                  // resolved action type from resolver
+  layer: text('layer'),                              // 'client' | 'server' | 'google' | 'none'
+  resultCount: integer('result_count'),
+  clickedType: text('clicked_type'),                 // 'school' | 'city' | 'style' | 'address' | 'redirect' | null
+  clickedId: text('clicked_id'),                     // school id, city slug, etc.
+  sessionId: text('session_id'),                     // anonymous UUID (no PII)
+  createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
 // ── Type exports ────────────────────────────────────────────────────────────
 
 export type School = typeof schools.$inferSelect;
@@ -265,3 +285,5 @@ export type WalkingDistance = typeof walkingDistances.$inferSelect;
 export type ApiUsage = typeof apiUsage.$inferSelect;
 export type City = typeof cities.$inferSelect;
 export type SearchSynonym = typeof searchSynonyms.$inferSelect;
+export type SearchEvent = typeof searchEvents.$inferSelect;
+export type NewSearchEvent = typeof searchEvents.$inferInsert;

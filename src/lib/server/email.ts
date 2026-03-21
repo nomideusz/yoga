@@ -18,6 +18,7 @@ const ADMIN_EMAIL = 'joga@zaur.app';
 export type ClaimNotificationData = {
   schoolName: string;
   schoolId: string;
+  listingUrl: string;
   claimantName: string;
   claimantEmail: string;
   claimantPhone: string | null;
@@ -67,7 +68,7 @@ function claimNotificationHtml(data: ClaimNotificationData): string {
     </tr>` : ''}
   </table>
 
-  <a href="https://szkolyjogi.pl/listing/${data.schoolId}"
+  <a href="${data.listingUrl}"
      style="display: inline-block; padding: 10px 20px; background: #3d7ce0; color: #fff; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;">
     Zobacz profil studia
   </a>

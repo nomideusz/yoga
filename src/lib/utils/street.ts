@@ -18,14 +18,6 @@ export function normalizePolish(str: string): string {
   return str.replace(/[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g, (ch) => POLISH_MAP[ch] ?? ch).toLowerCase();
 }
 
-/** Check if a school address matches a query (normalized startsWith) */
-export function streetMatches(address: string, query: string): boolean {
-  if (!address || !query) return false;
-  const street = normalizePolish(extractStreet(address));
-  const q = normalizePolish(query.trim());
-  return q.length > 0 && street.startsWith(q);
-}
-
 /** Extract the street name from address for ghost autocomplete */
 export function extractStreetDisplay(address: string): string {
   return extractStreet(address).toUpperCase();
