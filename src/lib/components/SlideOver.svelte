@@ -40,10 +40,10 @@
 
             document.body.style.overflow = "hidden";
 
-            // Small delay to allow transition to start/element to mount
+            // Focus the panel itself for a11y trap, not the close button
+            // (focusing close button shows a distracting focus ring on open)
             const timer = setTimeout(() => {
-                const closeBtn = panelEl?.querySelector(".so-close") as HTMLElement;
-                closeBtn?.focus();
+                panelEl?.focus();
             }, 100);
 
             return () => {
@@ -253,6 +253,7 @@
         animation: slideIn 0.25s cubic-bezier(0.32, 0.72, 0, 1);
         overscroll-behavior: contain;
         transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+        outline: none;
     }
     .so-panel--closing {
         animation: slideOut 0.18s ease-in forwards;
@@ -318,8 +319,8 @@
         transition: background 0.15s ease, color 0.15s ease;
     }
     .so-close:focus-visible {
-        outline: 2px solid color-mix(in srgb, var(--sf-muted) 40%, transparent);
-        outline-offset: -2px;
+        outline: 2px solid color-mix(in srgb, var(--sf-accent, var(--sf-muted)) 50%, transparent);
+        outline-offset: 2px;
     }
     .so-close:hover {
         background: color-mix(in srgb, var(--sf-muted) 10%, transparent);

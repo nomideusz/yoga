@@ -549,17 +549,28 @@
     {#if isUnclaimed}
         <section class="lc-section lc-section--border lc-claim">
             <div class="lc-claim-card">
-                <p class="lc-claim-text">
-                    {listing.city === "Warszawa"
-                        ? t("listing_claim_text_warsaw")
-                        : t("listing_claim_text")}
-                </p>
-                <a
-                    href={`${getListingPath(listing)}/claim`}
-                    class="lc-claim-btn"
-                >
-                    {t("listing_claim_btn")}
-                </a>
+                <div class="lc-claim-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <line x1="19" y1="8" x2="19" y2="14" />
+                        <line x1="22" y1="11" x2="16" y2="11" />
+                    </svg>
+                </div>
+                <div class="lc-claim-body">
+                    <p class="lc-claim-text">
+                        {listing.city === "Warszawa"
+                            ? t("listing_claim_text_warsaw")
+                            : t("listing_claim_text")}
+                    </p>
+                    <a
+                        href={`${getListingPath(listing)}/claim`}
+                        class="lc-claim-btn"
+                    >
+                        {t("listing_claim_btn")}
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                    </a>
+                </div>
             </div>
         </section>
     {/if}
@@ -1110,12 +1121,32 @@
 
     .lc-claim-card {
         display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 16px 18px;
+        background: color-mix(in srgb, var(--sf-frost) 60%, var(--sf-card) 40%);
+        border: 1px solid color-mix(in srgb, var(--sf-line) 42%, transparent);
+        border-radius: 14px;
+    }
+
+    .lc-claim-icon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--sf-frost) 100%, transparent);
+        color: var(--sf-muted);
+        margin-top: 1px;
+    }
+
+    .lc-claim-body {
+        display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding: 14px 16px;
-        background: color-mix(in srgb, var(--sf-frost) 88%, transparent);
-        border: 1px solid color-mix(in srgb, var(--sf-line) 62%, transparent);
-        border-radius: var(--radius-sm);
+        gap: 8px;
+        min-width: 0;
     }
 
     .lc-claim-text {
@@ -1128,11 +1159,11 @@
     .lc-claim-btn {
         display: inline-flex;
         align-items: center;
-        justify-content: flex-start;
+        gap: 5px;
         width: fit-content;
         padding: 0;
         background: transparent;
-        color: color-mix(in srgb, var(--sf-text) 70%, var(--sf-muted) 30%);
+        color: color-mix(in srgb, var(--sf-text) 72%, var(--sf-muted) 28%);
         font-family: var(--font-mono);
         font-weight: 700;
         font-size: 0.68rem;
@@ -1141,16 +1172,22 @@
         text-decoration: none;
         border: none;
         border-radius: 0;
+        cursor: pointer;
         transition:
             color var(--dur-fast) ease,
-            opacity var(--dur-fast) ease;
+            gap var(--dur-fast) ease;
     }
     .lc-claim-btn:hover {
-        color: var(--sf-text);
-        opacity: 1;
+        color: var(--sf-dark);
+        gap: 7px;
+    }
+    .lc-claim-btn:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--sf-accent, var(--sf-muted)) 50%, transparent);
+        outline-offset: 3px;
+        border-radius: 4px;
     }
     .lc-claim-btn:visited {
-        color: color-mix(in srgb, var(--sf-text) 70%, var(--sf-muted) 30%);
+        color: color-mix(in srgb, var(--sf-text) 72%, var(--sf-muted) 28%);
     }
 
     /* ═══ Footer ═══ */

@@ -231,21 +231,18 @@
     }
 
     .sheet-route__backdrop {
-        position: fixed;
-        inset: 0;
-        background: color-mix(in srgb, var(--sf-dark) 8%, transparent);
-        pointer-events: none;
+        display: none;
     }
 
     .sheet-route__panel {
         position: relative;
         width: min(1120px, calc(100vw - 24px));
         min-height: calc(100vh - 24px - 84px);
-        margin-left: auto;
+        margin: 0 auto;
         background: var(--sf-card);
         border: 1px solid color-mix(in srgb, var(--sf-line) 82%, white 18%);
         border-radius: 24px;
-        box-shadow: -12px 0 40px rgba(31, 48, 77, 0.12);
+        box-shadow: 0 4px 32px rgba(31, 48, 77, 0.08);
         overflow: hidden;
         display: flex;
         flex-direction: column;
