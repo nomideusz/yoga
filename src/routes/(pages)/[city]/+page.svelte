@@ -1553,7 +1553,7 @@
         currentPage = page;
         document
             .querySelector(".city-schools")
-            ?.scrollIntoView({ behavior: "smooth" });
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     // ── Icon SVGs ──
@@ -1615,8 +1615,8 @@
         <h1 class="city-title">{data.city}</h1>
         <div class="city-location">
             <span class="city-location-placeholder"
-                >{enrichedSchools.length}
-                {pluralSchool(enrichedSchools.length)}</span
+                >{data.schools.length}
+                {pluralSchool(data.schools.length)}</span
             >
         </div>
 
