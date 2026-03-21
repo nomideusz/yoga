@@ -1,14 +1,16 @@
 // ============================================================
-// src/lib/search/indexer.ts
+// src/lib/search/indexer.ts — Yoga indexer adapter
 // ============================================================
-// Write operations: inserting schools, building trigrams,
-// and loading resolver lookup tables from the database.
+// Uses @nomideusz/svelte-search's createIndexer and createLookupsLoader
+// with yoga's schema.
 
 import type { Client } from '@libsql/client';
-import { normalize, trigrams } from './normalize';
-import type { ResolverLookups } from './resolver';
+import { createIndexer, createLookupsLoader, normalize } from '@nomideusz/svelte-search';
+import { plLocale } from '@nomideusz/svelte-search/locales/pl';
+import { yogaAdapter, wrapClient } from './engine';
+import type { YogaResolverLookups } from './types';
 
-// ── Insert a school ────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────
 
 export interface SchoolInput {
   name: string;
@@ -27,10 +29,33 @@ export interface SchoolInput {
   description?: string | null;
 }
 
+// ── Cached indexer ─────────────────────────────────────────
+
+let _indexer: ReturnType<typeof createIndexer> | null = null;
+let _indexerClient: Client | null = null;
+
+function getIndexer(client: Client) {
+  if (_indexer && _indexerClient === client) return _indexer;
+  _indexer = createIndexer({
+    db: wrapClient(client),
+    adapter: yogaAdapter,
+    locale: plLocale,
+  });
+  _indexerClient = client;
+  return _indexer;
+}
+
+// ── Insert a school ────────────────────────────────────────
+
+function makeSlug(name: string, city: string): string {
+  const base = normalize(`${name} ${city}`, plLocale).replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  return `${base}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
 export async function insertSchool(db: Client, input: SchoolInput): Promise<number> {
   const slug = makeSlug(input.name, input.city);
   const stylesJson = JSON.stringify(input.styles);
-  const stylesNorm = input.styles.map(s => normalize(s)).join(' ');
+  const stylesNorm = input.styles.map(s => normalize(s, plLocale)).join(' ');
 
   const result = await db.execute({
     sql: `INSERT INTO schools (
@@ -40,207 +65,129 @@ export async function insertSchool(db: Client, input: SchoolInput): Promise<numb
       postcode, lat, lng, phone, email, website, description, description_n
     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     args: [
-      input.name, normalize(input.name), slug, stylesJson, stylesNorm,
-      input.street ?? null, normalize(input.street ?? ''),
-      input.district ?? null, normalize(input.district ?? ''),
-      input.city, normalize(input.city), input.citySlug,
-      input.voivodeship ?? null, normalize(input.voivodeship ?? ''),
+      input.name, normalize(input.name, plLocale), slug, stylesJson, stylesNorm,
+      input.street ?? null, normalize(input.street ?? '', plLocale),
+      input.district ?? null, normalize(input.district ?? '', plLocale),
+      input.city, normalize(input.city, plLocale), input.citySlug,
+      input.voivodeship ?? null, normalize(input.voivodeship ?? '', plLocale),
       input.postcode ?? null, input.lat ?? null, input.lng ?? null,
       input.phone ?? null, input.email ?? null, input.website ?? null,
-      input.description ?? null, normalize(input.description ?? ''),
+      input.description ?? null, normalize(input.description ?? '', plLocale),
     ],
   });
 
   const schoolId = Number(result.lastInsertRowid);
-  await indexTrigrams(db, schoolId, input);
+  // Index trigrams via the generic indexer
+  await getIndexer(db).indexTrigrams(schoolId, {
+    name: input.name,
+    styles: JSON.stringify(input.styles),
+    city: input.city,
+    neighborhood: input.district,
+    address: input.street,
+    city_slug: input.citySlug,
+    voivodeship: input.voivodeship,
+  });
   return schoolId;
 }
 
-// ── Trigram indexing ────────────────────────────────────────
+// ── Delegated operations ───────────────────────────────────
 
-async function indexTrigrams(db: Client, schoolId: number | string, input: SchoolInput) {
-  await db.execute({ sql: 'DELETE FROM school_trigrams WHERE school_id = ?', args: [schoolId] });
-
-  const entries: { trigram: string; field: string }[] = [];
-  const add = (text: string | null | undefined, field: string) => {
-    if (!text) return;
-    for (const t of trigrams(text)) entries.push({ trigram: t, field });
-  };
-
-  add(input.name, 'name');
-  add(input.city, 'city');
-  add(input.district, 'district');
-  add(input.street, 'street');
-  input.styles.forEach(s => add(s, 'style'));
-
-  const BATCH = 100;
-  for (let i = 0; i < entries.length; i += BATCH) {
-    const chunk = entries.slice(i, i + BATCH);
-    const ph = chunk.map(() => '(?,?,?)').join(',');
-    const args = chunk.flatMap(e => [e.trigram, schoolId, e.field]);
-    await db.execute({ sql: `INSERT OR IGNORE INTO school_trigrams (trigram, school_id, field) VALUES ${ph}`, args });
-  }
-}
-
-/** Rebuild all trigrams from scratch. Use for migrations. */
 export async function reindexAllTrigrams(db: Client): Promise<number> {
-  const result = await db.execute('SELECT * FROM schools');
-  let count = 0;
-  for (const row of result.rows as any[]) {
-    await indexTrigrams(db, row.id, {
-      name: row.name, styles: JSON.parse(row.styles || '[]'),
-      street: row.address, district: row.neighborhood,
-      city: row.city, citySlug: row.city_slug, voivodeship: row.voivodeship,
-    });
-    count++;
-  }
-  return count;
+  return getIndexer(db).reindexAllTrigrams();
 }
 
-/** Rebuild FTS5 index. */
 export async function rebuildFts(db: Client): Promise<void> {
-  await db.execute("INSERT INTO schools_fts(schools_fts) VALUES('rebuild')");
+  return getIndexer(db).rebuildFts();
 }
 
-/** Check if FTS5 index is in sync with schools table. Returns mismatched count. */
-export async function checkFtsSync(db: Client): Promise<{ inSchools: number; inFts: number; missingFromFts: number; orphanedInFts: number }> {
-  const [schoolCount, ftsCount, missing, orphaned] = await Promise.all([
-    db.execute('SELECT COUNT(*) as c FROM schools'),
-    db.execute('SELECT COUNT(*) as c FROM schools_fts'),
-    db.execute('SELECT COUNT(*) as c FROM schools s LEFT JOIN schools_fts f ON s.rowid = f.rowid WHERE f.rowid IS NULL'),
-    db.execute('SELECT COUNT(*) as c FROM schools_fts f LEFT JOIN schools s ON f.rowid = s.rowid WHERE s.rowid IS NULL'),
-  ]);
+export async function checkFtsSync(db: Client): Promise<{
+  inSchools: number; inFts: number; missingFromFts: number; orphanedInFts: number;
+}> {
+  const result = await getIndexer(db).checkFtsSync();
   return {
-    inSchools: Number((schoolCount.rows[0] as any).c),
-    inFts: Number((ftsCount.rows[0] as any).c),
-    missingFromFts: Number((missing.rows[0] as any).c),
-    orphanedInFts: Number((orphaned.rows[0] as any).c),
+    inSchools: result.inEntities,
+    inFts: result.inFts,
+    missingFromFts: result.missingFromFts,
+    orphanedInFts: result.orphanedInFts,
   };
 }
 
-/** Re-derive all normalized shadow columns, trigrams, and FTS. Use after changing normalize(). */
 export async function renormalizeAll(db: Client): Promise<number> {
-  const result = await db.execute('SELECT id, name, city, city_slug, address, neighborhood, voivodeship, description, styles FROM schools');
-  let count = 0;
-  for (const row of result.rows as any[]) {
-    const styles: string[] = (() => { try { return JSON.parse(row.styles || '[]'); } catch { return []; } })();
-    await db.execute({
+  return getIndexer(db).renormalizeAll(async (wrappedDb, row) => {
+    const styles: string[] = (() => { try { return JSON.parse((row.styles as string) || '[]'); } catch { return []; } })();
+    await wrappedDb.execute({
       sql: `UPDATE schools SET name_n=?, city_n=?, street_n=?, district_n=?, voivodeship_n=?, description_n=?, styles_n=?
             WHERE id=?`,
       args: [
-        normalize(row.name || ''), normalize(row.city || ''),
-        normalize(row.address || ''), normalize(row.neighborhood || ''),
-        normalize(row.voivodeship || ''), normalize(row.description || ''),
-        styles.map(s => normalize(s)).join(' '),
+        normalize((row.name as string) || '', plLocale),
+        normalize((row.city as string) || '', plLocale),
+        normalize((row.address as string) || '', plLocale),
+        normalize((row.neighborhood as string) || '', plLocale),
+        normalize((row.voivodeship as string) || '', plLocale),
+        normalize((row.description as string) || '', plLocale),
+        styles.map(s => normalize(s, plLocale)).join(' '),
         row.id,
       ],
     });
-    await indexTrigrams(db, row.id, {
-      name: row.name, styles, street: row.address, district: row.neighborhood,
-      city: row.city, citySlug: row.city_slug, voivodeship: row.voivodeship,
-    });
-    count++;
-  }
-  await rebuildFts(db);
-  return count;
+  });
 }
 
-// ── Load resolver lookup tables ────────────────────────────
+// ── Resolver lookups loader ────────────────────────────────
 
-let _cachedLookups: ResolverLookups | null = null;
-let _cacheTimestamp = 0;
-let _pendingReload: Promise<ResolverLookups> | null = null;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const _lookupsLoader = new WeakMap<Client, ReturnType<typeof createLookupsLoader>>();
 
-/** Load all lookup tables needed by the resolver. Cached for 5 minutes. */
-export async function loadResolverLookups(db: Client): Promise<ResolverLookups> {
-  const now = Date.now();
-  if (_cachedLookups && (now - _cacheTimestamp) < CACHE_TTL_MS) {
-    return _cachedLookups;
-  }
-  // Prevent concurrent reloads — second caller reuses the first's promise
-  if (_pendingReload) return _pendingReload;
-  _pendingReload = reloadLookups(db);
-  try {
-    return await _pendingReload;
-  } finally {
-    _pendingReload = null;
-  }
+function getLookupsLoader(client: Client) {
+  let loader = _lookupsLoader.get(client);
+  if (loader) return loader;
+  loader = createLookupsLoader({
+    db: wrapClient(client),
+    locale: plLocale,
+    locations: {
+      sql: 'SELECT slug, name, name_n, name_loc, school_count, lat, lng FROM cities',
+      slugCol: 'slug',
+      nameNormalizedCol: 'name_n',
+      countCol: 'school_count',
+      latCol: 'lat',
+      lngCol: 'lng',
+      nameCol: 'name',
+    },
+    categories: {
+      sql: 'SELECT slug, name_n, aliases_n FROM styles',
+      slugCol: 'slug',
+      nameNormalizedCol: 'name_n',
+      aliasesNormalizedCol: 'aliases_n',
+    },
+    areas: {
+      sql: 'SELECT slug, districts FROM cities',
+      locationSlugCol: 'slug',
+      areasJsonCol: 'districts',
+    },
+    synonymsSql: "SELECT alias, canonical, category FROM search_synonyms",
+  });
+  _lookupsLoader.set(client, loader);
+  return loader;
 }
 
-async function reloadLookups(db: Client): Promise<ResolverLookups> {
-  // Cities: normalized name → slug, school count, and coordinates
-  const cityMap = new Map<string, string>();
-  const citySchoolCount = new Map<string, number>();
-  const cityGeo = new Map<string, { lat: number; lng: number; name: string }>();
+export async function loadResolverLookups(db: Client): Promise<YogaResolverLookups> {
+  const base = await getLookupsLoader(db).load();
+
+  // Load cityLocative (yoga-specific — not in generic package)
   const cityLocative = new Map<string, string>();
-  const cityRows = await db.execute('SELECT slug, name, name_n, name_loc, school_count, lat, lng FROM cities');
-  for (const row of cityRows.rows as any[]) {
-    cityMap.set(row.name_n, row.slug);
-    citySchoolCount.set(row.slug, row.school_count ?? 0);
+  const locRows = await db.execute({
+    sql: 'SELECT name, name_loc FROM cities WHERE name_loc IS NOT NULL',
+    args: [],
+  });
+  for (const row of locRows.rows as any[]) {
     if (row.name_loc) cityLocative.set(row.name, row.name_loc);
-    if (row.lat != null && row.lng != null) {
-      cityGeo.set(row.slug, { lat: row.lat, lng: row.lng, name: row.name });
-    }
   }
 
-  // Also add synonym aliases for cities
-  const citySynonyms = await db.execute(
-    "SELECT alias, canonical FROM search_synonyms WHERE category = 'city'"
-  );
-  for (const row of citySynonyms.rows as any[]) {
-    const canonical = normalize(row.canonical);
-    const slug = cityMap.get(canonical);
-    if (slug) cityMap.set(normalize(row.alias), slug);
-  }
-
-  // Styles: normalized name/alias → slug
-  const styleMap = new Map<string, string>();
-  const styleRows = await db.execute('SELECT slug, name_n, aliases_n FROM styles');
-  for (const row of styleRows.rows as any[]) {
-    // "hatha yoga" → "hatha-yoga"
-    styleMap.set(row.name_n, row.slug);
-    // Also index individual words: "hatha" → "hatha-yoga"
-    // But don't overwrite an existing full-name match (e.g. "yin" as full style
-    // should not be overwritten by the word "yin" from "yin restorative")
-    for (const word of row.name_n.split(/\s+/)) {
-      if (word && word !== 'yoga' && word !== 'joga' && !styleMap.has(word)) {
-        styleMap.set(word, row.slug);
-      }
-    }
-    // Index aliases
-    for (const alias of (row.aliases_n || '').split(/\s+/)) {
-      if (alias) styleMap.set(alias, row.slug);
-    }
-  }
-
-  // Also add synonym aliases for styles
-  const styleSynonyms = await db.execute(
-    "SELECT alias, canonical FROM search_synonyms WHERE category = 'style'"
-  );
-  for (const row of styleSynonyms.rows as any[]) {
-    const canonical = normalize(row.canonical);
-    // Find which style slug this canonical maps to
-    const slug = styleMap.get(canonical);
-    if (slug) styleMap.set(normalize(row.alias), slug);
-  }
-
-  // Districts: citySlug → [normalized district names]
-  const districtMap = new Map<string, string[]>();
-  const distRows = await db.execute('SELECT slug, districts FROM cities');
-  for (const row of distRows.rows as any[]) {
-    const districts = JSON.parse(row.districts || '[]') as string[];
-    districtMap.set(row.slug, districts.map(d => normalize(d)));
-  }
-
-  _cachedLookups = { cityMap, styleMap, districtMap, citySchoolCount, cityGeo, cityLocative };
-  _cacheTimestamp = Date.now();
-  return _cachedLookups;
-}
-
-// ── Helpers ────────────────────────────────────────────────
-
-function makeSlug(name: string, city: string): string {
-  const base = normalize(`${name} ${city}`).replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  return `${base}-${Math.random().toString(36).slice(2, 6)}`;
+  return {
+    ...base,
+    // Yoga-specific aliases pointing to the same maps
+    cityMap: base.locationMap,
+    styleMap: base.categoryMap,
+    citySchoolCount: base.locationEntityCount,
+    cityGeo: base.locationGeo,
+    cityLocative,
+  };
 }

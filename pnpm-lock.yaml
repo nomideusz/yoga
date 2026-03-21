@@ -23,6 +23,9 @@ importers:
       '@nomideusz/svelte-i18n':
         specifier: file:packages/svelte-i18n
         version: file:packages/svelte-i18n(svelte@5.53.6)
+      '@nomideusz/svelte-search':
+        specifier: file:packages/svelte-search
+        version: file:packages/svelte-search(svelte@5.53.6)
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -613,6 +616,11 @@ packages:
 
   '@nomideusz/svelte-i18n@file:packages/svelte-i18n':
     resolution: {directory: packages/svelte-i18n, type: directory}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@nomideusz/svelte-search@file:packages/svelte-search':
+    resolution: {directory: packages/svelte-search, type: directory}
     peerDependencies:
       svelte: ^5.0.0
 
@@ -1593,6 +1601,10 @@ snapshots:
       svelte: 5.53.6
 
   '@nomideusz/svelte-i18n@file:packages/svelte-i18n(svelte@5.53.6)':
+    dependencies:
+      svelte: 5.53.6
+
+  '@nomideusz/svelte-search@file:packages/svelte-search(svelte@5.53.6)':
     dependencies:
       svelte: 5.53.6
 
