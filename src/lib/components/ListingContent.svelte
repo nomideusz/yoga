@@ -325,9 +325,9 @@
                 <span class="lc-section-label">{t("listing_pricing")}</span>
                 <span class="lc-pricing-hint">
                     {#if listing.price != null}
-                        <span class="lc-pricing-hint-price">{listing.price} zł</span>
+                        <span class="lc-pricing-hint-price">{listing.priceEstimated ? "~" : ""}{listing.price} zł</span>
                         <span class="lc-pricing-hint-unit">
-                            {listing.priceEstimated ? "~" : ""}{t("listing_price_per_month")}
+                            {t("listing_price_per_month")}
                         </span>
                     {:else if listing.singleClassPrice != null}
                         <span class="lc-pricing-hint-price">{listing.singleClassPrice} zł</span>
@@ -335,6 +335,9 @@
                     {/if}
                     {#if listing.trialPrice === 0}
                         <span class="lc-price-badge">{t("listing_trial_free")}</span>
+                    {/if}
+                    {#if listing.priceEstimated}
+                        <span class="lc-pricing-hint-estimated">{t("listing_price_estimated")}</span>
                     {/if}
                 </span>
                 <span class="lc-pricing-chevron" aria-hidden="true"></span>
@@ -879,6 +882,15 @@
         text-transform: uppercase;
         letter-spacing: 0.04em;
         color: var(--sf-muted);
+    }
+
+    .lc-pricing-hint-estimated {
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: color-mix(in srgb, var(--sf-warm) 80%, var(--sf-muted) 20%);
     }
 
     .lc-pricing-chevron {
