@@ -31,6 +31,8 @@ export const schools = sqliteTable('schools', {
   openingHours: text('opening_hours').default(''),
   imageUrl: text('image_url').default(''),
   photoReference: text('photo_reference').default(''),
+  photoAuthor: text('photo_author').default(''),
+  photoAuthorUrl: text('photo_author_url').default(''),
 
   neighborhood: text('neighborhood').default(''),
   latitude: real('latitude'),

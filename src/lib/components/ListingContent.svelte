@@ -179,7 +179,29 @@
 
 <div class="lc" class:lc--page={isPage}>
     <!-- ═══ HERO PHOTO ═══ -->
-    {#if listing.imageUrl}
+    {#if listing.photoReference}
+        <div class="lc-hero">
+            <img
+                src="/api/photo/{listing.id}"
+                alt={listing.name}
+                class="lc-hero-img"
+                loading="eager"
+            />
+            <div class="lc-hero-attr">
+                {#if listing.photoAuthor}
+                    <span class="lc-hero-author">
+                        {#if listing.photoAuthorUrl}
+                            <a href={listing.photoAuthorUrl} target="_blank" rel="noopener noreferrer">{listing.photoAuthor}</a>
+                        {:else}
+                            {listing.photoAuthor}
+                        {/if}
+                    </span>
+                    <span class="lc-hero-sep">·</span>
+                {/if}
+                <span class="lc-hero-gm" translate="no">Google Maps</span>
+            </div>
+        </div>
+    {:else if listing.imageUrl}
         <div class="lc-hero">
             <img
                 src={listing.imageUrl}
@@ -582,6 +604,7 @@
 
     /* ═══ Hero photo ═══ */
     .lc-hero {
+        position: relative;
         width: 100%;
         aspect-ratio: 16 / 9;
         border-radius: var(--radius-sm, 12px);
@@ -594,6 +617,38 @@
         height: 100%;
         object-fit: cover;
         display: block;
+    }
+
+    .lc-hero-attr {
+        position: absolute;
+        bottom: 6px;
+        right: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-family: Roboto, sans-serif;
+        font-size: 11px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        pointer-events: auto;
+    }
+
+    .lc-hero-attr a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .lc-hero-attr a:hover {
+        text-decoration: underline;
+    }
+
+    .lc-hero-sep {
+        opacity: 0.7;
+    }
+
+    .lc-hero-gm {
+        white-space: nowrap;
     }
 
     .lc--page .lc-hero {

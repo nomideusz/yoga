@@ -53,6 +53,9 @@ export interface Listing {
   editorialSummary: string | null;
   openingHours: string | null;
   imageUrl: string | null;
+  photoReference: string | null;
+  photoAuthor: string | null;
+  photoAuthorUrl: string | null;
   neighborhood: string | null;
   latitude: number | null;
   longitude: number | null;
