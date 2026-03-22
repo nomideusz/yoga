@@ -8,108 +8,132 @@ import type { RequestHandler } from './$types';
 /**
  * Photo proxy — 302 redirects to Google Places photo CDN URL.
  *
- * - Keeps the API key server-side (never exposed to browser).
- * - Caches CDN URL in memory (1h TTL) — NOT the photo itself.
- * - Self-healing: if a photo_reference expires, auto-refreshes it via
- *   Place Details API (photos field only — cheapest call).
- *   Only refreshes on actual visits, so you never pay for unseen photos.
+ * Three-tier caching (cheapest first):
+ *   1. Memory cache  → instant, survives within function instance
+ *   2. DB (image_url) → persistent across cold starts, 1 Turso read
+ *   3. Google API     → only on first-ever visit or expired CDN URL
+ *
+ * After every school is visited once, Google API calls drop to ~zero.
+ * Self-healing refreshes expired refs via Place Details (photos only).
  */
 
-interface CacheEntry {
+interface CachedPhoto {
 	cdnUrl: string;
+	photoRef: string;
+	googlePlaceId: string;
 	expiresAt: number;
 }
 
-const CDN_URL_CACHE = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+// ── Memory cache (fast layer, lost on cold start) ──
+const MEMORY_CACHE = new Map<string, CachedPhoto>();
+const MEMORY_TTL_MS = 24 * 60 * 60 * 1000;
 
-// Track recently failed refreshes to avoid hammering Google
-const REFRESH_FAILURES = new Map<string, number>(); // schoolId → timestamp
-const REFRESH_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24h cooldown after failure
+// ── 404 caches (avoid repeated lookups) ──
+const NOT_FOUND = new Set<string>();         // no photo_reference in DB
+const CDN_FAILURES = new Map<string, number>(); // schoolId → failure timestamp
+const FAILURE_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
-// Cleanup stale entries every 10 minutes
+// ── Periodic cleanup ──
 let lastCleanup = Date.now();
-const CLEANUP_INTERVAL_MS = 10 * 60 * 1000;
-
-function cleanupCache() {
+function cleanup() {
 	const now = Date.now();
-	if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
+	if (now - lastCleanup < 60 * 60 * 1000) return;
 	lastCleanup = now;
-	for (const [key, entry] of CDN_URL_CACHE) {
-		if (entry.expiresAt < now) CDN_URL_CACHE.delete(key);
-	}
-	for (const [key, ts] of REFRESH_FAILURES) {
-		if (now - ts > REFRESH_COOLDOWN_MS) REFRESH_FAILURES.delete(key);
-	}
+	for (const [k, v] of MEMORY_CACHE) if (v.expiresAt < now) MEMORY_CACHE.delete(k);
+	for (const [k, ts] of CDN_FAILURES) if (now - ts > FAILURE_COOLDOWN_MS) CDN_FAILURES.delete(k);
+	// NOT_FOUND is small and permanent — schools rarely gain photos
 }
 
-/**
- * Fetch a fresh photo_reference from Place Details API using google_place_id.
- * Uses only the `photos` field mask — cheapest possible call.
- * Returns { photoReference, photoAuthor, photoAuthorUrl } or null.
- */
-async function refreshPhotoReference(
-	googlePlaceId: string,
-	apiKey: string,
-): Promise<{ photoReference: string; photoAuthor: string; photoAuthorUrl: string } | null> {
-	if (!googlePlaceId) return null;
+// ── Google API helpers ──
 
-	const url = `https://places.googleapis.com/v1/places/${googlePlaceId}?key=${apiKey}`;
-	const res = await fetch(url, {
-		headers: {
-			'X-Goog-FieldMask': 'photos',
-		},
-	});
-
-	if (!res.ok) return null;
-
-	const data = await res.json();
-	const photos = data.photos;
-	if (!photos?.length) return null;
-
-	const photo = photos[0];
-	const attrs = photo.authorAttributions?.[0];
-
-	return {
-		photoReference: photo.name || '',
-		photoAuthor: attrs?.displayName || '',
-		photoAuthorUrl: attrs?.uri || '',
-	};
-}
-
-/**
- * Try to get CDN URL from a photo reference.
- * Returns the CDN URL string or null if the reference is expired/invalid.
- */
 async function getCdnUrl(ref: string, apiKey: string): Promise<string | null> {
 	if (!ref.startsWith('places/')) return null;
-
-	const metaUrl = `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=800&key=${apiKey}&skipHttpRedirect=true`;
-	const res = await fetch(metaUrl);
-
+	const res = await fetch(
+		`https://places.googleapis.com/v1/${ref}/media?maxWidthPx=800&key=${apiKey}&skipHttpRedirect=true`,
+	);
 	if (!res.ok) return null;
-
 	const data = await res.json();
 	return data.photoUri || null;
 }
 
+async function refreshFromPlaceDetails(
+	googlePlaceId: string,
+	apiKey: string,
+): Promise<{ photoReference: string; photoAuthor: string; photoAuthorUrl: string } | null> {
+	if (!googlePlaceId) return null;
+	const res = await fetch(
+		`https://places.googleapis.com/v1/places/${googlePlaceId}?key=${apiKey}`,
+		{ headers: { 'X-Goog-FieldMask': 'photos' } },
+	);
+	if (!res.ok) return null;
+	const data = await res.json();
+	const photo = data.photos?.[0];
+	if (!photo?.name) return null;
+	const attr = photo.authorAttributions?.[0];
+	return {
+		photoReference: photo.name,
+		photoAuthor: attr?.displayName || '',
+		photoAuthorUrl: attr?.uri || '',
+	};
+}
+
+/** Save CDN URL + attribution to DB (fire-and-forget). */
+function persistToDb(
+	schoolId: string,
+	cdnUrl: string,
+	photoRef?: string,
+	photoAuthor?: string,
+	photoAuthorUrl?: string,
+) {
+	const updates: Record<string, string> = { imageUrl: cdnUrl };
+	if (photoRef) updates.photoReference = photoRef;
+	if (photoAuthor !== undefined) updates.photoAuthor = photoAuthor;
+	if (photoAuthorUrl !== undefined) updates.photoAuthorUrl = photoAuthorUrl;
+
+	db.update(schools)
+		.set(updates)
+		.where(eq(schools.id, schoolId))
+		.catch((e) => console.error(`DB write failed for ${schoolId}:`, e));
+}
+
+function cacheAndRedirect(
+	schoolId: string,
+	cdnUrl: string,
+	photoRef: string,
+	googlePlaceId: string,
+	setHeaders: (headers: Record<string, string>) => void,
+): never {
+	MEMORY_CACHE.set(schoolId, {
+		cdnUrl,
+		photoRef,
+		googlePlaceId,
+		expiresAt: Date.now() + MEMORY_TTL_MS,
+	});
+	setHeaders({ 'Cache-Control': 'public, max-age=86400' });
+	redirect(302, cdnUrl);
+}
+
 export const GET: RequestHandler = async ({ params, setHeaders }) => {
-	const apiKey = env.GOOGLE_API_KEY || env.GOOGLE_MAPS_API_KEY;
+	const apiKey = env.GOOGLE_MAPS_API_KEY;
 	if (!apiKey) throw error(500, 'Google API key not configured');
 
 	const schoolId = params.id;
+	cleanup();
 
-	// Check CDN URL cache first
-	cleanupCache();
-	const cached = CDN_URL_CACHE.get(schoolId);
-	if (cached && cached.expiresAt > Date.now()) {
-		setHeaders({ 'Cache-Control': 'public, max-age=3600' });
-		redirect(302, cached.cdnUrl);
+	// ── 1. Memory cache → instant (free) ──
+	const mem = MEMORY_CACHE.get(schoolId);
+	if (mem && mem.expiresAt > Date.now()) {
+		setHeaders({ 'Cache-Control': 'public, max-age=86400' });
+		redirect(302, mem.cdnUrl);
 	}
 
-	// DB lookup
+	// ── 1b. Known 404 → skip everything ──
+	if (NOT_FOUND.has(schoolId)) throw error(404, 'No photo available');
+
+	// ── 2. DB read (1 Turso call — covers cold starts) ──
 	const [school] = await db
 		.select({
+			imageUrl: schools.imageUrl,
 			photoReference: schools.photoReference,
 			googlePlaceId: schools.googlePlaceId,
 		})
@@ -117,47 +141,46 @@ export const GET: RequestHandler = async ({ params, setHeaders }) => {
 		.where(eq(schools.id, schoolId))
 		.limit(1);
 
-	if (!school?.photoReference) throw error(404, 'No photo available');
+	if (!school?.photoReference) {
+		NOT_FOUND.add(schoolId);
+		throw error(404, 'No photo available');
+	}
 
-	// Try current photo reference
+	// ── 2b. DB has cached CDN URL → use it (no Google call) ──
+	if (school.imageUrl && school.imageUrl.startsWith('https://lh3.googleusercontent.com/')) {
+		cacheAndRedirect(schoolId, school.imageUrl, school.photoReference, school.googlePlaceId ?? '', setHeaders);
+	}
+
+	// ── 3. Google API → resolve photo_reference to CDN URL ──
 	let cdnUrl = await getCdnUrl(school.photoReference, apiKey);
 
-	// If expired, try self-healing refresh (unless on cooldown)
+	// ── 4. Self-heal if expired ──
 	if (!cdnUrl && school.googlePlaceId) {
-		const failedAt = REFRESH_FAILURES.get(schoolId);
-		if (!failedAt || Date.now() - failedAt > REFRESH_COOLDOWN_MS) {
-			console.log(`Photo ref expired for ${schoolId}, refreshing via Place Details...`);
-			const fresh = await refreshPhotoReference(school.googlePlaceId, apiKey);
+		const failedAt = CDN_FAILURES.get(schoolId);
+		if (!failedAt || Date.now() - failedAt > FAILURE_COOLDOWN_MS) {
+			console.log(`Photo ref expired for ${schoolId}, refreshing...`);
+			const fresh = await refreshFromPlaceDetails(school.googlePlaceId, apiKey);
 
 			if (fresh?.photoReference) {
-				// Update DB with fresh reference (fire-and-forget)
-				db.update(schools)
-					.set({
-						photoReference: fresh.photoReference,
-						photoAuthor: fresh.photoAuthor,
-						photoAuthorUrl: fresh.photoAuthorUrl,
-					})
-					.where(eq(schools.id, schoolId))
-					.then(() => console.log(`Refreshed photo ref for ${schoolId}`))
-					.catch((e) => console.error(`Failed to save photo ref for ${schoolId}:`, e));
-
-				// Try the new reference
 				cdnUrl = await getCdnUrl(fresh.photoReference, apiKey);
+				if (cdnUrl) {
+					persistToDb(schoolId, cdnUrl, fresh.photoReference, fresh.photoAuthor, fresh.photoAuthorUrl);
+					cacheAndRedirect(schoolId, cdnUrl, fresh.photoReference, school.googlePlaceId, setHeaders);
+				}
 			}
 
 			if (!cdnUrl) {
-				REFRESH_FAILURES.set(schoolId, Date.now());
+				CDN_FAILURES.set(schoolId, Date.now());
+				throw error(404, 'Photo unavailable');
 			}
+		} else {
+			throw error(404, 'Photo unavailable');
 		}
 	}
 
 	if (!cdnUrl) throw error(404, 'Photo unavailable');
 
-	// Cache and redirect
-	CDN_URL_CACHE.set(schoolId, {
-		cdnUrl,
-		expiresAt: Date.now() + CACHE_TTL_MS,
-	});
-	setHeaders({ 'Cache-Control': 'public, max-age=3600' });
-	redirect(302, cdnUrl);
+	// ── 5. Save CDN URL to DB + memory, redirect ──
+	persistToDb(schoolId, cdnUrl);
+	cacheAndRedirect(schoolId, cdnUrl, school.photoReference, school.googlePlaceId ?? '', setHeaders);
 };
