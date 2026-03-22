@@ -67,8 +67,13 @@ async function refreshFromPlaceDetails(
 	);
 	if (!res.ok) return null;
 	const data = await res.json();
-	const photo = data.photos?.[0];
+	const photos: Array<{ name?: string; widthPx?: number; heightPx?: number; authorAttributions?: Array<{ displayName?: string; uri?: string }> }> = data.photos || [];
+	if (!photos.length) return null;
+
+	// Prefer landscape photos (width > height) to avoid vertical crops
+	const photo = photos.find((p) => (p.widthPx ?? 0) > (p.heightPx ?? 0)) ?? photos[0];
 	if (!photo?.name) return null;
+
 	const attr = photo.authorAttributions?.[0];
 	return {
 		photoReference: photo.name,

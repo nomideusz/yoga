@@ -220,6 +220,15 @@
                 {#if listing.neighborhood && listing.neighborhood !== listing.city}{listing.neighborhood}
                     ·
                 {/if}{listing.address || listing.city}
+                {#if listing.googleMapsUrl}
+                    <a href={listing.googleMapsUrl} target="_blank" rel="noopener noreferrer" class="lc-maps-link" aria-label="Open in Google Maps" title="Open in Google Maps">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                    </a>
+                {/if}
             </span>
             {#if listing.rating != null}
                 <span class="lc-dot">·</span>
@@ -688,6 +697,19 @@
 
     .lc-address {
         color: var(--sf-text);
+    }
+    .lc-maps-link {
+        display: inline-flex;
+        align-items: center;
+        color: var(--sf-muted);
+        margin-left: 3px;
+        vertical-align: middle;
+        opacity: 0.7;
+        transition: opacity 0.15s ease, color 0.15s ease;
+    }
+    .lc-maps-link:hover {
+        opacity: 1;
+        color: var(--sf-accent, var(--sf-dark));
     }
     .lc-dot {
         color: var(--sf-line);
