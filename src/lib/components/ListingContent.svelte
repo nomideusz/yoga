@@ -606,7 +606,7 @@
     .lc-hero {
         position: relative;
         width: 100%;
-        aspect-ratio: 16 / 9;
+        aspect-ratio: 3 / 2;
         border-radius: var(--radius-sm, 12px);
         overflow: hidden;
         background: color-mix(in srgb, var(--sf-frost) 60%, transparent);
@@ -653,7 +653,7 @@
 
     .lc--page .lc-hero {
         border-radius: 16px;
-        aspect-ratio: 2.2 / 1;
+        aspect-ratio: 2.4 / 1;
     }
 
     /* ═══ Header ═══ */

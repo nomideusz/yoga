@@ -244,7 +244,7 @@
         top: 12px;
         right: 12px;
         bottom: 12px;
-        width: min(680px, calc(100vw - 24px));
+        width: min(720px, calc(100vw - 24px));
         background: var(--sf-card);
         border: 1px solid color-mix(in srgb, var(--sf-line) 82%, white 18%);
         border-radius: 24px;
@@ -257,6 +257,12 @@
         overscroll-behavior: contain;
         transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
         outline: none;
+    }
+
+    @media (min-width: 1440px) {
+        .so-panel {
+            width: min(800px, calc(100vw - 24px));
+        }
     }
     .so-panel--closing {
         animation: slideOut 0.18s ease-in forwards;

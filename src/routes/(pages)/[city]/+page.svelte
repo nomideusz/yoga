@@ -2033,6 +2033,7 @@
 <SlideOver bind:open={slideOverOpen} onclose={closeSlideOver}>
     {#if slideOverLoading}
         <div class="so-skeleton">
+            <div class="so-skel-photo"></div>
             <div class="so-skel-title"></div>
             <div class="so-skel-meta"></div>
             <div class="so-skel-tags">
@@ -2606,6 +2607,13 @@
         flex-direction: column;
         gap: 14px;
         padding: 4px 0;
+    }
+    .so-skel-photo {
+        width: 100%;
+        aspect-ratio: 3 / 2;
+        background: var(--sf-frost);
+        border-radius: var(--radius-sm, 12px);
+        animation: shimmer 1.2s ease-in-out infinite alternate;
     }
     .so-skel-title {
         height: 22px;
