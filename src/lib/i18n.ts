@@ -8,6 +8,6 @@ const loader = async (locale: string) => {
 
 export const i18n = createI18n({
   defaultLocale: 'pl',
-  supportedLocales: ['pl', 'en'],
+  supportedLocales: ['pl', 'en', 'uk'],
   loader,
 });

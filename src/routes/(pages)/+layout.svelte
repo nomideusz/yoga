@@ -134,6 +134,17 @@
                     i18n.setLocale("en");
                 }}>EN</a
             >
+            <span class="sf-lang-separator" aria-hidden="true">·</span>
+            <a
+                href="?lang=uk"
+                class="sf-lang-link"
+                class:is-current={i18n.locale === "uk"}
+                aria-current={i18n.locale === "uk" ? "true" : undefined}
+                onclick={(e) => {
+                    e.preventDefault();
+                    i18n.setLocale("uk");
+                }}>UA</a
+            >
         </nav>
     </header>
 {/if}

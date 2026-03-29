@@ -272,6 +272,33 @@ export const searchEvents = sqliteTable('search_events', {
   createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
+// ── School Translations (per-locale content) ───────────────────────────────
+
+export const schoolTranslations = sqliteTable('school_translations', {
+  schoolId: text('school_id').notNull().references(() => schools.id, { onDelete: 'cascade' }),
+  locale: text('locale').notNull(),  // 'en' | 'uk'
+  description: text('description').default(''),
+  editorialSummary: text('editorial_summary').default(''),
+  pricingNotes: text('pricing_notes').default(''),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
+}, (table) => ({
+  pk: unique().on(table.schoolId, table.locale),
+  idxLocale: index('idx_school_translations_locale').on(table.locale),
+}));
+
+// ── City Translations (per-locale names) ────────────────────────────────────
+
+export const cityTranslations = sqliteTable('city_translations', {
+  slug: text('slug').notNull().references(() => cities.slug, { onDelete: 'cascade' }),
+  locale: text('locale').notNull(),  // 'en' | 'uk'
+  name: text('name').notNull(),
+  nameLoc: text('name_loc'),
+}, (table) => ({
+  pk: unique().on(table.slug, table.locale),
+  idxLocale: index('idx_city_translations_locale').on(table.locale),
+}));
+
 // ── Type exports ────────────────────────────────────────────────────────────
 
 export type School = typeof schools.$inferSelect;
@@ -289,3 +316,5 @@ export type City = typeof cities.$inferSelect;
 export type SearchSynonym = typeof searchSynonyms.$inferSelect;
 export type SearchEvent = typeof searchEvents.$inferSelect;
 export type NewSearchEvent = typeof searchEvents.$inferInsert;
+export type SchoolTranslation = typeof schoolTranslations.$inferSelect;
+export type CityTranslation = typeof cityTranslations.$inferSelect;
