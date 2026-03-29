@@ -397,7 +397,7 @@
             items.push({
                 key: `st-${style}`,
                 icon: "style",
-                text: styleDisplayName(style),
+                text: styleDisplayName(style, i18n.locale),
                 meta: `${count}`,
                 group: t("city_autocomplete_styles"),
             });
@@ -1522,7 +1522,7 @@
         if (allStyles.length > 0) {
             faq.push({
                 q: t("faq_styles_q", { city }),
-                a: t("faq_styles_a", { city, styles: allStyles.join(", ") }),
+                a: t("faq_styles_a", { city, styles: allStyles.map(s => styleDisplayName(s, i18n.locale)).join(", ") }),
             });
         }
         return {
@@ -1936,7 +1936,7 @@
                                 : [...activeStyles, style];
                         }}
                     >
-                        <span class="chip-pill-name">{styleDisplayName(style)}</span>
+                        <span class="chip-pill-name">{styleDisplayName(style, i18n.locale)}</span>
                         <span class="chip-pill-count"
                             >{data.schools.filter((s) =>
                                 s.styles.includes(style),
@@ -1982,7 +1982,7 @@
                     >
                         <span class="school-name">{school.name}</span>
                         {#if school.styles.length > 0}
-                            <span class="school-styles">{#each school.styles as style, i}{#if i > 0}{", "}{/if}<span class:style-highlight={activeStyles.includes(style)}>{styleDisplayName(style)}</span>{/each}</span>
+                            <span class="school-styles">{#each school.styles as style, i}{#if i > 0}{", "}{/if}<span class:style-highlight={activeStyles.includes(style)}>{styleDisplayName(style, i18n.locale)}</span>{/each}</span>
                         {/if}
                         {#if school.address}
                             {@const street = school.address

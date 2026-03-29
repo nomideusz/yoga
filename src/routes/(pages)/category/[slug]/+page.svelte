@@ -10,7 +10,7 @@
         getListingPath,
     } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
-    import { styleDisplayName } from "$lib/styles-metadata";
+    import { styleDisplayName, getStyleTranslation } from "$lib/styles-metadata";
     const t = i18n.t;
 
     let { data } = $props();
@@ -100,13 +100,21 @@
     );
     let metadata = $derived(data.metadata);
     let displayName = $derived(
-        metadata?.displayName ??
-            categoryName.charAt(0).toUpperCase() + categoryName.slice(1),
+        metadata
+            ? styleDisplayName(categoryName, i18n.locale) !== categoryName
+                ? styleDisplayName(categoryName, i18n.locale)
+                : (metadata.translations?.[i18n.locale]?.displayName ?? metadata.displayName)
+            : categoryName.charAt(0).toUpperCase() + categoryName.slice(1),
+    );
+
+    /** Locale-aware metadata fields */
+    let translatedMeta = $derived(
+        metadata ? getStyleTranslation(metadata, i18n.locale) : null,
     );
 
     /** Short name for h1 — strip redundant "Joga"/"Yoga" since label says STYL */
     let shortName = $derived(
-        displayName.replace(/\s+(Joga|Yoga)$/i, "").trim() || displayName,
+        displayName.replace(/\s+(Joga|Yoga|Йога)$/i, "").trim() || displayName,
     );
 
     /** Cities where this style is available, sorted by count */
@@ -133,14 +141,14 @@
         const cities = [...new Set(categoryListings.map((s) => s.city))].sort();
         const faq: Array<{ q: string; a: string }> = [];
         faq.push({
-            q: t("cat_faq_count_q", { style: categoryName }),
-            a: t("cat_faq_count_a", { style: categoryName, count: categoryListings.length }),
+            q: t("cat_faq_count_q", { style: displayName }),
+            a: t("cat_faq_count_a", { style: displayName, count: categoryListings.length }),
         });
         if (cities.length > 0) {
             const displayCities = cities.slice(0, 10).map(c => cityDisplay(c)).join(", ") + (cities.length > 10 ? "..." : "");
             faq.push({
-                q: t("cat_faq_cities_q", { style: categoryName }),
-                a: t("cat_faq_cities_a", { style: categoryName, count: cities.length, cities: displayCities }),
+                q: t("cat_faq_cities_q", { style: displayName }),
+                a: t("cat_faq_cities_a", { style: displayName, count: cities.length, cities: displayCities }),
             });
         }
         return {
@@ -197,12 +205,12 @@
     <title>{displayName} | szkolyjogi.pl</title>
     <meta
         name="description"
-        content={t("cat_meta_desc", { style: categoryName, count: categoryListings.length })}
+        content={t("cat_meta_desc", { style: displayName, count: categoryListings.length })}
     />
     <meta property="og:title" content="{displayName} | szkolyjogi.pl" />
     <meta
         property="og:description"
-        content={t("cat_meta_desc", { style: categoryName, count: categoryListings.length })}
+        content={t("cat_meta_desc", { style: displayName, count: categoryListings.length })}
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://szkolyjogi.pl/category/{slug}" />
@@ -235,7 +243,7 @@
                 <h1 class="cat-hero-title">{shortName}</h1>
                 {#if metadata}
                     <p class="cat-hero-sub">
-                        {metadata.description}
+                        {translatedMeta?.description ?? metadata.description}
                     </p>
                 {/if}
             </div>
@@ -302,7 +310,7 @@
                         >
                             <span class="school-name">{school.name}</span>
                             {#if school.styles.length > 0}
-                                <span class="school-styles">{#each school.styles as style, i}{#if i > 0}{", "}{/if}<span class:style-highlight={style.toLowerCase() === categoryName.toLowerCase()}>{styleDisplayName(style)}</span>{/each}</span>
+                                <span class="school-styles">{#each school.styles as style, i}{#if i > 0}{", "}{/if}<span class:style-highlight={style.toLowerCase() === categoryName.toLowerCase()}>{styleDisplayName(style, i18n.locale)}</span>{/each}</span>
                             {/if}
                             <span class="school-city">{cityDisplay(school.city)}</span>
                         </a>

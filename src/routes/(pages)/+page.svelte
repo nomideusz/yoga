@@ -785,9 +785,9 @@
 
     function resultName(r: SearchResult): string {
         if (r.type === "city") return cityDisplay(r.city);
-        if (r.type === "style") return styleDisplayName(r.style);
+        if (r.type === "style") return styleDisplayName(r.style, i18n.locale);
         if (r.type === "city+style")
-            return `${styleDisplayName(r.style)} ${t("city_style_in")} ${cityLocDisplay(r.city)}`;
+            return `${styleDisplayName(r.style, i18n.locale)} ${t("city_style_in")} ${cityLocDisplay(r.city)}`;
         if (r.type === "postal") return r.code;
         if (r.type === "google-place") return r.description;
         if (r.type === "place-redirect") return r.from;
@@ -1657,7 +1657,7 @@
                                         >
                                     </span>
                                     <span class="dropdown-item-text"
-                                        >{styleDisplayName(result.style)}
+                                        >{styleDisplayName(result.style, i18n.locale)}
                                         {t("city_style_in")}
                                         {cityLocDisplay(result.city)}</span
                                     >
@@ -1712,7 +1712,7 @@
                                         >
                                     </span>
                                     <span class="dropdown-item-text"
-                                        >{styleDisplayName(result.style)}</span
+                                        >{styleDisplayName(result.style, i18n.locale)}</span
                                     >
                                     <span class="dropdown-item-meta"
                                         >{result.count}</span
@@ -1901,7 +1901,7 @@
                         href={getStylePath(style)}
                         class="chip-pill chip-pill--subtle"
                     >
-                        <span class="chip-pill-name">{styleDisplayName(style)}</span>
+                        <span class="chip-pill-name">{styleDisplayName(style, i18n.locale)}</span>
                         <span class="chip-pill-count">{count}</span>
                     </a>
                 {/each}
