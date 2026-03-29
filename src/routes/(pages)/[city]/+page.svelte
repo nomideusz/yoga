@@ -2063,8 +2063,17 @@
             <div class="so-skel-row so-skel-row--short"></div>
         </div>
     {:else if slideOverData}
+        {@const trans = i18n.locale === 'en' ? slideOverData.listing.translations?.en
+                      : i18n.locale === 'uk' ? slideOverData.listing.translations?.uk
+                      : null}
+        {@const translatedListing = trans ? {
+            ...slideOverData.listing,
+            description: trans.description || slideOverData.listing.description,
+            editorialSummary: trans.editorialSummary || slideOverData.listing.editorialSummary,
+            pricingNotes: trans.pricingNotes || slideOverData.listing.pricingNotes,
+        } : slideOverData.listing}
         <ListingContent
-            listing={slideOverData.listing}
+            listing={translatedListing}
             reviews={slideOverData.reviews}
             layout="panel"
         />
