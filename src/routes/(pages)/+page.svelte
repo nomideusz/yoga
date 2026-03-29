@@ -27,6 +27,20 @@
     let { data } = $props();
     const autocomplete = $derived(data.autocomplete);
 
+    /** Translate a Polish city name based on current locale. */
+    function cityDisplay(plName: string): string {
+        const locale = i18n.locale;
+        if (locale === 'pl') return plName;
+        return data.cityTranslations?.[locale]?.[plName]?.name ?? plName;
+    }
+
+    /** Get city locative form for current locale. */
+    function cityLocDisplay(plName: string): string {
+        const locale = i18n.locale;
+        if (locale === 'pl') return getCityLocative(plName);
+        return data.cityTranslations?.[locale]?.[plName]?.nameLoc ?? data.cityTranslations?.[locale]?.[plName]?.name ?? plName;
+    }
+
     /** Convert city name to canonical URL slug using lookup data when available. */
     function citySlug(name: string): string {
         return data.lookups?.cityMap?.get(normalize(name)) ?? getCitySlug(name);
@@ -770,15 +784,15 @@
     });
 
     function resultName(r: SearchResult): string {
-        if (r.type === "city") return r.city;
+        if (r.type === "city") return cityDisplay(r.city);
         if (r.type === "style") return styleDisplayName(r.style);
         if (r.type === "city+style")
-            return `${styleDisplayName(r.style)} ${t("city_style_in")} ${i18n.locale === "pl" ? getCityLocative(r.city) : r.city}`;
+            return `${styleDisplayName(r.style)} ${t("city_style_in")} ${cityLocDisplay(r.city)}`;
         if (r.type === "postal") return r.code;
         if (r.type === "google-place") return r.description;
         if (r.type === "place-redirect") return r.from;
-        if (r.type === "address") return `${r.address}, ${r.city}`;
-        if (r.type === "redirect") return r.toCity;
+        if (r.type === "address") return `${r.address}, ${cityDisplay(r.city)}`;
+        if (r.type === "redirect") return cityDisplay(r.toCity);
         return r.name;
     }
 
@@ -1645,9 +1659,7 @@
                                     <span class="dropdown-item-text"
                                         >{styleDisplayName(result.style)}
                                         {t("city_style_in")}
-                                        {i18n.locale === "pl"
-                                            ? getCityLocative(result.city)
-                                            : result.city}</span
+                                        {cityLocDisplay(result.city)}</span
                                     >
                                     <span class="dropdown-item-meta"
                                         >{result.count}</span
@@ -1673,7 +1685,7 @@
                                         >
                                     </span>
                                     <span class="dropdown-item-text"
-                                        >{result.city}</span
+                                        >{cityDisplay(result.city)}</span
                                     >
                                     <span class="dropdown-item-meta"
                                         >{result.count}</span
@@ -1727,7 +1739,7 @@
                                     </span>
                                     <span class="dropdown-item-text"
                                         >{t("city_no_schools_redirect")
-                                            .replace("{city}", result.toCity)
+                                            .replace("{city}", cityDisplay(result.toCity))
                                             .replace(
                                                 "{distance}",
                                                 String(result.distanceKm),
@@ -1769,7 +1781,7 @@
                                                 .replace("{from}", result.from)
                                                 .replace(
                                                     "{city}",
-                                                    result.toCity,
+                                                    cityDisplay(result.toCity),
                                                 )
                                                 .replace(
                                                     "{distance}",
@@ -1802,7 +1814,7 @@
                                         >
                                     </span>
                                     <span class="dropdown-item-text"
-                                        >{result.address}, {result.city}</span
+                                        >{result.address}, {cityDisplay(result.city)}</span
                                     >
                                     <span class="dropdown-item-meta"
                                         >{t("address_search_nearby")}</span
@@ -1855,7 +1867,7 @@
                                         >{result.name}</span
                                     >
                                     <span class="dropdown-item-meta"
-                                        >{result.city}</span
+                                        >{cityDisplay(result.city)}</span
                                     >
                                 {/if}
                             </button>
@@ -1876,7 +1888,7 @@
             <div class="chip-scroll">
                 {#each topCityChips as { city, count } (city)}
                     <a href="/{citySlug(city)}" class="chip-pill">
-                        <span class="chip-pill-name">{city}</span>
+                        <span class="chip-pill-name">{cityDisplay(city)}</span>
                         <span class="chip-pill-count">{count}</span>
                     </a>
                 {/each}

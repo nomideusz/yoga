@@ -15,6 +15,13 @@
 
     let { data } = $props();
 
+    /** Translate a Polish city name based on current locale. */
+    function cityDisplay(plName: string): string {
+        const locale = i18n.locale;
+        if (locale === 'pl') return plName;
+        return data.cityTranslations?.[locale]?.[plName]?.name ?? plName;
+    }
+
     // ── Slide-over state ──
     let selectedSchoolId = $state<string | null>(null);
     let slideOverData = $state<{ listing: any; reviews: any[] } | null>(null);
@@ -126,13 +133,14 @@
         const cities = [...new Set(categoryListings.map((s) => s.city))].sort();
         const faq: Array<{ q: string; a: string }> = [];
         faq.push({
-            q: `Ile szkół oferuje styl ${categoryName} w Polsce?`,
-            a: `W katalogu szkolyjogi.pl znajduje się ${categoryListings.length} ${categoryListings.length === 1 ? "szkoła" : "szkół"} oferujących zajęcia w stylu ${categoryName}.`,
+            q: t("cat_faq_count_q", { style: categoryName }),
+            a: t("cat_faq_count_a", { style: categoryName, count: categoryListings.length }),
         });
         if (cities.length > 0) {
+            const displayCities = cities.slice(0, 10).map(c => cityDisplay(c)).join(", ") + (cities.length > 10 ? "..." : "");
             faq.push({
-                q: `W jakich miastach dostępne są zajęcia ${categoryName}?`,
-                a: `Zajęcia ${categoryName} dostępne są w ${cities.length} ${cities.length === 1 ? "mieście" : "miastach"}: ${cities.slice(0, 10).join(", ")}${cities.length > 10 ? " i innych" : ""}.`,
+                q: t("cat_faq_cities_q", { style: categoryName }),
+                a: t("cat_faq_cities_a", { style: categoryName, count: cities.length, cities: displayCities }),
             });
         }
         return {
@@ -189,18 +197,12 @@
     <title>{displayName} | szkolyjogi.pl</title>
     <meta
         name="description"
-        content="Szkoły jogi w stylu {categoryName} — {categoryListings.length} {categoryListings.length ===
-        1
-            ? 'placówka'
-            : 'placówek'} w katalogu szkolyjogi.pl."
+        content={t("cat_meta_desc", { style: categoryName, count: categoryListings.length })}
     />
     <meta property="og:title" content="{displayName} | szkolyjogi.pl" />
     <meta
         property="og:description"
-        content="Szkoły jogi w stylu {categoryName} — {categoryListings.length} {categoryListings.length ===
-        1
-            ? 'placówka'
-            : 'placówek'} w katalogu szkolyjogi.pl."
+        content={t("cat_meta_desc", { style: categoryName, count: categoryListings.length })}
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://szkolyjogi.pl/category/{slug}" />
@@ -254,7 +256,7 @@
                             )}?style={encodeURIComponent(categoryName)}"
                             class="sf-city-pill"
                         >
-                            <span class="sf-city-name">{city}</span>
+                            <span class="sf-city-name">{cityDisplay(city)}</span>
                             <span class="sf-city-count">{count}</span>
                         </a>
                     {/each}
@@ -302,7 +304,7 @@
                             {#if school.styles.length > 0}
                                 <span class="school-styles">{#each school.styles as style, i}{#if i > 0}{", "}{/if}<span class:style-highlight={style.toLowerCase() === categoryName.toLowerCase()}>{styleDisplayName(style)}</span>{/each}</span>
                             {/if}
-                            <span class="school-city">{school.city}</span>
+                            <span class="school-city">{cityDisplay(school.city)}</span>
                         </a>
                     {/each}
                 </div>

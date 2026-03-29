@@ -29,6 +29,22 @@
 
     let { data }: { data: PageData } = $props();
 
+    /** Translate a Polish city name based on current locale. */
+    function cityDisplay(plName: string): string {
+        const locale = i18n.locale;
+        if (locale === 'pl') return plName;
+        return data.cityTranslations?.[locale]?.[plName]?.name ?? plName;
+    }
+
+    /** Get city locative form for current locale. */
+    function cityLocDisplay(plName: string): string {
+        const locale = i18n.locale;
+        if (locale === 'pl') {
+            return data.lookups?.cityLocative?.get(plName) ?? plName;
+        }
+        return data.cityTranslations?.[locale]?.[plName]?.nameLoc ?? data.cityTranslations?.[locale]?.[plName]?.name ?? plName;
+    }
+
     // ── Slide-over state ──
     let selectedSchoolId = $state<string | null>(null);
     let slideOverData = $state<{ listing: any; reviews: any[] } | null>(null);
@@ -1497,15 +1513,16 @@
 
     /** FAQ structured data for SEO */
     let faqJsonLd = $derived.by(() => {
+        const city = cityDisplay(data.city);
         const faq: Array<{ q: string; a: string }> = [];
         faq.push({
-            q: `Ile szkol jogi jest w miescie ${data.city}?`,
-            a: `W miescie ${data.city} znajduje sie ${data.schools.length} szkol jogi w katalogu szkolyjogi.pl.`,
+            q: t("faq_count_q", { city }),
+            a: t("faq_count_a", { city, count: data.schools.length }),
         });
         if (allStyles.length > 0) {
             faq.push({
-                q: `Jakie style jogi sa dostepne w miescie ${data.city}?`,
-                a: `W miescie ${data.city} dostepne sa nastepujace style jogi: ${allStyles.join(", ")}.`,
+                q: t("faq_styles_q", { city }),
+                a: t("faq_styles_a", { city, styles: allStyles.join(", ") }),
             });
         }
         return {
@@ -1607,22 +1624,21 @@
     <link rel="canonical" href="https://szkolyjogi.pl/{data.citySlug}" />
     <title
         >{t("meta_yoga_schools")}
-        {data.city} | {t("meta_prices_locations_reviews")} | szkolyjogi.pl</title
+        {cityDisplay(data.city)} | {t("meta_prices_locations_reviews")} | szkolyjogi.pl</title
     >
     <meta
         name="description"
-        content="Baza szkol jogi: {data.city}. Sprawdz opinie, porownaj miesieczne ceny karnetow i znajdz najlepsze studio z darmowymi pierwszymi zajeciami. Zestawienie {data
-            .schools.length} placowek."
+        content={t("meta_city_desc", { city: cityDisplay(data.city), count: data.schools.length })}
     />
     <meta
         property="og:title"
-        content="{t('meta_yoga_schools')} {data.city} | {t(
+        content="{t('meta_yoga_schools')} {cityDisplay(data.city)} | {t(
             'meta_prices_locations_reviews',
         )}"
     />
     <meta
         property="og:description"
-        content="Baza szkol jogi: {data.city}. Sprawdz opinie, porownaj miesieczne ceny karnetow i znajdz najlepsze studio z darmowymi pierwszymi zajeciami."
+        content={t("meta_city_desc", { city: cityDisplay(data.city), count: data.schools.length })}
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://szkolyjogi.pl/{data.citySlug}" />
@@ -1630,7 +1646,7 @@
     {@html `<script type="application/ld+json">${JSON.stringify({
         "@context": "https://schema.org",
         "@type": "ItemList",
-        name: `Szkoly Jogi ${data.city}`,
+        name: `${t('meta_yoga_schools')} ${cityDisplay(data.city)}`,
         numberOfItems: data.schools.length,
         itemListElement: data.schools.slice(0, 20).map((s, i) => ({
             "@type": "ListItem",
@@ -1647,7 +1663,7 @@
     <!-- ── Hero section ── -->
     <div class="city-hero">
         <div class="city-kicker">{t("label_city")}</div>
-        <h1 class="city-title">{data.city}</h1>
+        <h1 class="city-title">{cityDisplay(data.city)}</h1>
         <div class="city-location">
             <span class="city-location-placeholder"
                 >{data.schools.length}
@@ -1852,7 +1868,7 @@
                 <span class="filter-chip"
                     >{distantPostal.code} &rarr;
                     <a href="/{distantPostal.citySlug}"
-                        >{distantPostal.cityName}</a
+                        >{cityDisplay(distantPostal.cityName)}</a
                     >
                     <button
                         class="chip-x"

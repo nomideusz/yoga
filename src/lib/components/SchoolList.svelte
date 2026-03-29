@@ -39,6 +39,7 @@
         defaultView = "table",
         emptySnippet,
         emptyMessage = "Brak wyników",
+        cityDisplayFn = (name: string) => name,
     }: {
         schools: SchoolEntry[];
         columns: Column[];
@@ -49,6 +50,7 @@
         defaultView?: "table" | "cards";
         emptySnippet?: Snippet;
         emptyMessage?: string;
+        cityDisplayFn?: (name: string) => string;
     } = $props();
 
     // ── View mode ──
@@ -320,7 +322,7 @@
                             </span>
                         {:else if col === "city"}
                             <span class="td td--city">
-                                <span class="city-name">{school.city}</span>
+                                <span class="city-name">{cityDisplayFn(school.city)}</span>
                                 {#if school.address}
                                     <span class="city-address"
                                         >{school.address}</span
@@ -411,7 +413,7 @@
                     <div class="card-top">
                         <h3 class="card-name">{school.name}</h3>
                         {#if hasColumn("city")}
-                            <span class="card-city">{school.city}</span>
+                            <span class="card-city">{cityDisplayFn(school.city)}</span>
                         {/if}
                         {#if hasColumn("location")}
                             <span class="card-address">

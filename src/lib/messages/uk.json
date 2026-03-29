@@ -252,5 +252,16 @@
   "footer_styles": "стилів",
 
   "meta_main_title": "Школи Йоги в Польщі — szkolyjogi.pl",
-  "meta_main_desc": "Каталог шкіл йоги в Польщі — знайдіть школу у вашому місті."
+  "meta_main_desc": "Каталог шкіл йоги в Польщі — знайдіть школу у вашому місті.",
+
+  "cat_meta_desc": "Школи йоги в стилі {style} — {count} закладів у каталозі szkolyjogi.pl.",
+  "cat_faq_count_q": "Скільки шкіл пропонують стиль {style} у Польщі?",
+  "cat_faq_count_a": "У каталозі szkolyjogi.pl знаходиться {count} шкіл, що пропонують заняття в стилі {style}.",
+  "cat_faq_cities_q": "У яких містах доступні заняття {style}?",
+  "cat_faq_cities_a": "Заняття {style} доступні у {count} містах: {cities}.",
+
+  "faq_count_q": "Скільки шкіл йоги є в місті {city}?",
+  "faq_count_a": "У місті {city} знаходиться {count} шкіл йоги в каталозі szkolyjogi.pl.",
+  "faq_styles_q": "Які стилі йоги доступні в місті {city}?",
+  "faq_styles_a": "У місті {city} доступні такі стилі йоги: {styles}."
 }

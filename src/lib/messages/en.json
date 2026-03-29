@@ -252,5 +252,16 @@
   "footer_styles": "styles",
 
   "meta_main_title": "Yoga Schools in Poland — szkolyjogi.pl",
-  "meta_main_desc": "Directory of yoga schools in Poland — find a school in your city."
+  "meta_main_desc": "Directory of yoga schools in Poland — find a school in your city.",
+
+  "cat_meta_desc": "{style} yoga schools — {count} schools in the szkolyjogi.pl directory.",
+  "cat_faq_count_q": "How many schools offer {style} in Poland?",
+  "cat_faq_count_a": "There are {count} schools offering {style} classes listed on szkolyjogi.pl.",
+  "cat_faq_cities_q": "In which cities are {style} classes available?",
+  "cat_faq_cities_a": "{style} classes are available in {count} cities: {cities}.",
+
+  "faq_count_q": "How many yoga schools are in {city}?",
+  "faq_count_a": "There are {count} yoga schools in {city} listed on szkolyjogi.pl.",
+  "faq_styles_q": "What yoga styles are available in {city}?",
+  "faq_styles_a": "The following yoga styles are available in {city}: {styles}."
 }
