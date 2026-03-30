@@ -183,6 +183,15 @@
     {/if}
     <meta name="twitter:card" content="summary_large_image" />
     {@html `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>`}
+    {@html `<script type="application/ld+json">${JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+            { "@type": "ListItem", position: 1, name: "szkolyjogi.pl", item: "https://szkolyjogi.pl" },
+            { "@type": "ListItem", position: 2, name: listing.city, item: `https://szkolyjogi.pl/${listing.citySlug || listing.city.toLowerCase()}` },
+            { "@type": "ListItem", position: 3, name: listing.name, item: canonicalUrl },
+        ],
+    }).replace(/</g, "\\u003c")}</script>`}
 </svelte:head>
 
 <div class="sheet-route">

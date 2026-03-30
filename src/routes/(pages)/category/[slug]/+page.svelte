@@ -226,6 +226,14 @@
             name: s.name,
         })),
     }).replace(/</g, "\\u003c")}</script>`}
+    {@html `<script type="application/ld+json">${JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+            { "@type": "ListItem", position: 1, name: "szkolyjogi.pl", item: "https://szkolyjogi.pl" },
+            { "@type": "ListItem", position: 2, name: displayName, item: `https://szkolyjogi.pl/category/${slug}` },
+        ],
+    }).replace(/</g, "\\u003c")}</script>`}
     {@html `<script type="application/ld+json">${JSON.stringify(faqJsonLd).replace(/</g, "\\u003c")}</script>`}
 </svelte:head>
 

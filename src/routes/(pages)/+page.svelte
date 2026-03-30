@@ -1474,6 +1474,30 @@
     <meta property="og:url" content="https://szkolyjogi.pl/" />
     <meta property="og:image" content="https://szkolyjogi.pl/og-default.png" />
     <meta name="twitter:card" content="summary_large_image" />
+    {@html `<script type="application/ld+json">${JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "szkolyjogi.pl",
+        url: "https://szkolyjogi.pl",
+        description: t("meta_main_desc"),
+        inLanguage: ["pl", "en", "uk"],
+        potentialAction: {
+            "@type": "SearchAction",
+            target: {
+                "@type": "EntryPoint",
+                urlTemplate: "https://szkolyjogi.pl/?q={search_term_string}",
+            },
+            "query-input": "required name=search_term_string",
+        },
+    }).replace(/</g, "\\u003c")}</script>`}
+    {@html `<script type="application/ld+json">${JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "szkolyjogi.pl",
+        url: "https://szkolyjogi.pl",
+        logo: "https://szkolyjogi.pl/og-default.png",
+        sameAs: [],
+    }).replace(/</g, "\\u003c")}</script>`}
 </svelte:head>
 
 <!-- ── Page wrapper (flex for viewport-fit, no scroll) ── -->
