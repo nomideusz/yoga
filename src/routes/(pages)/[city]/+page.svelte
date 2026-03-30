@@ -24,6 +24,11 @@
     import SlideOver from "$lib/components/SlideOver.svelte";
     import ListingContent from "$lib/components/ListingContent.svelte";
     import { styleDisplayName } from "$lib/styles-metadata";
+    import Turtle from "$lib/components/icons/Turtle.svelte";
+    import Kangaroo from "$lib/components/icons/Kangaroo.svelte";
+
+    const TURTLE_SPEED = 3; // km/h
+    const KANGAROO_SPEED = 25; // km/h
     import { i18n } from "$lib/i18n.js";
     const t = i18n.t;
 
@@ -1976,6 +1981,7 @@
                         class:fade-2={school.distance != null &&
                             school.distance > 8}
                         onclick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
                             e.preventDefault();
                             openSlideOver(school.id);
                         }}
@@ -2006,31 +2012,25 @@
                             {#if school.walkingTime}
                                 {@const km =
                                     school.walkingTime.distanceMeters / 1000}
-                                {@const mins =
-                                    school.walkingTime.durationMinutes}
-                                {#if km <= 3}
-                                    <span class="school-distance">
-                                        <svg class="distance-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="3.5" r="1.5"/><path d="m11 7-1.5 7.5L13 18l-1 4"/><path d="M16 7l1 7-3 4"/><path d="M7 12l3-1"/></svg>
-                                        {mins} min · {km.toFixed(1)} km
-                                    </span>
-                                {:else}
-                                    <span class="school-distance">
-                                        <svg class="distance-icon" width="14" height="14" viewBox="-1 0 26 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-2.7-3.6A1 1 0 0 0 14.5 6H2"/><path d="M5 17H2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6"/></svg>
-                                        {Math.ceil((km / 40) * 60)} min · {km.toFixed(1)} km
-                                    </span>
-                                {/if}
+                                <span class="school-distance">
+                                    <Turtle size={22} class="distance-icon" />
+                                    {Math.ceil((km / TURTLE_SPEED) * 60)} min
+                                </span>
+                                <span class="school-distance">
+                                    <Kangaroo size={22} class="distance-icon" />
+                                    {Math.max(1, Math.ceil((km / KANGAROO_SPEED) * 60))} min
+                                </span>
+                                <span class="school-distance-km">{km.toFixed(1)} km</span>
                             {:else if school.distance != null && school.distance > 0}
-                                {#if school.distance <= 3}
-                                    <span class="school-distance">
-                                        <svg class="distance-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="3.5" r="1.5"/><path d="m11 7-1.5 7.5L13 18l-1 4"/><path d="M16 7l1 7-3 4"/><path d="M7 12l3-1"/></svg>
-                                        {Math.round((school.distance / 5) * 60)} min · {school.distance.toFixed(1)} km
-                                    </span>
-                                {:else}
-                                    <span class="school-distance">
-                                        <svg class="distance-icon" width="14" height="14" viewBox="-1 0 26 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-2.7-3.6A1 1 0 0 0 14.5 6H2"/><path d="M5 17H2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6"/></svg>
-                                        {Math.ceil((school.distance / 40) * 60)} min · {school.distance.toFixed(1)} km
-                                    </span>
-                                {/if}
+                                <span class="school-distance">
+                                    <Turtle size={22} class="distance-icon" />
+                                    {Math.ceil((school.distance / TURTLE_SPEED) * 60)} min
+                                </span>
+                                <span class="school-distance">
+                                    <Kangaroo size={22} class="distance-icon" />
+                                    {Math.max(1, Math.ceil((school.distance / KANGAROO_SPEED) * 60))} min
+                                </span>
+                                <span class="school-distance-km">{school.distance.toFixed(1)} km</span>
                             {/if}
                         </div>
                         {/if}
@@ -2551,7 +2551,13 @@
     }
     .school-distance :global(.distance-icon) {
         flex-shrink: 0;
+        color: var(--sf-warm);
+    }
+    .school-distance-km {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
         color: var(--sf-muted);
+        font-variant-numeric: tabular-nums;
     }
 
     .school-card.fade-1 {

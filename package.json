@@ -37,6 +37,7 @@
 		"@nomideusz/svelte-search": "file:packages/svelte-search",
 		"dotenv": "^17.3.1",
 		"drizzle-orm": "^0.45.1",
+		"lucide-svelte": "^1.0.1",
 		"resend": "^6.9.3"
 	}
 }

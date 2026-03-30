@@ -5,6 +5,11 @@
     import type { Listing } from "$lib/data";
     import { getListingPath } from "$lib/paths";
     import Pagination from "./Pagination.svelte";
+    import Turtle from "$lib/components/icons/Turtle.svelte";
+    import Kangaroo from "$lib/components/icons/Kangaroo.svelte";
+
+    const TURTLE_SPEED = 3; // km/h
+    const KANGAROO_SPEED = 25; // km/h
 
     const PER_PAGE = 20;
 
@@ -332,20 +337,21 @@
                         {:else if col === "location"}
                             <span class="td td--location">
                                 {#if school.walkingTime}
-                                    <strong
-                                        >{school.walkingTime.durationMinutes} min
-                                        · {(
-                                            school.walkingTime.distanceMeters /
-                                            1000
-                                        ).toFixed(1)} km</strong
-                                    >
+                                    {@const km = school.walkingTime.distanceMeters / 1000}
+                                    <span class="distance-duo">
+                                        <strong class="distance-item"><Turtle size={22} style="display:inline-block;vertical-align:-4px;margin-right:2px;color:var(--sf-warm)" />{Math.ceil((km / TURTLE_SPEED) * 60)} min</strong>
+                                        <strong class="distance-item"><Kangaroo size={22} style="display:inline-block;vertical-align:-4px;margin-right:2px;color:var(--sf-warm)" />{Math.max(1, Math.ceil((km / KANGAROO_SPEED) * 60))} min</strong>
+                                        <span class="distance-km">{km.toFixed(1)} km</span>
+                                    </span>
                                     <span class="muted-address"
                                         >({school.address || school.city})</span
                                     >
                                 {:else if school.distance != null && school.distance > 0}
-                                    <strong
-                                        >{school.distance.toFixed(1)} km</strong
-                                    >
+                                    <span class="distance-duo">
+                                        <strong class="distance-item"><Turtle size={22} style="display:inline-block;vertical-align:-4px;margin-right:2px;color:var(--sf-warm)" />{Math.ceil((school.distance / TURTLE_SPEED) * 60)} min</strong>
+                                        <strong class="distance-item"><Kangaroo size={22} style="display:inline-block;vertical-align:-4px;margin-right:2px;color:var(--sf-warm)" />{Math.max(1, Math.ceil((school.distance / KANGAROO_SPEED) * 60))} min</strong>
+                                        <span class="distance-km">{school.distance.toFixed(1)} km</span>
+                                    </span>
                                     <span class="muted-address"
                                         >({school.address || school.city})</span
                                     >
@@ -418,11 +424,12 @@
                         {#if hasColumn("location")}
                             <span class="card-address">
                                 {#if school.walkingTime}
-                                    {school.walkingTime.durationMinutes} min pieszo
+                                    {@const km = school.walkingTime.distanceMeters / 1000}
+                                    🐢 {Math.ceil((km / TURTLE_SPEED) * 60)} min · 🦘 {Math.max(1, Math.ceil((km / KANGAROO_SPEED) * 60))} min
                                     — {school.address || school.city}
                                 {:else if school.distance != null && school.distance > 0}
-                                    {school.distance.toFixed(1)} km — {school.address ||
-                                        school.city}
+                                    🐢 ~{Math.ceil((school.distance / TURTLE_SPEED) * 60)} min · 🦘 ~{Math.max(1, Math.ceil((school.distance / KANGAROO_SPEED) * 60))} min
+                                    — {school.address || school.city}
                                 {:else}
                                     {school.address || school.city}
                                 {/if}
@@ -732,6 +739,24 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .distance-duo {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .distance-item {
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    .distance-km {
+        font-size: 0.78rem;
+        color: var(--sf-muted);
+        font-weight: normal;
     }
 
     .muted-address {

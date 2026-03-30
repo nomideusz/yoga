@@ -186,8 +186,6 @@
 </svelte:head>
 
 <div class="sheet-route">
-    <div class="sheet-route__backdrop" aria-hidden="true"></div>
-
     <section class="sheet-route__panel" aria-label={listing.name}>
         <header class="sheet-route__header">
             <a
@@ -229,18 +227,15 @@
 
 <style>
     .sheet-route {
+        display: block;
         position: relative;
         min-height: calc(100vh - 84px);
         padding: 12px;
     }
 
-    .sheet-route__backdrop {
-        display: none;
-    }
-
     .sheet-route__panel {
         position: relative;
-        width: min(1120px, calc(100vw - 24px));
+        width: min(720px, calc(100vw - 24px));
         min-height: calc(100vh - 24px - 84px);
         margin: 0 auto;
         background: var(--sf-card);
@@ -320,7 +315,6 @@
             width: 100%;
             min-height: calc(100vh - 60px);
             border-radius: 16px 16px 0 0;
-            margin-left: 0;
             border-left: none;
             border-right: none;
             border-bottom: none;
