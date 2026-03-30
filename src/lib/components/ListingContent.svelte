@@ -663,7 +663,7 @@
         color: var(--sf-warm);
         flex-shrink: 0;
         position: relative;
-        top: 1px;
+        top: -1px;
     }
     .lc-address--link:hover {
         color: var(--sf-accent, var(--sf-dark));
@@ -682,7 +682,7 @@
     .lc-rating-star {
         color: var(--sf-warm);
         font-size: 0.85em;
-        vertical-align: -0.05em;
+        vertical-align: 0.05em;
     }
     .lc-rating-count {
         font-weight: 400;
