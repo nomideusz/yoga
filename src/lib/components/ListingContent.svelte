@@ -18,6 +18,9 @@
     } from "@nomideusz/svelte-calendar";
     import ScheduleSection from "$lib/components/listing/ScheduleSection.svelte";
     import { getListingPath } from "$lib/paths";
+    import Globe from "lucide-svelte/icons/globe";
+
+    import MapPin from "lucide-svelte/icons/map-pin";
 
     let {
         listing,
@@ -216,20 +219,20 @@
     <header class="lc-header">
         <h2 class="lc-name">{listing.name}</h2>
         <div class="lc-meta">
-            <span class="lc-address">
-                {#if listing.neighborhood && listing.neighborhood !== listing.city}{listing.neighborhood}
-                    ·
-                {/if}{listing.address || listing.city}
-                {#if listing.googleMapsUrl}
-                    <a href={listing.googleMapsUrl} target="_blank" rel="noopener noreferrer" class="lc-maps-link" aria-label="Open in Google Maps" title="Open in Google Maps">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" y1="14" x2="21" y2="3" />
-                        </svg>
-                    </a>
-                {/if}
-            </span>
+            {#if listing.googleMapsUrl}
+                <a href={listing.googleMapsUrl} target="_blank" rel="noopener noreferrer" class="lc-address lc-address--link">
+                    <MapPin size={13} class="lc-map-icon" />
+                    {#if listing.neighborhood && listing.neighborhood !== listing.city}{listing.neighborhood}
+                        ·
+                    {/if}{listing.address || listing.city}
+                </a>
+            {:else}
+                <span class="lc-address">
+                    {#if listing.neighborhood && listing.neighborhood !== listing.city}{listing.neighborhood}
+                        ·
+                    {/if}{listing.address || listing.city}
+                </span>
+            {/if}
             {#if listing.rating != null}
                 <span class="lc-dot">·</span>
                 <span class="lc-rating">
@@ -279,72 +282,22 @@
                 href={listing.websiteUrl}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                class="lc-cta lc-cta--primary"
+                class="lc-cta"
+                title={t("listing_website")}
             >
-                <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    aria-hidden="true"
-                >
-                    <path
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.2"
-                        d="M8 1.5A6.5 6.5 0 1 0 14.5 8M8 1.5v13M1.5 8h13m-2.2-6.5A13.2 13.2 0 0 1 8 14.5m4.3-13A13.2 13.2 0 0 0 8 14.5"
-                    />
-                </svg>
-                {t("listing_website")}
+                <span class="lc-cta-icon"><Globe size={14} /></span>
+                <span>{t("listing_website")}</span>
             </a>
         {/if}
         {#if listing.phone}
-            <a href="tel:{listing.phone}" class="lc-cta lc-cta--secondary">
-                <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    aria-hidden="true"
-                >
-                    <path
-                        d="M6.5 9.5c1.1 1.1 2.4 1.9 3.5 2.3l1.2-1.2a.8.8 0 0 1 .9-.2c1 .3 2 .5 3 .5a.8.8 0 0 1 .8.8V14a.8.8 0 0 1-.8.8A13.2 13.2 0 0 1 1.2 1a.8.8 0 0 1 .8-.8h2.3a.8.8 0 0 1 .8.8c0 1 .2 2 .5 3a.8.8 0 0 1-.2.9L4.2 6c.4 1.1 1.2 2.4 2.3 3.5z"
-                        stroke="currentColor"
-                        stroke-width="1.2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    />
-                </svg>
-                {listing.phone}
+            <a href="tel:{listing.phone}" class="lc-cta">
+                <span>{listing.phone}</span>
             </a>
         {/if}
         {#if listing.email}
-            <a href="mailto:{listing.email}" class="lc-cta lc-cta--secondary">
-                <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    aria-hidden="true"
-                >
-                    <rect
-                        x="1.5"
-                        y="3"
-                        width="13"
-                        height="10"
-                        rx="1.5"
-                        stroke="currentColor"
-                        stroke-width="1.3"
-                    />
-                    <path
-                        d="M1.5 4.5L8 9l6.5-4.5"
-                        stroke="currentColor"
-                        stroke-width="1.3"
-                        stroke-linecap="round"
-                    />
-                </svg>
-                {t("listing_email")}
+            <a href="mailto:{listing.email}" class="lc-cta" title={t("listing_email")}>
+                <span class="lc-cta-icon lc-cta-icon--at">@</span>
+                <span>{t("listing_email")}</span>
             </a>
         {/if}
     </div>
@@ -606,7 +559,7 @@
     }
     .lc--page {
         width: 100%;
-        max-width: 760px;
+        max-width: 100%;
         margin: 0 auto;
         gap: 22px;
     }
@@ -662,7 +615,7 @@
 
     .lc--page .lc-hero {
         border-radius: 16px;
-        aspect-ratio: 2.4 / 1;
+        aspect-ratio: 3 / 2;
     }
 
     /* ═══ Header ═══ */
@@ -682,14 +635,14 @@
         margin: 0;
     }
     .lc--page .lc-name {
-        font-size: clamp(2rem, 4vw, 2.8rem);
-        letter-spacing: -0.03em;
+        font-size: clamp(1.5rem, 3vw, 2.2rem);
+        letter-spacing: -0.025em;
     }
 
     .lc-meta {
         display: flex;
         flex-wrap: wrap;
-        align-items: baseline;
+        align-items: center;
         gap: 5px;
         font-size: 0.88rem;
         color: var(--sf-muted);
@@ -698,17 +651,21 @@
     .lc-address {
         color: var(--sf-text);
     }
-    .lc-maps-link {
+    .lc-address--link {
         display: inline-flex;
         align-items: center;
-        color: var(--sf-muted);
-        margin-left: 3px;
-        vertical-align: middle;
-        opacity: 0.7;
-        transition: opacity 0.15s ease, color 0.15s ease;
+        gap: 4px;
+        color: var(--sf-text);
+        text-decoration: none;
+        transition: color var(--dur-fast) ease;
     }
-    .lc-maps-link:hover {
-        opacity: 1;
+    .lc-address--link :global(.lc-map-icon) {
+        color: var(--sf-warm);
+        flex-shrink: 0;
+        position: relative;
+        top: 1px;
+    }
+    .lc-address--link:hover {
         color: var(--sf-accent, var(--sf-dark));
     }
     .lc-dot {
@@ -725,6 +682,7 @@
     .lc-rating-star {
         color: var(--sf-warm);
         font-size: 0.85em;
+        vertical-align: -0.05em;
     }
     .lc-rating-count {
         font-weight: 400;
@@ -822,21 +780,29 @@
         white-space: nowrap;
     }
 
-    .lc-cta--primary {
-        color: var(--sf-text);
+    .lc-cta {
+        color: color-mix(in srgb, var(--sf-text) 72%, var(--sf-muted) 28%);
     }
-    .lc-cta--primary:hover {
-        color: color-mix(in srgb, var(--sf-text) 82%, var(--sf-muted) 18%);
+    .lc-cta:hover {
+        color: var(--sf-text);
         opacity: 1;
     }
 
-    .lc-cta--secondary {
-        color: color-mix(in srgb, var(--sf-text) 68%, var(--sf-muted) 32%);
-        opacity: 0.92;
+    .lc-cta-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--sf-accent);
+        position: relative;
+        top: -0.5px;
     }
-    .lc-cta--secondary:hover {
-        color: var(--sf-text);
-        opacity: 1;
+    .lc-cta-icon--at {
+        font-size: 0.82rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .lc-cta:hover .lc-cta-icon {
+        color: var(--sf-accent);
     }
 
     /* ═══ Reviews (muted, minimal) ═══ */
