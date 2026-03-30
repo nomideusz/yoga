@@ -21,6 +21,7 @@
     import Globe from "lucide-svelte/icons/globe";
 
     import MapPin from "lucide-svelte/icons/map-pin";
+    import Phone from "lucide-svelte/icons/phone";
 
     let {
         listing,
@@ -289,15 +290,16 @@
                 <span>{t("listing_website")}</span>
             </a>
         {/if}
-        {#if listing.phone}
-            <a href="tel:{listing.phone}" class="lc-cta">
-                <span>{listing.phone}</span>
-            </a>
-        {/if}
         {#if listing.email}
             <a href="mailto:{listing.email}" class="lc-cta" title={t("listing_email")}>
                 <span class="lc-cta-icon lc-cta-icon--at">@</span>
                 <span>{t("listing_email")}</span>
+            </a>
+        {/if}
+        {#if listing.phone}
+            <a href="tel:{listing.phone}" class="lc-cta">
+                <span class="lc-cta-icon"><Phone size={13} /></span>
+                <span>{listing.phone}</span>
             </a>
         {/if}
     </div>
