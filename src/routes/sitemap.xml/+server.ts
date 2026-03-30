@@ -1,69 +1,94 @@
-import {
-  getAllListings,
-  getUniqueCities,
-  getUniqueStyles,
-} from "$lib/server/db/queries/index";
-import { getCityPath, getListingAbsoluteUrl } from "$lib/paths";
-import { normalize } from "$lib/search";
+import { db } from "$lib/server/db/index";
+import { schools, styles as stylesTable } from "$lib/server/db/schema";
+import { eq, and, sql } from "drizzle-orm";
+import { getCityPath, getStylePath } from "$lib/paths";
 import type { RequestHandler } from "./$types";
 
 const BASE = "https://szkolyjogi.pl";
 
-function escapeXml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "&apos;").replace(/"/g, "&quot;");
 }
 
-function urlEntry(
-  loc: string,
-  changefreq: string,
-  priority: string,
-  lastmod?: string | null,
-): string {
-  let entry = `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>`;
+interface UrlEntry {
+  loc: string;
+  changefreq: string;
+  priority: string;
+  lastmod?: string | null;
+}
+
+function renderUrl({ loc, changefreq, priority, lastmod }: UrlEntry): string {
+  let xml = `  <url>\n    <loc>${esc(loc)}</loc>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>`;
   if (lastmod) {
-    entry += `\n    <lastmod>${lastmod.split("T")[0]}</lastmod>`;
+    xml += `\n    <lastmod>${lastmod.split("T")[0]}</lastmod>`;
   }
-  entry += "\n  </url>";
-  return entry;
+  xml += "\n  </url>";
+  return xml;
 }
 
 export const GET: RequestHandler = async () => {
-  const [listings, cities, styles] = await Promise.all([
-    getAllListings(),
-    getUniqueCities(),
-    getUniqueStyles(),
+  // Lean queries — only fetch what we need for URLs
+  const [listingRows, cityRows, styleRows] = await Promise.all([
+    db
+      .select({
+        id: schools.id,
+        slug: schools.slug,
+        city: schools.city,
+        citySlug: schools.citySlug,
+        lastUpdated: schools.lastUpdated,
+      })
+      .from(schools)
+      .where(and(eq(schools.isListed, true), sql`${schools.city} != ''`)),
+    db
+      .selectDistinct({ city: schools.city, citySlug: schools.citySlug })
+      .from(schools)
+      .where(and(eq(schools.isListed, true), sql`${schools.city} != ''`)),
+    db.select({ name: stylesTable.name, slug: stylesTable.slug }).from(stylesTable),
   ]);
 
   const urls: string[] = [];
 
-  // Static pages
-  urls.push(urlEntry(BASE, "weekly", "1.0"));
-  urls.push(urlEntry(`${BASE}/about`, "monthly", "0.5"));
-  urls.push(urlEntry(`${BASE}/post`, "monthly", "0.5"));
-  urls.push(urlEntry(`${BASE}/terms`, "monthly", "0.3"));
+  // ── Static pages ──────────────────────────────────────────────────────
+  urls.push(renderUrl({ loc: BASE, changefreq: "daily", priority: "1.0" }));
+  urls.push(renderUrl({ loc: `${BASE}/about`, changefreq: "monthly", priority: "0.5" }));
+  urls.push(renderUrl({ loc: `${BASE}/post`, changefreq: "monthly", priority: "0.5" }));
+  urls.push(renderUrl({ loc: `${BASE}/terms`, changefreq: "monthly", priority: "0.3" }));
 
-  // Listing pages
-  for (const listing of listings) {
+  // ── City pages ────────────────────────────────────────────────────────
+  for (const { city, citySlug } of cityRows) {
     urls.push(
-      urlEntry(
-        getListingAbsoluteUrl(listing),
-        "weekly",
-        "0.8",
-        listing.lastUpdated,
-      ),
+      renderUrl({
+        loc: `${BASE}${getCityPath(city, citySlug)}`,
+        changefreq: "weekly",
+        priority: "0.8",
+      }),
     );
   }
 
-  // City pages
-  for (const city of cities) {
-    urls.push(urlEntry(`${BASE}${getCityPath(city)}`, "weekly", "0.7"));
+  // ── Category (style) pages ────────────────────────────────────────────
+  for (const { name, slug } of styleRows) {
+    // Use slug from DB if available, otherwise getStylePath computes it
+    const path = slug ? `/category/${encodeURIComponent(slug)}` : getStylePath(name);
+    urls.push(
+      renderUrl({
+        loc: `${BASE}${path}`,
+        changefreq: "weekly",
+        priority: "0.6",
+      }),
+    );
   }
 
-  // Category pages
-  for (const style of styles) {
-    const slug = normalize(style);
+  // ── Listing pages ─────────────────────────────────────────────────────
+  for (const listing of listingRows) {
+    const cityPath = getCityPath(listing.city, listing.citySlug);
+    const listingSlug = listing.slug || listing.id;
     urls.push(
-      urlEntry(`${BASE}/category/${encodeURIComponent(slug)}`, "weekly", "0.6"),
+      renderUrl({
+        loc: `${BASE}${cityPath}/${listingSlug}`,
+        changefreq: "weekly",
+        priority: "0.7",
+        lastmod: listing.lastUpdated,
+      }),
     );
   }
 
@@ -74,8 +99,8 @@ ${urls.join("\n")}
 
   return new Response(xml, {
     headers: {
-      "Content-Type": "application/xml",
-      "Cache-Control": "max-age=3600",
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
     },
   });
 };
