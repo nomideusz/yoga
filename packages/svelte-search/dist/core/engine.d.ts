@@ -1,8 +1,10 @@
-import type { DatabaseClient, SchemaAdapter, SearchParams, SearchResult, SearchResponse, SearchLocale } from './types.js';
+import type { DatabaseClient, SchemaAdapter, SearchParams, SearchResult, SearchResponse, SearchLocale, SqlDialect } from './types.js';
 export interface SearchEngineConfig<TResult extends SearchResult = SearchResult> {
     db: DatabaseClient;
     adapter: SchemaAdapter<TResult>;
     locale?: SearchLocale;
+    /** SQL dialect: 'sqlite' (default) or 'postgres' */
+    dialect?: SqlDialect;
     /** FTS query timeout in ms (default: 5000) */
     ftsTimeoutMs?: number;
     /** Fuzzy query timeout in ms (default: 3000) */

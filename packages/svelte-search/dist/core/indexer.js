@@ -2,16 +2,24 @@
 // @nomideusz/svelte-search — Indexer
 // ============================================================
 // Generic trigram indexing and FTS maintenance, driven by SchemaAdapter.
+//
+// Dialect support:
+//   - 'sqlite' (default): custom trigram tables, FTS5 rebuild
+//   - 'postgres': pg_trgm extension (no custom trigram tables needed),
+//                 tsvector column update
 import { normalize as normalizeText, trigrams } from './normalize.js';
 // ── Create indexer ─────────────────────────────────────────
 export function createIndexer(config) {
-    const { db, adapter, locale } = config;
+    const { db, adapter, locale, dialect = 'sqlite' } = config;
     const { tables, columns, trigramColumns } = adapter;
+    // ── SQLite trigram indexing ─────────────────────────────
     /**
-     * Index trigrams for a single entity.
-     * Call after inserting/updating an entity.
+     * Index trigrams for a single entity (SQLite only).
+     * For PostgreSQL, pg_trgm handles this automatically via GIN indexes.
      */
     async function indexTrigrams(entityId, entity) {
+        if (dialect === 'postgres')
+            return; // pg_trgm handles this
         await db.execute({
             sql: `DELETE FROM ${tables.trigrams} WHERE ${trigramColumns.entityId} = ?`,
             args: [entityId],
@@ -35,8 +43,10 @@ export function createIndexer(config) {
             });
         }
     }
-    /** Rebuild all trigrams from scratch. */
+    /** Rebuild all trigrams from scratch (SQLite only). */
     async function reindexAllTrigrams() {
+        if (dialect === 'postgres')
+            return 0; // pg_trgm handles this
         const result = await db.execute({ sql: `SELECT * FROM ${tables.entities}`, args: [] });
         let count = 0;
         for (const row of result.rows) {
@@ -46,15 +56,38 @@ export function createIndexer(config) {
         }
         return count;
     }
-    /** Rebuild FTS5 index. */
+    /** Rebuild FTS index. */
     async function rebuildFts() {
+        if (dialect === 'postgres') {
+            // PostgreSQL: no separate FTS rebuild needed — tsvector column is maintained
+            // by triggers or updated via updateSearchVector()
+            return;
+        }
+        // SQLite FTS5 rebuild
         await db.execute({
             sql: `INSERT INTO ${tables.fts}(${tables.fts}) VALUES('rebuild')`,
             args: [],
         });
     }
-    /** Check if FTS5 index is in sync with entities table. */
+    /** Check if FTS index is in sync with entities table. */
     async function checkFtsSync() {
+        if (dialect === 'postgres') {
+            // PostgreSQL: check for entities with NULL search vectors
+            const tsCol = tables.fts;
+            const [entityCount, missingCount] = await Promise.all([
+                db.execute({ sql: `SELECT COUNT(*) as c FROM ${tables.entities}`, args: [] }),
+                db.execute({ sql: `SELECT COUNT(*) as c FROM ${tables.entities} WHERE ${tsCol} IS NULL`, args: [] }),
+            ]);
+            const total = Number(entityCount.rows[0].c);
+            const missing = Number(missingCount.rows[0].c);
+            return {
+                inEntities: total,
+                inFts: total - missing,
+                missingFromFts: missing,
+                orphanedInFts: 0,
+            };
+        }
+        // SQLite FTS5 sync check
         const [entityCount, ftsCount, missing, orphaned] = await Promise.all([
             db.execute({ sql: `SELECT COUNT(*) as c FROM ${tables.entities}`, args: [] }),
             db.execute({ sql: `SELECT COUNT(*) as c FROM ${tables.fts}`, args: [] }),
@@ -69,28 +102,100 @@ export function createIndexer(config) {
         };
     }
     /**
+     * Update the tsvector search column for a single entity (PostgreSQL only).
+     * Call after inserting/updating an entity.
+     *
+     * @param entityId - Primary key value
+     * @param searchText - Concatenated text to index (name + description + location + categories etc.)
+     * @param tsConfig - PostgreSQL text search config (default: 'simple')
+     */
+    async function updateSearchVector(entityId, searchText, tsConfig = 'simple') {
+        if (dialect !== 'postgres')
+            return;
+        const tsCol = tables.fts;
+        await db.execute({
+            sql: `UPDATE ${tables.entities} SET ${tsCol} = to_tsvector($1, $2) WHERE ${columns.id} = $3`,
+            args: [tsConfig, searchText, entityId],
+        });
+    }
+    /**
+     * Rebuild all search vectors (PostgreSQL only).
+     * Uses the adapter's trigramFields to build search text.
+     */
+    async function rebuildAllSearchVectors(tsConfig = 'simple') {
+        if (dialect !== 'postgres')
+            return 0;
+        const result = await db.execute({ sql: `SELECT * FROM ${tables.entities}`, args: [] });
+        let count = 0;
+        for (const row of result.rows) {
+            const id = row[columns.id];
+            const textParts = adapter.trigramFields(row).map(f => f.text).filter(Boolean);
+            const searchText = textParts.join(' ');
+            await updateSearchVector(id, searchText, tsConfig);
+            count++;
+        }
+        return count;
+    }
+    /**
      * Re-derive all normalized columns from source data.
      * Call after changing the normalize() function or locale.
-     * Requires a callback to update app-specific normalized columns.
      */
     async function renormalizeAll(updateRow) {
         const result = await db.execute({ sql: `SELECT * FROM ${tables.entities}`, args: [] });
         let count = 0;
         for (const row of result.rows) {
             await updateRow(db, row);
-            const id = row[columns.id];
-            await indexTrigrams(id, row);
+            if (dialect === 'sqlite') {
+                const id = row[columns.id];
+                await indexTrigrams(id, row);
+            }
             count++;
         }
-        await rebuildFts();
+        if (dialect === 'sqlite') {
+            await rebuildFts();
+        }
+        else {
+            await rebuildAllSearchVectors();
+        }
         return count;
+    }
+    /**
+     * Set up PostgreSQL extensions and indexes needed for search.
+     * Call once during schema setup / migration.
+     */
+    async function setupPostgresExtensions() {
+        if (dialect !== 'postgres')
+            return;
+        // Enable pg_trgm extension
+        await db.execute({ sql: 'CREATE EXTENSION IF NOT EXISTS pg_trgm', args: [] });
+        // Create GIN index on the tsvector column for full-text search
+        const tsCol = tables.fts;
+        await db.execute({
+            sql: `CREATE INDEX IF NOT EXISTS idx_${tables.entities}_fts ON ${tables.entities} USING GIN (${tsCol})`,
+            args: [],
+        });
+        // Create GIN trigram indexes on normalized text columns
+        const trgmCols = [columns.nameNormalized];
+        if (columns.categoriesNormalized)
+            trgmCols.push(columns.categoriesNormalized);
+        if (columns.locationNormalized)
+            trgmCols.push(columns.locationNormalized);
+        for (const col of trgmCols) {
+            await db.execute({
+                sql: `CREATE INDEX IF NOT EXISTS idx_${tables.entities}_${col}_trgm ON ${tables.entities} USING GIN (${col} gin_trgm_ops)`,
+                args: [],
+            });
+        }
     }
     return {
         indexTrigrams,
         reindexAllTrigrams,
         rebuildFts,
         checkFtsSync,
+        updateSearchVector,
+        rebuildAllSearchVectors,
         renormalizeAll,
+        setupPostgresExtensions,
     };
 }
 export function createLookupsLoader(config) {
@@ -141,13 +246,11 @@ export function createLookupsLoader(config) {
             const nameN = row[config.categories.nameNormalizedCol];
             const slug = row[config.categories.slugCol];
             categoryMap.set(nameN, slug);
-            // Index individual words (skip generic terms)
             for (const word of nameN.split(/\s+/)) {
                 if (word && word.length > 2 && !categoryMap.has(word)) {
                     categoryMap.set(word, slug);
                 }
             }
-            // Index aliases
             if (config.categories.aliasesNormalizedCol) {
                 const aliasesN = row[config.categories.aliasesNormalizedCol] || '';
                 for (const alias of aliasesN.split(/\s+/)) {
@@ -156,7 +259,7 @@ export function createLookupsLoader(config) {
                 }
             }
         }
-        // Synonym expansion for location/category maps
+        // Synonym expansion
         if (config.synonymsSql) {
             const synRows = await db.execute({ sql: config.synonymsSql, args: [] });
             for (const row of synRows.rows) {
@@ -190,12 +293,10 @@ export function createLookupsLoader(config) {
         _cacheTime = Date.now();
         return _cached;
     }
-    /** Force cache invalidation. */
     function invalidate() {
         _cached = null;
         _cacheTime = 0;
     }
     return { load, invalidate };
 }
-// Re-alias for internal use
 const normalize = normalizeText;

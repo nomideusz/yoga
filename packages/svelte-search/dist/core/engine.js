@@ -3,11 +3,15 @@
 // ============================================================
 // Generic search engine driven by a SchemaAdapter. Handles:
 //   1. Synonym expansion
-//   2. FTS5 full-text search
-//   3. Trigram fuzzy fallback
+//   2. Full-text search (FTS5 for SQLite, tsvector for PostgreSQL)
+//   3. Trigram fuzzy fallback (custom tables for SQLite, pg_trgm for PostgreSQL)
 //   4. Score blending (FTS rank + name similarity + field match + geo)
 //   5. Quality gate (Levenshtein threshold for fuzzy-only results)
 //   6. Relevance boundaries (distance-based result splitting)
+//
+// Dialect support:
+//   - 'sqlite' (default): FTS5 MATCH, custom trigram tables, rowid joins
+//   - 'postgres': tsvector/tsquery @@, pg_trgm similarity(), PK joins
 import { normalize, trigrams, trigramSimilarity, levenshteinSimilarity, hasGeoIntent, stripGeoIntent } from './normalize.js';
 import { haversineKm, walkingMinutes, boundingBox } from './geo.js';
 // ── Query timeout helper ───────────────────────────────────
@@ -18,9 +22,21 @@ function withTimeout(promise, ms, fallback) {
         new Promise(resolve => { timer = setTimeout(() => resolve(fallback), ms); }),
     ]).finally(() => clearTimeout(timer));
 }
+// ── Placeholder helpers ────────────────────────────────────
+/** Returns $1, $2, ... for postgres or ?, ?, ... for sqlite */
+function placeholders(count, dialect, startAt = 1) {
+    if (dialect === 'postgres') {
+        return Array.from({ length: count }, (_, i) => `$${startAt + i}`).join(',');
+    }
+    return Array(count).fill('?').join(',');
+}
+/** Returns the next placeholder: $N for postgres, ? for sqlite */
+function ph(index, dialect) {
+    return dialect === 'postgres' ? `$${index}` : '?';
+}
 // ── Create search engine ───────────────────────────────────
 export function createSearchEngine(config) {
-    const { db, adapter, locale, ftsTimeoutMs = 5000, fuzzyTimeoutMs = 3000, primaryRadiusKm = 15, nearbyRadiusKm = 30, maxNearby = 5, qualityThreshold = 0.75, maxFtsTerms = 6, } = config;
+    const { db, adapter, locale, dialect = 'sqlite', ftsTimeoutMs = 5000, fuzzyTimeoutMs = 3000, primaryRadiusKm = 15, nearbyRadiusKm = 30, maxNearby = 5, qualityThreshold = 0.75, maxFtsTerms = 6, } = config;
     const { tables, columns, trigramColumns } = adapter;
     // ── Main search ────────────────────────────────────────
     async function search(params) {
@@ -46,7 +62,7 @@ export function createSearchEngine(config) {
         // Expand synonyms
         const expanded = await expandSynonyms(normalized);
         const ftsQuery = buildFtsQuery(expanded);
-        // FTS5 search
+        // Full-text search
         const ftsResults = await withTimeout(ftsSearch(ftsQuery, locationSlug, categorySlug, limit * 3), ftsTimeoutMs, []);
         // Trigram fallback if FTS returned few results
         let fuzzyResults = [];
@@ -68,14 +84,15 @@ export function createSearchEngine(config) {
     }
     // ── Location-scoped search ─────────────────────────────
     async function searchAllInLocation(locationSlug, categorySlug, lat, lng, limit) {
-        let sql = `SELECT * FROM ${tables.entities} WHERE ${columns.locationSlug} = ?`;
         const args = [locationSlug];
+        let argIdx = 2;
+        let sql = `SELECT * FROM ${tables.entities} WHERE ${columns.locationSlug} = ${ph(1, dialect)}`;
         if (categorySlug && columns.categoriesNormalized) {
             const catName = normalize(categorySlug.replace(/-/g, ' '), locale);
-            sql += ` AND ${columns.categoriesNormalized} LIKE ?`;
+            sql += ` AND ${columns.categoriesNormalized} LIKE ${ph(argIdx++, dialect)}`;
             args.push(`%${catName}%`);
         }
-        sql += ' LIMIT ?';
+        sql += ` LIMIT ${ph(argIdx, dialect)}`;
         args.push(limit);
         const result = await db.execute({ sql, args });
         const rows = (result.rows).map(r => adapter.toResult(r, lat, lng));
@@ -90,7 +107,7 @@ export function createSearchEngine(config) {
             return empty();
         const bbox = boundingBox(lat, lng, primaryRadiusKm);
         const result = await db.execute({
-            sql: `SELECT * FROM ${tables.entities} WHERE ${columns.lat} BETWEEN ? AND ? AND ${columns.lng} BETWEEN ? AND ? LIMIT ?`,
+            sql: `SELECT * FROM ${tables.entities} WHERE ${columns.lat} BETWEEN ${ph(1, dialect)} AND ${ph(2, dialect)} AND ${columns.lng} BETWEEN ${ph(3, dialect)} AND ${ph(4, dialect)} LIMIT ${ph(5, dialect)}`,
             args: [bbox.minLat, bbox.maxLat, bbox.minLng, bbox.maxLng, limit * 2],
         });
         const rows = (result.rows).map(r => adapter.toResult(r, lat, lng));
@@ -101,10 +118,16 @@ export function createSearchEngine(config) {
         }
         return { results: capped, nearby: [], noLocalResults: false, searchedPlace: null, nearestLocationWithEntities: null, totalFound: capped.length };
     }
-    // ── FTS5 search ────────────────────────────────────────
+    // ── Full-text search ───────────────────────────────────
     async function ftsSearch(ftsQuery, locationSlug, categorySlug, limit) {
         if (!ftsQuery)
             return [];
+        if (dialect === 'postgres') {
+            return ftsSearchPostgres(ftsQuery, locationSlug, categorySlug, limit);
+        }
+        return ftsSearchSqlite(ftsQuery, locationSlug, categorySlug, limit);
+    }
+    async function ftsSearchSqlite(ftsQuery, locationSlug, categorySlug, limit) {
         let sql = `
       SELECT s.*, fts.rank AS _ftsRank
       FROM ${tables.fts} fts
@@ -126,18 +149,51 @@ export function createSearchEngine(config) {
         const result = await db.execute({ sql, args });
         return result.rows;
     }
+    async function ftsSearchPostgres(ftsQuery, locationSlug, categorySlug, limit) {
+        // PostgreSQL: use tsvector column + tsquery
+        // The FTS table name is used as the tsvector column name on the entities table
+        const tsCol = tables.fts; // e.g. "search_vector"
+        const args = [ftsQuery];
+        let argIdx = 2;
+        let sql = `
+      SELECT s.*, ts_rank(s.${tsCol}, to_tsquery('simple', ${ph(1, dialect)})) AS "_ftsRank"
+      FROM ${tables.entities} s
+      WHERE s.${tsCol} @@ to_tsquery('simple', ${ph(1, dialect)})
+    `;
+        if (locationSlug && columns.locationSlug) {
+            sql += ` AND s.${columns.locationSlug} = ${ph(argIdx, dialect)}`;
+            args.push(locationSlug);
+            argIdx++;
+        }
+        if (categorySlug && columns.categoriesNormalized) {
+            const catName = normalize(categorySlug.replace(/-/g, ' '), locale);
+            sql += ` AND s.${columns.categoriesNormalized} ILIKE ${ph(argIdx, dialect)}`;
+            args.push(`%${catName}%`);
+            argIdx++;
+        }
+        sql += ` ORDER BY "_ftsRank" DESC LIMIT ${ph(argIdx, dialect)}`;
+        args.push(limit);
+        const result = await db.execute({ sql, args });
+        return result.rows;
+    }
     // ── Trigram fuzzy search ───────────────────────────────
     async function trigramFuzzySearch(normalized, locationSlug, limit) {
+        if (dialect === 'postgres') {
+            return trigramFuzzyPostgres(normalized, locationSlug, limit);
+        }
+        return trigramFuzzySqlite(normalized, locationSlug, limit);
+    }
+    async function trigramFuzzySqlite(normalized, locationSlug, limit) {
         const queryTrigrams = trigrams(normalized, locale);
         if (queryTrigrams.length === 0)
             return [];
-        const placeholders = queryTrigrams.map(() => '?').join(',');
+        const phs = queryTrigrams.map(() => '?').join(',');
         let sql = `
       SELECT s.*, NULL AS _ftsRank,
              (COUNT(DISTINCT t.${trigramColumns.trigram}) * 1.0 / ?) AS _fuzzyScore
       FROM ${tables.trigrams} t
       JOIN ${tables.entities} s ON s.${columns.id} = t.${trigramColumns.entityId}
-      WHERE t.${trigramColumns.trigram} IN (${placeholders})
+      WHERE t.${trigramColumns.trigram} IN (${phs})
     `;
         const args = [queryTrigrams.length, ...queryTrigrams];
         if (locationSlug && columns.locationSlug) {
@@ -152,6 +208,35 @@ export function createSearchEngine(config) {
         const result = await db.execute({ sql, args });
         return result.rows;
     }
+    async function trigramFuzzyPostgres(normalized, locationSlug, limit) {
+        // PostgreSQL: use pg_trgm extension's similarity() function
+        // Searches against the nameNormalized column (primary) and optionally others
+        const args = [normalized];
+        let argIdx = 2;
+        // Build similarity expression across searchable text columns
+        const simCols = [columns.nameNormalized];
+        if (columns.categoriesNormalized)
+            simCols.push(columns.categoriesNormalized);
+        if (columns.locationNormalized)
+            simCols.push(columns.locationNormalized);
+        const simExpr = simCols.length === 1
+            ? `similarity(${simCols[0]}, ${ph(1, dialect)})`
+            : `GREATEST(${simCols.map(c => `similarity(COALESCE(${c}, ''), ${ph(1, dialect)})`).join(', ')})`;
+        let sql = `
+      SELECT s.*, NULL AS "_ftsRank", ${simExpr} AS "_fuzzyScore"
+      FROM ${tables.entities} s
+      WHERE ${simExpr} > 0.1
+    `;
+        if (locationSlug && columns.locationSlug) {
+            sql += ` AND s.${columns.locationSlug} = ${ph(argIdx, dialect)}`;
+            args.push(locationSlug);
+            argIdx++;
+        }
+        sql += ` ORDER BY "_fuzzyScore" DESC LIMIT ${ph(argIdx, dialect)}`;
+        args.push(limit);
+        const result = await db.execute({ sql, args });
+        return result.rows;
+    }
     // ── Synonym expansion ──────────────────────────────────
     async function expandSynonyms(normalized) {
         const tokens = normalized.split(/\s+/).filter(Boolean);
@@ -161,9 +246,9 @@ export function createSearchEngine(config) {
             aliases.push(`${tokens[i]} ${tokens[i + 1]}`);
         }
         if (aliases.length > 0) {
-            const placeholders = aliases.map(() => '?').join(',');
+            const phs = placeholders(aliases.length, dialect);
             const result = await db.execute({
-                sql: `SELECT canonical FROM ${tables.synonyms} WHERE alias IN (${placeholders})`,
+                sql: `SELECT canonical FROM ${tables.synonyms} WHERE alias IN (${phs})`,
                 args: aliases,
             });
             for (const row of result.rows) {
@@ -177,23 +262,35 @@ export function createSearchEngine(config) {
     // ── FTS query builder ──────────────────────────────────
     function buildFtsQuery(tokens) {
         const terms = tokens
-            .map(t => t.replace(/['"(){}*:^~\-]/g, ''))
+            .map(t => t.replace(/['"(){}*:^~\-!&|<>]/g, ''))
             .filter(Boolean)
-            .slice(0, maxFtsTerms)
-            .map(t => `"${t}"*`);
+            .slice(0, maxFtsTerms);
         if (terms.length === 0)
             return '';
-        return terms.length === 1 ? terms[0] : terms.join(' OR ');
+        if (dialect === 'postgres') {
+            // PostgreSQL tsquery: term1:* | term2:*
+            return terms.map(t => `${t}:*`).join(' | ');
+        }
+        // SQLite FTS5: "term1"* OR "term2"*
+        const fts5Terms = terms.map(t => `"${t}"*`);
+        return fts5Terms.length === 1 ? fts5Terms[0] : fts5Terms.join(' OR ');
     }
     // ── Scoring ────────────────────────────────────────────
     function scoreResults(rows, normalized, lat, lng, geoBoost) {
         return rows.map(row => {
             const result = adapter.toResult(row, lat, lng);
             let score = 0;
-            // FTS rank (negative, lower = better)
+            // FTS rank
             const ftsRank = row._ftsRank;
             if (ftsRank != null) {
-                score += Math.min(1, Math.max(0, -ftsRank / 20)) * 0.40;
+                if (dialect === 'postgres') {
+                    // PostgreSQL ts_rank returns positive values, higher = better
+                    score += Math.min(1, ftsRank) * 0.40;
+                }
+                else {
+                    // SQLite FTS5 rank is negative, lower = better
+                    score += Math.min(1, Math.max(0, -ftsRank / 20)) * 0.40;
+                }
             }
             // Name similarity
             score += Math.max(trigramSimilarity(normalized, result._nameN || '', locale), levenshteinSimilarity(normalized, result._nameN || '', locale)) * 0.25;

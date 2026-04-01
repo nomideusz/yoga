@@ -1,8 +1,10 @@
-import type { DatabaseClient, SchemaAdapter, SearchResult, SearchLocale, ResolverLookups } from './types.js';
+import type { DatabaseClient, SchemaAdapter, SearchResult, SearchLocale, SqlDialect, ResolverLookups } from './types.js';
 export interface IndexerConfig<TResult extends SearchResult = SearchResult> {
     db: DatabaseClient;
     adapter: SchemaAdapter<TResult>;
     locale?: SearchLocale;
+    /** SQL dialect: 'sqlite' (default) or 'postgres' */
+    dialect?: SqlDialect;
 }
 export declare function createIndexer<TResult extends SearchResult = SearchResult>(config: IndexerConfig<TResult>): {
     indexTrigrams: (entityId: string | number, entity: Record<string, unknown>) => Promise<void>;
@@ -14,12 +16,17 @@ export declare function createIndexer<TResult extends SearchResult = SearchResul
         missingFromFts: number;
         orphanedInFts: number;
     }>;
+    updateSearchVector: (entityId: string | number, searchText: string, tsConfig?: string) => Promise<void>;
+    rebuildAllSearchVectors: (tsConfig?: string) => Promise<number>;
     renormalizeAll: (updateRow: (db: DatabaseClient, row: Record<string, unknown>) => Promise<void>) => Promise<number>;
+    setupPostgresExtensions: () => Promise<void>;
 };
 export interface LoadLookupsConfig {
     db: DatabaseClient;
     locale?: SearchLocale;
-    /** SQL + column mapping for locations (cities/destinations) */
+    /** SQL dialect: 'sqlite' (default) or 'postgres' */
+    dialect?: SqlDialect;
+    /** SQL + column mapping for locations */
     locations: {
         sql: string;
         slugCol: string;
@@ -29,7 +36,7 @@ export interface LoadLookupsConfig {
         lngCol?: string;
         nameCol?: string;
     };
-    /** SQL + column mapping for categories (styles/types) */
+    /** SQL + column mapping for categories */
     categories: {
         sql: string;
         slugCol: string;
@@ -42,7 +49,7 @@ export interface LoadLookupsConfig {
         locationSlugCol: string;
         areasJsonCol: string;
     };
-    /** SQL for synonym aliases to add to location/category maps */
+    /** SQL for synonym aliases */
     synonymsSql?: string;
     /** Cache TTL in ms (default: 5 minutes) */
     cacheTtlMs?: number;

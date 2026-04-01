@@ -1,3 +1,5 @@
+/** SQL dialect for query generation. */
+export type SqlDialect = 'sqlite' | 'postgres';
 export interface DatabaseClient {
     execute(query: {
         sql: string;

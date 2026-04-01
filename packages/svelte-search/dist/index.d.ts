@@ -1,4 +1,4 @@
-export type { DatabaseClient, SchemaAdapter, SearchParams, SearchResult, SearchResponse, AutocompleteResult, SearchLocale, ResolverContext, ResolverLookups, ResolverAction, TrackSearchEvent, } from './core/types.js';
+export type { SqlDialect, DatabaseClient, SchemaAdapter, SearchParams, SearchResult, SearchResponse, AutocompleteResult, SearchLocale, ResolverContext, ResolverLookups, ResolverAction, TrackSearchEvent, } from './core/types.js';
 export { haversineKm, walkingMinutes, boundingBox, formatDistance, formatWalkingTime, walkingRoute, } from './core/geo.js';
 export { normalize, stripDiacriticsGeneric, trigrams, trigramSimilarity, levenshtein, levenshteinSimilarity, isPostcode, hasGeoIntent, stripGeoIntent, stripStopWords, MIN_SEARCH_TOKEN_LENGTH, } from './core/normalize.js';
 export { createSearchEngine, type SearchEngineConfig } from './core/engine.js';
