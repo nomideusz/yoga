@@ -1478,6 +1478,7 @@
         "@context": "https://schema.org",
         "@type": "WebSite",
         name: "szkolyjogi.pl",
+        alternateName: ["Szkoły Jogi", "Katalog Szkół Jogi"],
         url: "https://szkolyjogi.pl",
         description: t("meta_main_desc"),
         inLanguage: ["pl", "en", "uk"],
