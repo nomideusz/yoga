@@ -100,6 +100,8 @@ function buildCard(
     neighborhood: string | null;
     latitude: number | null;
     longitude: number | null;
+    price: number | null;
+    trialPrice: number | null;
   },
   styleNames: string[],
 ): ListingCard {
@@ -114,6 +116,8 @@ function buildCard(
     latitude: row.latitude,
     longitude: row.longitude,
     styles: styleNames,
+    price: row.price,
+    trialPrice: row.trialPrice,
   };
 }
 
@@ -330,6 +334,8 @@ export async function getListingsByStyle(
         neighborhood: schools.neighborhood,
         latitude: schools.latitude,
         longitude: schools.longitude,
+        price: schools.price,
+        trialPrice: schools.trialPrice,
       })
       .from(schools)
       .where(
@@ -372,6 +378,8 @@ export async function getListingsByCity(city: string): Promise<ListingCard[]> {
       neighborhood: schools.neighborhood,
       latitude: schools.latitude,
       longitude: schools.longitude,
+      price: schools.price,
+      trialPrice: schools.trialPrice,
     })
     .from(schools)
     .where(

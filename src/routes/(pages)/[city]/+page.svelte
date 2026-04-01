@@ -1516,32 +1516,62 @@
         activeIndex = -1;
     });
 
-    /** FAQ structured data for SEO */
-    let faqJsonLd = $derived.by(() => {
+    /** FAQ items — data-driven, used for both visible section and JSON-LD */
+    let faqItems = $derived.by(() => {
         const city = cityDisplay(data.city);
-        const faq: Array<{ q: string; a: string }> = [];
-        faq.push({
-            q: t("faq_count_q", { city }),
-            a: t("faq_count_a", { city, count: data.schools.length }),
-        });
-        if (allStyles.length > 0) {
-            faq.push({
-                q: t("faq_styles_q", { city }),
-                a: t("faq_styles_a", { city, styles: allStyles.map(s => styleDisplayName(s, i18n.locale)).join(", ") }),
+        const cityLoc = cityLocDisplay(data.city);
+        const items: Array<{ q: string; a: string }> = [];
+
+        // 1. Average pricing
+        const prices = data.schools.map(s => s.price).filter((p): p is number => p != null && p > 0);
+        if (prices.length >= 3) {
+            const avg = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            items.push({
+                q: t("faq_price_q", { cityLoc }),
+                a: t("faq_price_a", { cityLoc, avg, min, max }),
             });
         }
-        return {
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faq.map((f) => ({
-                "@type": "Question",
-                name: f.q,
-                acceptedAnswer: {
-                    "@type": "Answer",
-                    text: f.a,
-                },
-            })),
-        };
+
+        // 2. Free trial availability
+        const freeTrialSchools = data.schools.filter(s => s.trialPrice != null && s.trialPrice === 0);
+        if (freeTrialSchools.length > 0) {
+            const names = freeTrialSchools.map(s => s.name).join(", ");
+            items.push({
+                q: t("faq_trial_q", { cityLoc }),
+                a: t("faq_trial_a_yes", { cityLoc, count: freeTrialSchools.length, total: data.schools.length, names }),
+            });
+        } else if (data.schools.length >= 3) {
+            items.push({
+                q: t("faq_trial_q", { cityLoc }),
+                a: t("faq_trial_a_no", { cityLoc, total: data.schools.length }),
+            });
+        }
+
+        // 3. Neighborhoods
+        const hoods = [...new Set(data.schools.map(s => s.neighborhood).filter((n): n is string => !!n))].sort();
+        if (hoods.length >= 2) {
+            items.push({
+                q: t("faq_neighborhoods_q", { cityLoc }),
+                a: t("faq_neighborhoods_a", { cityLoc, count: hoods.length, list: hoods.join(", ") }),
+            });
+        }
+
+        return items;
+    });
+
+    let faqJsonLd = $derived({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: f.a,
+            },
+        })),
     });
 
     let distanceVersion = 0;
@@ -2052,6 +2082,19 @@
             />
         {/if}
     </div>
+
+    <!-- ── FAQ (visible, matches JSON-LD) ── -->
+    {#if faqItems.length > 0}
+        <footer class="city-faq">
+            <div class="city-faq-kicker">{t("faq_heading")}</div>
+            {#each faqItems as item}
+                <details class="city-faq-item">
+                    <summary class="city-faq-q">{item.q}</summary>
+                    <p class="city-faq-a">{item.a}</p>
+                </details>
+            {/each}
+        </footer>
+    {/if}
 </div>
 
 <SlideOver bind:open={slideOverOpen} onclose={closeSlideOver}>
@@ -2745,6 +2788,66 @@
     }
 
     /* ── Reduced motion ── */
+    /* ── FAQ ── */
+    .city-faq {
+        border-top: 1px solid var(--sf-line);
+        margin-top: 16px;
+        padding: 32px 0 48px;
+    }
+
+    .city-faq-kicker {
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--sf-muted);
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .city-faq-item {
+        border-bottom: 1px solid var(--sf-line);
+    }
+
+    .city-faq-q {
+        font-family: var(--font-body);
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: var(--sf-dark);
+        padding: 14px 0;
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .city-faq-q::-webkit-details-marker { display: none; }
+    .city-faq-q::marker { content: ""; }
+
+    .city-faq-q::after {
+        content: "+";
+        flex-shrink: 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--sf-muted);
+        transition: transform 0.15s ease;
+    }
+
+    .city-faq-item[open] > .city-faq-q::after {
+        content: "−";
+    }
+
+    .city-faq-a {
+        font-family: var(--font-body);
+        font-size: 0.84rem;
+        line-height: 1.6;
+        color: var(--sf-text);
+        padding: 0 0 16px;
+        margin: 0;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .school-card {
             transition: none !important;

@@ -136,30 +136,54 @@
 
     const plCollator = new Intl.Collator("pl-PL");
 
-    /** FAQ structured data for SEO */
-    let faqJsonLd = $derived.by(() => {
-        const cities = [...new Set(categoryListings.map((s) => s.city))].sort();
-        const faq: Array<{ q: string; a: string }> = [];
-        faq.push({
-            q: t("cat_faq_count_q", { style: displayName }),
-            a: t("cat_faq_count_a", { style: displayName, count: categoryListings.length }),
-        });
-        if (cities.length > 0) {
-            const displayCities = cities.slice(0, 10).map(c => cityDisplay(c)).join(", ") + (cities.length > 10 ? "..." : "");
-            faq.push({
-                q: t("cat_faq_cities_q", { style: displayName }),
-                a: t("cat_faq_cities_a", { style: displayName, count: cities.length, cities: displayCities }),
+    /** FAQ items — data-driven, used for both visible section and JSON-LD */
+    let faqItems = $derived.by(() => {
+        const items: Array<{ q: string; a: string }> = [];
+        const style = displayName;
+
+        // 1. Average pricing for this style
+        const prices = categoryListings.map(s => s.price).filter((p): p is number => p != null && p > 0);
+        if (prices.length >= 3) {
+            const avg = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            items.push({
+                q: t("cat_faq_price_q", { style }),
+                a: t("cat_faq_price_a", { style, avg, min, max }),
             });
         }
-        return {
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faq.map((f) => ({
-                "@type": "Question",
-                name: f.q,
-                acceptedAnswer: { "@type": "Answer", text: f.a },
-            })),
-        };
+
+        // 2. Free trial availability for this style
+        const freeTrialSchools = categoryListings.filter(s => s.trialPrice != null && s.trialPrice === 0);
+        if (freeTrialSchools.length > 0) {
+            const names = freeTrialSchools.map(s => s.name).join(", ");
+            items.push({
+                q: t("cat_faq_trial_q", { style }),
+                a: t("cat_faq_trial_a_yes", { style, count: freeTrialSchools.length, total: categoryListings.length, names }),
+            });
+        }
+
+        // 3. Cities with this style
+        const cities = [...new Set(categoryListings.map((s) => s.city))].sort();
+        if (cities.length > 0) {
+            const displayCities = cities.slice(0, 10).map(c => cityDisplay(c)).join(", ") + (cities.length > 10 ? "..." : "");
+            items.push({
+                q: t("cat_faq_cities_q", { style }),
+                a: t("cat_faq_cities_a", { style, count: cities.length, cities: displayCities }),
+            });
+        }
+
+        return items;
+    });
+
+    let faqJsonLd = $derived({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
     });
 
     // ── Sort ──
@@ -729,5 +753,64 @@
             from { opacity: 0.7; }
             to { opacity: 0.7; }
         }
+    }
+
+    /* ── FAQ ── */
+    .cat-faq {
+        border-top: 1px solid var(--sf-line);
+        margin-top: 16px;
+        padding: 32px 0 48px;
+    }
+
+    .cat-faq-kicker {
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--sf-muted);
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .cat-faq-item {
+        border-bottom: 1px solid var(--sf-line);
+    }
+
+    .cat-faq-q {
+        font-family: var(--font-body);
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: var(--sf-dark);
+        padding: 14px 0;
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .cat-faq-q::-webkit-details-marker { display: none; }
+    .cat-faq-q::marker { content: ""; }
+
+    .cat-faq-q::after {
+        content: "+";
+        flex-shrink: 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--sf-muted);
+    }
+
+    .cat-faq-item[open] > .cat-faq-q::after {
+        content: "−";
+    }
+
+    .cat-faq-a {
+        font-family: var(--font-body);
+        font-size: 0.84rem;
+        line-height: 1.6;
+        color: var(--sf-text);
+        padding: 0 0 16px;
+        margin: 0;
     }
 </style>

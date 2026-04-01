@@ -244,24 +244,30 @@
   "cal_n_events_one": "{n} заняття",
   "cal_n_events_many": "{n} занять",
 
-  "meta_yoga_schools": "Школи Йоги",
+  "meta_yoga_schools": "Школи Йоги — Каталог",
   "meta_prices_locations_reviews": "Ціни Абонементів, Розташування, Відгуки",
   "meta_city_desc": "Каталог шкіл йоги: {city}. Перевірте відгуки, порівняйте місячні ціни абонементів і знайдіть найкращу студію з безкоштовними пробними заняттями. Список {count} закладів.",
   "footer_schools": "шкіл",
   "footer_cities": "міст",
   "footer_styles": "стилів",
 
-  "meta_main_title": "Школи Йоги в Польщі — szkolyjogi.pl",
-  "meta_main_desc": "Каталог шкіл йоги в Польщі — знайдіть школу у вашому місті.",
+  "meta_main_title": "Школи Йоги в Польщі — Каталог і Пошук | szkolyjogi.pl",
+  "meta_main_desc": "Каталог шкіл йоги в Польщі — порівняйте ціни, відгуки та розташування. Знайдіть найкращу школу йоги у вашому місті.",
 
   "cat_meta_desc": "Школи йоги в стилі {style} — {count} закладів у каталозі szkolyjogi.pl.",
-  "cat_faq_count_q": "Скільки шкіл пропонують стиль {style} у Польщі?",
-  "cat_faq_count_a": "У каталозі szkolyjogi.pl знаходиться {count} шкіл, що пропонують заняття в стилі {style}.",
-  "cat_faq_cities_q": "У яких містах доступні заняття {style}?",
+  "cat_faq_price_q": "Скільки коштує {style}?",
+  "cat_faq_price_a": "Середній місячний абонемент у школах з {style} — {avg} зл. Ціни від {min} зл до {max} зл.",
+  "cat_faq_trial_q": "Де можна спробувати {style} безкоштовно?",
+  "cat_faq_trial_a_yes": "Безкоштовне перше заняття {style} пропонують {count} з {total} шкіл: {names}.",
+  "cat_faq_cities_q": "Де в Польщі є заняття {style}?",
   "cat_faq_cities_a": "Заняття {style} доступні у {count} містах: {cities}.",
 
-  "faq_count_q": "Скільки шкіл йоги є в місті {city}?",
-  "faq_count_a": "У місті {city} знаходиться {count} шкіл йоги в каталозі szkolyjogi.pl.",
-  "faq_styles_q": "Які стилі йоги доступні в місті {city}?",
-  "faq_styles_a": "У місті {city} доступні такі стилі йоги: {styles}."
+  "faq_heading": "Поширені питання",
+  "faq_price_q": "Скільки коштує йога в {cityLoc}?",
+  "faq_price_a": "Середній місячний абонемент в {cityLoc} — {avg} зл. Ціни від {min} зл до {max} зл.",
+  "faq_trial_q": "Де в {cityLoc} можна спробувати безкоштовне заняття з йоги?",
+  "faq_trial_a_yes": "Безкоштовне перше заняття в {cityLoc} пропонують {count} з {total} шкіл: {names}.",
+  "faq_trial_a_no": "Наразі жодна з {total} шкіл в {cityLoc} не пропонує безкоштовних пробних занять.",
+  "faq_neighborhoods_q": "У яких районах в {cityLoc} є школи йоги?",
+  "faq_neighborhoods_a": "Школи йоги в {cityLoc} працюють у {count} районах: {list}."
 }

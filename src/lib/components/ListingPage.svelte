@@ -48,7 +48,7 @@
 
         const ld: Record<string, unknown> = {
             "@context": "https://schema.org",
-            "@type": "SportsActivityLocation",
+            "@type": "HealthClub",
             name: listing.name,
             url: canonicalUrl,
             mainEntityOfPage: canonicalUrl,

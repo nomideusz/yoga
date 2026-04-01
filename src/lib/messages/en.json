@@ -244,24 +244,30 @@
   "cal_n_events_one": "{n} class",
   "cal_n_events_many": "{n} classes",
 
-  "meta_yoga_schools": "Yoga Schools",
+  "meta_yoga_schools": "Yoga Schools — Directory",
   "meta_prices_locations_reviews": "Pass Prices, Locations, Reviews",
   "meta_city_desc": "Yoga school directory: {city}. Check reviews, compare monthly pass prices and find the best studio with free trial classes. Listing of {count} schools.",
   "footer_schools": "schools",
   "footer_cities": "cities",
   "footer_styles": "styles",
 
-  "meta_main_title": "Yoga Schools in Poland — szkolyjogi.pl",
-  "meta_main_desc": "Directory of yoga schools in Poland — find a school in your city.",
+  "meta_main_title": "Yoga Schools in Poland — Directory & Search | szkolyjogi.pl",
+  "meta_main_desc": "Directory of yoga schools in Poland — compare prices, reviews and locations. Find the best yoga school in your city.",
 
   "cat_meta_desc": "{style} yoga schools — {count} schools in the szkolyjogi.pl directory.",
-  "cat_faq_count_q": "How many schools offer {style} in Poland?",
-  "cat_faq_count_a": "There are {count} schools offering {style} classes listed on szkolyjogi.pl.",
-  "cat_faq_cities_q": "In which cities are {style} classes available?",
+  "cat_faq_price_q": "How much does {style} cost?",
+  "cat_faq_price_a": "A monthly pass at schools offering {style} averages {avg} zł, ranging from {min} zł to {max} zł.",
+  "cat_faq_trial_q": "Where can I try {style} for free?",
+  "cat_faq_trial_a_yes": "{count} of {total} schools offering {style} have a free first class: {names}.",
+  "cat_faq_cities_q": "Where in Poland can I find {style} classes?",
   "cat_faq_cities_a": "{style} classes are available in {count} cities: {cities}.",
 
-  "faq_count_q": "How many yoga schools are in {city}?",
-  "faq_count_a": "There are {count} yoga schools in {city} listed on szkolyjogi.pl.",
-  "faq_styles_q": "What yoga styles are available in {city}?",
-  "faq_styles_a": "The following yoga styles are available in {city}: {styles}."
+  "faq_heading": "Frequently asked questions",
+  "faq_price_q": "How much does yoga cost in {cityLoc}?",
+  "faq_price_a": "A monthly pass in {cityLoc} averages {avg} zł, ranging from {min} zł to {max} zł.",
+  "faq_trial_q": "Where can I try a free yoga class in {cityLoc}?",
+  "faq_trial_a_yes": "{count} of {total} schools in {cityLoc} offer a free first class: {names}.",
+  "faq_trial_a_no": "Currently none of the {total} schools in {cityLoc} list a free trial class.",
+  "faq_neighborhoods_q": "Which neighborhoods in {cityLoc} have yoga schools?",
+  "faq_neighborhoods_a": "Yoga schools in {cityLoc} are spread across {count} neighborhoods: {list}."
 }

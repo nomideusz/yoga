@@ -103,4 +103,6 @@ export interface ListingCard {
   latitude: number | null;
   longitude: number | null;
   styles: string[];
+  price: number | null;
+  trialPrice: number | null;
 }

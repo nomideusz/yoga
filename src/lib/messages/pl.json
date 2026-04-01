@@ -243,24 +243,30 @@
   "cal_n_events_one": "{n} zajęcia",
   "cal_n_events_many": "{n} zajęć",
 
-  "meta_yoga_schools": "Szkoły Jogi",
+  "meta_yoga_schools": "Szkoły Jogi — Katalog",
   "meta_prices_locations_reviews": "Ceny Karnetów, Lokalizacje, Opinie",
   "meta_city_desc": "Baza szkół jogi: {city}. Sprawdź opinie, porównaj miesięczne ceny karnetów i znajdź najlepsze studio z darmowymi pierwszymi zajęciami. Zestawienie {count} placówek.",
   "footer_schools": "szkół",
   "footer_cities": "miast",
   "footer_styles": "stylów",
 
-  "meta_main_title": "Szkoły Jogi w Polsce — szkolyjogi.pl",
-  "meta_main_desc": "Katalog szkół jogi w Polsce — znajdź szkołę w swoim mieście.",
+  "meta_main_title": "Szkoły Jogi w Polsce — Katalog i Wyszukiwarka | szkolyjogi.pl",
+  "meta_main_desc": "Katalog szkół jogi w Polsce — porównaj ceny, opinie i lokalizacje. Znajdź najlepszą szkołę jogi w swoim mieście.",
 
   "cat_meta_desc": "Szkoły jogi w stylu {style} — {count} placówek w katalogu szkolyjogi.pl.",
-  "cat_faq_count_q": "Ile szkół oferuje styl {style} w Polsce?",
-  "cat_faq_count_a": "W katalogu szkolyjogi.pl znajduje się {count} szkół oferujących zajęcia w stylu {style}.",
-  "cat_faq_cities_q": "W jakich miastach dostępne są zajęcia {style}?",
-  "cat_faq_cities_a": "Zajęcia {style} dostępne są w {count} miastach: {cities}.",
+  "cat_faq_price_q": "Ile kosztuje {style}?",
+  "cat_faq_price_a": "Miesięczny karnet w szkołach z zajęciami {style} kosztuje średnio {avg} zł. Ceny wahają się od {min} zł do {max} zł.",
+  "cat_faq_trial_q": "Gdzie można spróbować {style} za darmo?",
+  "cat_faq_trial_a_yes": "Bezpłatne pierwsze zajęcia {style} oferuje {count} z {total} szkół: {names}.",
+  "cat_faq_cities_q": "Gdzie w Polsce są zajęcia {style}?",
+  "cat_faq_cities_a": "Zajęcia {style} znajdziesz w {count} miastach: {cities}.",
 
-  "faq_count_q": "Ile szkół jogi jest w mieście {city}?",
-  "faq_count_a": "W mieście {city} znajduje się {count} szkół jogi w katalogu szkolyjogi.pl.",
-  "faq_styles_q": "Jakie style jogi są dostępne w mieście {city}?",
-  "faq_styles_a": "W mieście {city} dostępne są następujące style jogi: {styles}."
+  "faq_heading": "Często zadawane pytania",
+  "faq_price_q": "Ile kosztuje joga w {cityLoc}?",
+  "faq_price_a": "Średni miesięczny karnet w {cityLoc} to {avg} zł. Ceny zaczynają się od {min} zł i sięgają {max} zł.",
+  "faq_trial_q": "Gdzie w {cityLoc} można pójść na darmowe zajęcia próbne?",
+  "faq_trial_a_yes": "Bezpłatne pierwsze zajęcia w {cityLoc} oferuje {count} z {total} szkół: {names}.",
+  "faq_trial_a_no": "Aktualnie żadna z {total} szkół w {cityLoc} nie oferuje darmowych zajęć próbnych.",
+  "faq_neighborhoods_q": "W jakich dzielnicach w {cityLoc} są szkoły jogi?",
+  "faq_neighborhoods_a": "Szkoły jogi w {cityLoc} działają w {count} dzielnicach: {list}."
 }
