@@ -535,9 +535,11 @@
 	.ag-body {
 		flex: 1;
 		min-height: 0;
+		min-width: 0;
 		display: flex;
 		flex-direction: column;
 		overflow-y: auto;
+		overflow-x: hidden;
 		padding-top: 44px;
 		scrollbar-width: thin;
 		scrollbar-color: var(--dt-border) transparent;
@@ -662,6 +664,7 @@
 		justify-content: space-between;
 		align-items: flex-start;
 		gap: 8px;
+		min-width: 0;
 	}
 	.ag-card-title {
 		font-size: 13px;
@@ -671,6 +674,7 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		flex: 1;
+		min-width: 0;
 	}
 	.ag-card-meta {
 		font-size: 11px;

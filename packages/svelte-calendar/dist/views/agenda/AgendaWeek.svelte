@@ -549,7 +549,9 @@
 	/* ═══ Body ═══ */
 	.ag-body {
 		flex: 1;
+		min-width: 0;
 		overflow-y: auto;
+		overflow-x: hidden;
 		scrollbar-width: thin;
 		scrollbar-color: var(--dt-border) transparent;
 	}
@@ -663,6 +665,7 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		flex: 1;
+		min-width: 0;
 	}
 	.ag-card-meta {
 		display: flex;
