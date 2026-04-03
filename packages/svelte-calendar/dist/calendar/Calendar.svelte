@@ -192,6 +192,7 @@
 
 	// ── Mobile detection (container-based, not viewport) ──
 	let containerWidth = $state(0);
+	let stableMinHeight = $state(0);
 	const isMobileContainer = $derived(containerWidth > 0 && containerWidth < MOBILE_BREAKPOINT);
 
 	const useMobile = $derived(
@@ -211,7 +212,13 @@
 		// Measure container width for mobile detection
 		containerWidth = calEl.clientWidth;
 		const ro = new ResizeObserver((entries) => {
-			containerWidth = Math.round(entries[0].contentRect.width);
+			const rect = entries[0].contentRect;
+			containerWidth = Math.round(rect.width);
+			// For auto-height: track peak height to prevent shrinking jumps
+			if (heightProp === 'auto') {
+				const h = Math.round(rect.height);
+				if (h > stableMinHeight) stableMinHeight = h;
+			}
 		});
 		ro.observe(calEl);
 
@@ -402,6 +409,12 @@
 		onviewchange?.(viewState.view);
 	});
 
+	// Reset stable min-height when view mode changes
+	$effect(() => {
+		void viewState.mode;
+		stableMinHeight = 0;
+	});
+
 	// ── Resolve active view ──
 	// When mobile is active, Planner views get remapped to Mobile variants.
 	// Agenda views stay as Agenda — they're already list-based and will adapt
@@ -478,7 +491,7 @@
 	class="cal"
 	class:cal--loading-theme={!themeReady}
 	bind:this={calEl}
-	style="{effectiveTheme}; {heightProp === 'auto' ? '' : `--cal-h: ${heightProp}px;`} --cal-r: {borderRadius}px"
+	style="{effectiveTheme}; {heightProp === 'auto' ? (stableMinHeight > 0 ? `min-height: ${stableMinHeight}px;` : '') : `--cal-h: ${heightProp}px;`} --cal-r: {borderRadius}px"
 	class:cal--auto={heightProp === 'auto'}
 	role="region"
 	aria-label={L.calendar}
@@ -597,6 +610,10 @@
 	.cal--auto {
 		height: auto;
 		overflow: visible;
+	}
+	.cal--loading-theme {
+		background: transparent !important;
+		border-color: transparent !important;
 	}
 	.cal--loading-theme > :not(.cal-theme-skeleton) {
 		opacity: 0;
