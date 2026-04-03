@@ -578,7 +578,7 @@
 		width: 100%;
 		min-width: 0;
 		height: var(--cal-h, 600px);
-		background: var(--dt-bg, #0b0e14);
+		background: var(--dt-bg, inherit);
 		border-radius: var(--cal-r, 12px);
 		overflow: clip;
 		display: flex;
