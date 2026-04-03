@@ -203,6 +203,7 @@
 	// probe the host page on mount and reactively watch for host theme changes.
 	let calEl: HTMLElement | undefined = $state();
 	let probedTheme = $state('');
+	let themeReady = $state(false);
 
 	onMount(() => {
 		if (!calEl) return;
@@ -216,10 +217,16 @@
 
 		// Only probe theme when using the auto preset (empty string)
 		const isAuto = theme === auto && autoTheme !== false;
-		if (!isAuto) { return () => ro.disconnect(); }
+		if (!isAuto) {
+			themeReady = true;
+			return () => ro.disconnect();
+		}
 
 		const opts: AutoThemeOptions = typeof autoTheme === 'object' ? autoTheme : {};
-		const stopTheme = observeHostTheme(calEl, (vars) => { probedTheme = vars; }, opts);
+		const stopTheme = observeHostTheme(calEl, (vars) => {
+			probedTheme = vars;
+			themeReady = true;
+		}, opts);
 		return () => { ro.disconnect(); stopTheme?.(); };
 	});
 
@@ -469,6 +476,7 @@
 
 <div
 	class="cal"
+	class:cal--loading-theme={!themeReady}
 	bind:this={calEl}
 	style="{effectiveTheme}; {heightProp === 'auto' ? '' : `--cal-h: ${heightProp}px;`} --cal-r: {borderRadius}px"
 	class:cal--auto={heightProp === 'auto'}
@@ -585,6 +593,12 @@
 	.cal--auto {
 		height: auto;
 		overflow: visible;
+	}
+	.cal--loading-theme {
+		opacity: 0;
+	}
+	.cal:not(.cal--loading-theme) {
+		transition: opacity 80ms ease;
 	}
 
 	/* ── Floating pills ── */
