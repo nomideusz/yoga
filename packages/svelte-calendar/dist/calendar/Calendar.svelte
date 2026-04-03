@@ -203,7 +203,10 @@
 	// probe the host page on mount and reactively watch for host theme changes.
 	let calEl: HTMLElement | undefined = $state();
 	let probedTheme = $state('');
-	let themeReady = $state(false);
+	// Only delay rendering when auto-probe is actually needed
+	const needsProbe = $derived(theme === auto && autoTheme !== false);
+	let probeComplete = $state(false);
+	const themeReady = $derived(!needsProbe || probeComplete);
 
 	onMount(() => {
 		if (!calEl) return;
@@ -215,17 +218,13 @@
 		});
 		ro.observe(calEl);
 
-		// Only probe theme when using the auto preset (empty string)
-		const isAuto = theme === auto && autoTheme !== false;
-		if (!isAuto) {
-			themeReady = true;
-			return () => ro.disconnect();
-		}
+		// Only probe theme when using the auto preset
+		if (!needsProbe) return () => ro.disconnect();
 
 		const opts: AutoThemeOptions = typeof autoTheme === 'object' ? autoTheme : {};
 		const stopTheme = observeHostTheme(calEl, (vars) => {
 			probedTheme = vars;
-			themeReady = true;
+			probeComplete = true;
 		}, opts);
 		return () => { ro.disconnect(); stopTheme?.(); };
 	});
