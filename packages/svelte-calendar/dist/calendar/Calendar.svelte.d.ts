@@ -91,6 +91,16 @@ interface Props {
         isToday: boolean;
         dayName: string;
     }]>;
+    /**
+     * Replace the entire header chrome (date label + mode pills + nav arrows).
+     * Receives context: { dateLabel, mode, modes, switchMode, prev, next, goToday, isViewOnToday, focusDate }.
+     */
+    header?: Snippet<[import('../headless/types.js').HeaderContext]>;
+    /**
+     * Replace just the navigation controls (arrows + today button).
+     * Receives context: { prev, next, goToday, isViewOnToday, focusDate, mode }.
+     */
+    navigation?: Snippet<[import('../headless/types.js').NavigationContext]>;
     oneventclick?: (event: TimelineEvent) => void;
     oneventcreate?: (range: {
         start: Date;

@@ -125,6 +125,16 @@
 		empty?: Snippet;
 		/** Custom day header snippet. Receives { date, isToday, dayName }. */
 		dayHeader?: Snippet<[{ date: Date; isToday: boolean; dayName: string }]>;
+		/**
+		 * Replace the entire header chrome (date label + mode pills + nav arrows).
+		 * Receives context: { dateLabel, mode, modes, switchMode, prev, next, goToday, isViewOnToday, focusDate }.
+		 */
+		header?: Snippet<[import('../headless/types.js').HeaderContext]>;
+		/**
+		 * Replace just the navigation controls (arrows + today button).
+		 * Receives context: { prev, next, goToday, isViewOnToday, focusDate, mode }.
+		 */
+		navigation?: Snippet<[import('../headless/types.js').NavigationContext]>;
 
 		// ── Callbacks ──
 		oneventclick?: (event: TimelineEvent) => void;
@@ -178,6 +188,8 @@
 		event: eventSnippet,
 		empty: emptySnippet,
 		dayHeader: dayHeaderSnippet,
+		header: headerSnippet,
+		navigation: navigationSnippet,
 		oneventclick,
 		oneventcreate,
 		oneventmove,
@@ -472,6 +484,29 @@
 		const { start, end } = viewState.range;
 		return now >= start.getTime() && now < end.getTime();
 	});
+
+	/** Header context for custom header snippet */
+	const headerCtx = $derived({
+		dateLabel,
+		mode: viewState.mode,
+		modes,
+		switchMode,
+		prev: () => viewState.prev(),
+		next: () => viewState.next(),
+		goToday: () => viewState.goToday(),
+		isViewOnToday: viewIncludesToday,
+		focusDate: viewState.focusDate,
+	});
+
+	/** Navigation context for custom navigation snippet */
+	const navCtx = $derived({
+		prev: () => viewState.prev(),
+		next: () => viewState.next(),
+		goToday: () => viewState.goToday(),
+		isViewOnToday: viewIncludesToday,
+		focusDate: viewState.focusDate,
+		mode: viewState.mode,
+	});
 </script>
 
 <div
@@ -484,11 +519,17 @@
 	dir={dir}
 	lang={locale}
 >
+	<!-- ─── Custom header snippet (replaces all chrome) ─── -->
+	{#if headerSnippet}
+		{@render headerSnippet(headerCtx)}
+
 	<!-- ─── Mobile header (flow layout, no absolute) ─── -->
-	{#if useMobile}
+	{:else if useMobile}
 		<div class="cal-m-hd">
 			<div class="cal-m-left">
-				{#if showNavigation}
+				{#if navigationSnippet}
+					{@render navigationSnippet(navCtx)}
+				{:else if showNavigation}
 					<button class="cal-m-nav" onclick={() => viewState.prev()} aria-label={viewState.mode === 'day' ? L.previousDay : L.previousWeek}>
 						<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
 					</button>
@@ -513,7 +554,7 @@
 			<span class="cal-m-title">{dateLabel}</span>
 
 			<div class="cal-m-right">
-				{#if showNavigation}
+				{#if !navigationSnippet && showNavigation}
 					<button class="cal-m-nav" onclick={() => viewState.next()} aria-label={viewState.mode === 'day' ? L.nextDay : L.nextWeek}>
 						<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>
 					</button>
@@ -522,29 +563,31 @@
 		</div>
 
 		<!-- Today pill — floats below header, doesn't affect header flow -->
-		{#if showNavigation && !viewIncludesToday}
+		{#if !navigationSnippet && showNavigation && !viewIncludesToday}
 			<div class="cal-m-today-bar">
 				<button class="cal-m-today" onclick={() => viewState.goToday()}>
 					{L.today}
 				</button>
 			</div>
 		{/if}
-	{/if}
 
-	<!-- Floating mode pills — desktop only (hidden for Agenda views) -->
-	{#if !useMobile && showModePills && modes.length > 1 && activeView?.label !== 'Agenda'}
-		<div class="cal-pills" role="group" aria-label={L.viewMode}>
-			{#each modes as g}
-				<button
-					class="cal-pill"
-					class:cal-pill--active={viewState.mode === g}
-					aria-pressed={viewState.mode === g}
-					onclick={() => switchMode(g)}
-				>
-					{g === 'day' ? L.day : L.week}
-				</button>
-			{/each}
-		</div>
+	<!-- ─── Desktop chrome ─── -->
+	{:else}
+		<!-- Floating mode pills (hidden for Agenda views) -->
+		{#if showModePills && modes.length > 1 && activeView?.label !== 'Agenda'}
+			<div class="cal-pills" role="group" aria-label={L.viewMode}>
+				{#each modes as g}
+					<button
+						class="cal-pill"
+						class:cal-pill--active={viewState.mode === g}
+						aria-pressed={viewState.mode === g}
+						onclick={() => switchMode(g)}
+					>
+						{g === 'day' ? L.day : L.week}
+					</button>
+				{/each}
+			</div>
+		{/if}
 	{/if}
 
 	<div class="cal-body">
