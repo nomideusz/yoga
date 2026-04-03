@@ -1,4 +1,4 @@
-export type { CalendarAdapter, DateRange } from './types.js';
+export type { CalendarAdapter, WritableCalendarAdapter, DateRange } from './types.js';
 export { createMemoryAdapter } from './memory.js';
 export type { MemoryAdapterOptions } from './memory.js';
 export { createRestAdapter } from './rest.js';

@@ -34,9 +34,16 @@
 		"test:watch": "vitest"
 	},
 	"peerDependencies": {
-		"svelte": "^5.0.0"
+		"svelte": "^5.0.0",
+		"@chenglou/pretext": "^0.0.4"
+	},
+	"peerDependenciesMeta": {
+		"@chenglou/pretext": {
+			"optional": true
+		}
 	},
 	"devDependencies": {
+		"@chenglou/pretext": "^0.0.4",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/kit": "^2.50.2",
 		"@sveltejs/package": "^2.5.7",

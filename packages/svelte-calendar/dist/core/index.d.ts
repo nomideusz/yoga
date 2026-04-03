@@ -7,3 +7,5 @@ export type { CalendarLabels } from './locale.js';
 export { toZonedTime, fromZonedTime, nowInZone, formatInTimeZone, } from './timezone.js';
 export type { TimelineEvent, BlockedSlot, EventStatus, } from './types.js';
 export { generatePalette, extractAccent, VIVID_PALETTE } from './palette.js';
+export { createTextMeasure, initTextMeasure } from './measure.js';
+export type { TextMeasure, TextMeasureOptions, ContentFit } from './measure.js';

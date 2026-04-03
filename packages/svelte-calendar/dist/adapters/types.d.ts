@@ -15,9 +15,18 @@ export interface CalendarAdapter {
     /** Fetch events that overlap the given date range */
     fetchEvents(range: DateRange): Promise<TimelineEvent[]>;
     /** Create a new event, return it with a server-assigned ID */
-    createEvent(event: Omit<TimelineEvent, 'id'>): Promise<TimelineEvent>;
+    createEvent?(event: Omit<TimelineEvent, 'id'>): Promise<TimelineEvent>;
     /** Update an event, return the full updated event */
-    updateEvent(id: string, patch: Partial<TimelineEvent>): Promise<TimelineEvent>;
+    updateEvent?(id: string, patch: Partial<TimelineEvent>): Promise<TimelineEvent>;
     /** Delete an event by ID */
+    deleteEvent?(id: string): Promise<void>;
+}
+/**
+ * A CalendarAdapter that supports full CRUD operations.
+ * Use this type when you need to guarantee write support.
+ */
+export interface WritableCalendarAdapter extends CalendarAdapter {
+    createEvent(event: Omit<TimelineEvent, 'id'>): Promise<TimelineEvent>;
+    updateEvent(id: string, patch: Partial<TimelineEvent>): Promise<TimelineEvent>;
     deleteEvent(id: string): Promise<void>;
 }

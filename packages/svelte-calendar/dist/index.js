@@ -7,7 +7,7 @@ export { createEventStore, createViewState, createSelection, createDragState, } 
 // ─── Adapters ───────────────────────────────────────────
 export { createMemoryAdapter, createRestAdapter, createRecurringAdapter, createMappedAdapter, createCompositeAdapter } from './adapters/index.js';
 // ─── Core: clock, time, locale, types ───────────────────
-export { createClock, startOfWeek, fmtH, fmtTime, fmtDuration, weekdayShort, weekdayLong, monthShort, monthLong, dateShort, dateWithWeekday, fmtDay, fmtWeekRange, setDefaultLocale, getDefaultLocale, is24HourLocale, defaultLabels, setLabels, resetLabels, getLabels, toZonedTime, fromZonedTime, nowInZone, formatInTimeZone, generatePalette, extractAccent, VIVID_PALETTE, isMultiDay, isAllDay, segmentForDay, } from './core/index.js';
+export { createClock, startOfWeek, fmtH, fmtTime, fmtDuration, weekdayShort, weekdayLong, monthShort, monthLong, dateShort, dateWithWeekday, fmtDay, fmtWeekRange, setDefaultLocale, getDefaultLocale, is24HourLocale, defaultLabels, setLabels, resetLabels, getLabels, toZonedTime, fromZonedTime, nowInZone, formatInTimeZone, generatePalette, extractAccent, VIVID_PALETTE, isMultiDay, isAllDay, segmentForDay, createTextMeasure, initTextMeasure, } from './core/index.js';
 // ─── Themes ─────────────────────────────────────────────
 export { auto, neutral, midnight, presets } from './theme/index.js';
 export { probeHostTheme, observeHostTheme } from './theme/index.js';

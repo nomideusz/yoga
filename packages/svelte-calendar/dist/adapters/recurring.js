@@ -70,7 +70,7 @@ function createConcreteEvent(rec, date) {
         tags: rec.tags,
         location: rec.location,
         resourceId: rec.resourceId,
-        data: { ...rec.data, recurringId: rec.id },
+        data: { ...rec.data, recurringId: rec.id, readOnly: true },
     };
 }
 // ── Count → until resolution ────────────────────────────
@@ -285,14 +285,7 @@ export function createRecurringAdapter(schedule, options = {}) {
             }
             return events;
         },
-        async createEvent() {
-            throw new Error('createRecurringAdapter is read-only. Use a memory or REST adapter for mutations.');
-        },
-        async updateEvent() {
-            throw new Error('createRecurringAdapter is read-only. Use a memory or REST adapter for mutations.');
-        },
-        async deleteEvent() {
-            throw new Error('createRecurringAdapter is read-only. Use a memory or REST adapter for mutations.');
-        },
+        // Read-only adapter: CRUD methods intentionally omitted.
+        // Use createMemoryAdapter or createRestAdapter for mutations.
     };
 }

@@ -6,9 +6,11 @@
   Events are positioned as horizontal cards with overlap support.
 -->
 <script lang="ts">
-	import { getContext, onMount, tick, untrack, type Snippet } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
+	import { useCalendarContext } from '../shared/context.svelte.js';
 	import { fly } from 'svelte/transition';
 	import { createClock } from '../../core/clock.svelte.js';
+	import { createTextMeasure, type ContentFit } from '../../core/measure.js';
 	import type { TimelineEvent, BlockedSlot } from '../../core/types.js';
 	import type { DragState } from '../../engine/drag.svelte.js';
 	import type { ViewState } from '../../engine/view-state.svelte.js';
@@ -58,33 +60,21 @@
 	}: Props = $props();
 
 	// ── Context (available when inside Calendar) ──
-	const drag = getContext<DragState>('calendar:drag') as DragState | undefined;
-	const commitDragCtx = getContext<() => void>('calendar:commitDrag') as (() => void) | undefined;
-	const snapIntervalCtx = getContext<{ current: number }>('calendar:snapInterval');
-	const viewState = getContext<ViewState>('calendar:viewState') as ViewState | undefined;
-	const loadRangeCtx = getContext<{ current: { start: Date; end: Date } | null; set: (r: { start: Date; end: Date } | null) => void }>('calendar:loadRange') as { current: { start: Date; end: Date } | null; set: (r: { start: Date; end: Date } | null) => void } | undefined;
-
+	const ctx = useCalendarContext();
 	const clock = createClock();
-	const showNavCtx = getContext<{ current: boolean }>('calendar:showNavigation') as { current: boolean } | undefined;
-	const showDatesCtx = getContext<{ current: boolean }>('calendar:showDates') as { current: boolean } | undefined;
-	const showNav = $derived(showNavCtx?.current ?? true);
-	const showDates = $derived(showDatesCtx?.current ?? true);
-
-	// ── New feature contexts ──
-	const blockedSlotsCtx = getContext<{ current: BlockedSlot[] | undefined }>('calendar:blockedSlots') as { current: BlockedSlot[] | undefined } | undefined;
-	const dayHeaderSnippetCtx = getContext<{ current: Snippet<[{ date: Date; isToday: boolean; dayName: string }]> | undefined }>('calendar:dayHeaderSnippet') as { current: Snippet<[{ date: Date; isToday: boolean; dayName: string }]> | undefined } | undefined;
-	const minDurationCtx = getContext<{ current: number | undefined }>('calendar:minDuration') as { current: number | undefined } | undefined;
-	const callbacksCtx = getContext<{ oneventhover?: (event: TimelineEvent) => void }>('calendar:callbacks') as { oneventhover?: (event: TimelineEvent) => void } | undefined;
-	const disabledDatesCtx = getContext<{ current: Date[] | undefined }>('calendar:disabledDates') as { current: Date[] | undefined } | undefined;
-	const autoHeightCtx = getContext<{ current: boolean }>('calendar:autoHeight') as { current: boolean } | undefined;
-
-	const blockedSlots = $derived(blockedSlotsCtx?.current);
-	const dayHeaderSnippet = $derived(dayHeaderSnippetCtx?.current);
-	const minDuration = $derived(minDurationCtx?.current);
-	const autoHeight = $derived(autoHeightCtx?.current ?? false);
-	const oneventhover = $derived(callbacksCtx?.oneventhover);
-	const disabledDates = $derived(disabledDatesCtx?.current);
-	const disabledSet = $derived(new Set(disabledDates?.map(d => sod(d.getTime())) ?? []));
+	const drag = $derived(ctx.drag);
+	const commitDragCtx = $derived(ctx.commitDrag);
+	const viewState = $derived(ctx.viewState);
+	const loadRangeCtx = $derived(ctx.loadRange);
+	const showNav = $derived(ctx.showNav);
+	const showDates = $derived(ctx.showDates);
+	const blockedSlots = $derived(ctx.blockedSlots);
+	const dayHeaderSnippet = $derived(ctx.dayHeaderSnippet);
+	const minDuration = $derived(ctx.minDuration);
+	const autoHeight = $derived(ctx.autoHeight);
+	const oneventhover = $derived(ctx.oneventhover);
+	const disabledSet = $derived(ctx.disabledSet);
+	const SNAP_MS = $derived(ctx.snapInterval * 60_000);
 
 	// ─── State ──────────────────────────────────────────
 	let following = $state(true);
@@ -113,7 +103,6 @@
 	const startHour = $derived(visibleHours?.[0] ?? 0);
 	const endHour = $derived(visibleHours?.[1] ?? 24);
 	const hourCount = $derived(Math.max(1, endHour - startHour));
-	const SNAP_MS = $derived((snapIntervalCtx?.current ?? 15) * 60_000);
 	const DAY_GAP = 2;
 
 	const dateLabel = $derived(
@@ -207,6 +196,16 @@
 	const EVENT_GAP = 5;
 	const MIN_EVENT_H = 32;
 
+	// Text measure for smart content fitting
+	const measure = createTextMeasure({
+		titleFont: '600 13px system-ui, sans-serif',
+		secondaryFont: '400 10px system-ui, sans-serif',
+		tagFont: '500 8px system-ui, sans-serif',
+		titleLineHeight: 16,
+		secondaryLineHeight: 13,
+		contentGap: 6,
+	});
+
 	interface PositionedEvent {
 		ev: TimelineEvent;
 		x: number;
@@ -218,6 +217,7 @@
 		isCurrent: boolean;
 		isNext: boolean;
 		isDragged: boolean;
+		fit: ContentFit;
 	}
 
 	const positionedEvents = $derived.by(() => {
@@ -297,20 +297,40 @@
 		const result: PositionedEvent[] = infos.map(({ startMs: _s, endMs: _e, ...info }) => {
 			const laneH = Math.max(MIN_EVENT_H, availH / info.groupMaxRow - EVENT_GAP);
 			const topPx = contentTop + info.row * (availH / info.groupMaxRow);
-			return { ...info, topPx, heightPx: laneH, isNext: info.isNext };
+			// Vertical text: text "width" = heightPx, content "height" = width
+			const fit = measure.fitContent({
+				title: info.ev.title,
+				subtitle: info.ev.subtitle,
+				location: info.ev.location,
+				time: `${fmtTime(info.ev.start, locale)} – ${fmtTime(info.ev.end, locale)}`,
+				tags: info.ev.tags,
+				maxWidth: laneH - 16, // vertical: heightPx minus padding
+				maxHeight: info.width - 16, // vertical: width minus padding
+			});
+			return { ...info, topPx, heightPx: laneH, isNext: info.isNext, fit };
 		});
 
 		if (draggedEv && dragP) {
 			const x = timeToPx(dragP.start.getTime());
 			const xEnd = timeToPx(dragP.end.getTime());
+			const dragH = Math.max(MIN_EVENT_H, availH - EVENT_GAP);
+			const dragW = Math.max(xEnd - x, 28);
 			result.push({
-				ev: draggedEv, x, width: Math.max(xEnd - x, 28),
+				ev: draggedEv, x, width: dragW,
 				row: 0, groupMaxRow: 1,
 				topPx: contentTop,
-				heightPx: Math.max(MIN_EVENT_H, availH - EVENT_GAP),
+				heightPx: dragH,
 				isCurrent: draggedEv.start.getTime() <= now && draggedEv.end.getTime() > now,
 				isNext: false,
 				isDragged: true,
+				fit: measure.fitContent({
+					title: draggedEv.title,
+					subtitle: draggedEv.subtitle,
+					location: draggedEv.location,
+					tags: draggedEv.tags,
+					maxWidth: dragH - 16,
+					maxHeight: dragW - 16,
+				}),
 			});
 		}
 
@@ -493,7 +513,7 @@
 	let evDragEvent: TimelineEvent | null = null;
 
 	function onEventPointerDown(e: PointerEvent, ev: TimelineEvent) {
-		if (e.button !== 0 || !drag || readOnly) return;
+		if (e.button !== 0 || !drag || readOnly || ev.data?.readOnly) return;
 		e.stopPropagation();
 		evDragStartX = e.clientX;
 		evDragOriginPx = timeToPx(ev.start.getTime());
@@ -623,6 +643,7 @@
 					class:fs-event--current={p.isCurrent}
 					class:fs-event--next={p.isNext}
 					class:fs-event--dragging={p.isDragged}
+					class:fs-event--readonly={p.ev.data?.readOnly}
 					class:fs-event--cancelled={p.ev.status === 'cancelled'}
 					class:fs-event--tentative={p.ev.status === 'tentative'}
 					class:fs-event--full={p.ev.status === 'full'}
@@ -645,17 +666,17 @@
 						{:else if p.isNext}
 							<span class="fs-ev-next-badge" aria-hidden="true">{L.upNext}</span>
 						{/if}
-						{#if p.heightPx > 64}
+						{#if p.fit.time}
 							<span class="fs-ev-time">{fmtTime(p.ev.start, locale)} – {fmtTime(p.ev.end, locale)}</span>
 						{/if}
 						<span class="fs-ev-title">{p.ev.title}</span>
-						{#if p.ev.subtitle && p.heightPx > 48}
+						{#if p.ev.subtitle && p.fit.subtitle}
 							<span class="fs-ev-sub">{p.ev.subtitle}</span>
 						{/if}
-						{#if p.ev.location && p.heightPx > 56}
+						{#if p.ev.location && p.fit.location}
 							<span class="fs-ev-loc">{p.ev.location}</span>
 						{/if}
-						{#if p.ev.tags?.length && p.heightPx > 72}
+						{#if p.ev.tags?.length && p.fit.tags}
 							<span class="fs-ev-tags">
 								{#each p.ev.tags as tag}
 									<span class="fs-ev-tag">{tag}</span>
@@ -1081,6 +1102,9 @@
 	.fs-event--limited {
 		opacity: 0.65;
 		border: 1px dashed color-mix(in srgb, var(--ev-color) 40%, transparent);
+	}
+	.fs-event--readonly {
+		cursor: default;
 	}
 
 	/* Event inner (vertical text, bottom-to-top reading) */

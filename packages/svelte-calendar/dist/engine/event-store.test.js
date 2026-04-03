@@ -32,9 +32,6 @@ describe('createEventStore', () => {
         it('sets error on adapter failure', async () => {
             const failingAdapter = {
                 fetchEvents: async () => { throw new Error('network error'); },
-                createEvent: async () => { throw new Error(); },
-                updateEvent: async () => { throw new Error(); },
-                deleteEvent: async () => { throw new Error(); },
             };
             const store = createEventStore(failingAdapter);
             await store.load(MARCH_1_RANGE);

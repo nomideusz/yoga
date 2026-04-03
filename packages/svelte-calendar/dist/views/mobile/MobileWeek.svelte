@@ -6,7 +6,7 @@
   left/right to navigate weeks.
 -->
 <script lang="ts">
-	import { getContext } from 'svelte';
+	import { useCalendarContext } from '../shared/context.svelte.js';
 	import { createClock } from '../../core/clock.svelte.js';
 	import type { TimelineEvent } from '../../core/types.js';
 	import type { ViewState } from '../../engine/view-state.svelte.js';
@@ -44,22 +44,16 @@
 	}: Props = $props();
 
 	// ── Context ────────────────────────────────────────
-	const viewState = getContext<ViewState>('calendar:viewState') as ViewState | undefined;
-	const loadRangeCtx = getContext<{ current: { start: Date; end: Date } | null; set: (r: { start: Date; end: Date } | null) => void }>('calendar:loadRange') as { current: { start: Date; end: Date } | null; set: (r: { start: Date; end: Date } | null) => void } | undefined;
-	const equalDaysCtx = getContext<{ current: boolean }>('calendar:equalDays') as { current: boolean } | undefined;
-	const showDatesCtx = getContext<{ current: boolean }>('calendar:showDates') as { current: boolean } | undefined;
-	const hideDaysCtx = getContext<{ current: number[] | undefined }>('calendar:hideDays') as { current: number[] | undefined } | undefined;
-	const callbacksCtx = getContext<{ oneventhover?: (event: TimelineEvent) => void }>('calendar:callbacks') as { oneventhover?: (event: TimelineEvent) => void } | undefined;
-	const disabledDatesCtx = getContext<{ current: Date[] | undefined }>('calendar:disabledDates') as { current: Date[] | undefined } | undefined;
-	const autoHeightCtx = getContext<{ current: boolean }>('calendar:autoHeight') as { current: boolean } | undefined;
-
-	const equalDays = $derived(equalDaysCtx?.current ?? false);
-	const autoHeight = $derived(autoHeightCtx?.current ?? false);
-	const showDates = $derived(showDatesCtx?.current ?? true);
-	const hideDays = $derived(hideDaysCtx?.current);
-	const oneventhover = $derived(callbacksCtx?.oneventhover);
-	const disabledDates = $derived(disabledDatesCtx?.current);
-	const disabledSet = $derived(new Set(disabledDates?.map(d => sod(d.getTime())) ?? []));
+	const ctx = useCalendarContext();
+	const viewState = $derived(ctx.viewState);
+	const equalDays = $derived(ctx.equalDays);
+	const showDates = $derived(ctx.showDates);
+	const hideDays = $derived(ctx.hideDays);
+	const autoHeight = $derived(ctx.autoHeight);
+	const oneventhover = $derived(ctx.oneventhover);
+	const disabledSet = $derived(ctx.disabledSet);
+	const loadRangeCtx = $derived(ctx.loadRange);
+	const minDuration = $derived(ctx.minDuration);
 
 	const clock = createClock();
 

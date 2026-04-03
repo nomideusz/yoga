@@ -190,20 +190,12 @@
 	const effectiveCreate = $derived(readOnly ? undefined : oneventcreate);
 	const effectiveMove = $derived(readOnly ? undefined : oneventmove);
 
-	// ── Mobile detection ──
-	let isMobileViewport = $state(false);
-
-	onMount(() => {
-		if (typeof window === 'undefined') return;
-		const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-		isMobileViewport = mql.matches;
-		function onChange(e: MediaQueryListEvent) { isMobileViewport = e.matches; }
-		mql.addEventListener('change', onChange);
-		return () => mql.removeEventListener('change', onChange);
-	});
+	// ── Mobile detection (container-based, not viewport) ──
+	let containerWidth = $state(0);
+	const isMobileContainer = $derived(containerWidth > 0 && containerWidth < MOBILE_BREAKPOINT);
 
 	const useMobile = $derived(
-		mobileProp === 'auto' ? isMobileViewport : Boolean(mobileProp)
+		mobileProp === 'auto' ? isMobileContainer : Boolean(mobileProp)
 	);
 
 	// ── Smart auto-theme ──
@@ -214,12 +206,21 @@
 
 	onMount(() => {
 		if (!calEl) return;
-		// Only probe when using the auto preset (empty string)
+
+		// Measure container width for mobile detection
+		containerWidth = calEl.clientWidth;
+		const ro = new ResizeObserver((entries) => {
+			containerWidth = Math.round(entries[0].contentRect.width);
+		});
+		ro.observe(calEl);
+
+		// Only probe theme when using the auto preset (empty string)
 		const isAuto = theme === auto && autoTheme !== false;
-		if (!isAuto) return;
+		if (!isAuto) { return () => ro.disconnect(); }
 
 		const opts: AutoThemeOptions = typeof autoTheme === 'object' ? autoTheme : {};
-		return observeHostTheme(calEl, (vars) => { probedTheme = vars; }, opts);
+		const stopTheme = observeHostTheme(calEl, (vars) => { probedTheme = vars; }, opts);
+		return () => { ro.disconnect(); stopTheme?.(); };
 	});
 
 	/** Effective theme: user-provided takes priority, otherwise probed auto. */
@@ -239,7 +240,7 @@
 
 	// ── Drag commit handler ──
 	// Views call this on pointer-up to process drag results.
-	function commitDrag(): void {
+	async function commitDrag(): Promise<void> {
 		if (readOnly) { drag.cancel(); return; }
 		const mode = drag.mode;
 		const payload = drag.commit();
@@ -291,56 +292,68 @@
 		}
 
 		if ((mode === 'move' || mode === 'resize-start' || mode === 'resize-end') && payload.eventId) {
-			store.move(payload.eventId, start, end);
-			const ev = store.byId(payload.eventId);
-			if (ev) effectiveMove?.(ev, start, end);
+			try {
+				await store.move(payload.eventId, start, end);
+				const ev = store.byId(payload.eventId);
+				if (ev) effectiveMove?.(ev, start, end);
+			} catch (e) {
+				// Silently handle read-only / missing event errors.
+				// The optimistic update in store.move() already reverted.
+				const msg = e instanceof Error ? e.message : '';
+				if (!msg.includes('read-only') && !msg.includes('not found')) {
+					console.warn('[calendar] drag commit failed:', e);
+				}
+			}
 		} else if (mode === 'create') {
 			effectiveCreate?.({ start, end });
 		}
 	}
-
-	// Context is set once at mount; engine objects hold $state internally
-	// so consumers reading from them stay reactive automatically.
-	// Wrap store in a getter since it's $derived and may change when adapter changes.
-	setContext('calendar:store', { get current() { return store; } });
-	setContext('calendar:viewState', viewState);
-	setContext('calendar:selection', selection);
-	setContext('calendar:drag', drag);
-	setContext('calendar:commitDrag', commitDrag);
-	// Callbacks: provide a getter-based object so context consumers
-	// always see the latest callback references.
-	setContext('calendar:callbacks', {
-		get oneventclick() { return oneventclick; },
-		get oneventcreate() { return effectiveCreate; },
-		get oneventmove() { return effectiveMove; },
-		get oneventhover() { return oneventhover; },
-	});
-	setContext('calendar:readOnly', { get current() { return readOnly; } });
-	setContext('calendar:visibleHours', { get current() { return visibleHours; } });
-	setContext('calendar:snapInterval', { get current() { return snapInterval; } });
-	setContext('calendar:eventSnippet', { get current() { return eventSnippet; } });
-	setContext('calendar:emptySnippet', { get current() { return emptySnippet; } });
-	setContext('calendar:showNavigation', { get current() { return showNavigation; } });
-	setContext('calendar:equalDays', { get current() { return equalDays; } });
-	setContext('calendar:showDates', { get current() { return showDates; } });
-	setContext('calendar:hideDays', { get current() { return hideDays; } });
-	setContext('calendar:blockedSlots', { get current() { return blockedSlots; } });
-	setContext('calendar:dayHeaderSnippet', { get current() { return dayHeaderSnippet; } });
-	setContext('calendar:minDuration', { get current() { return minDuration; } });
-	setContext('calendar:maxDuration', { get current() { return maxDuration; } });
-	setContext('calendar:disabledDates', { get current() { return disabledDates; } });
-	setContext('calendar:mobile', { get current() { return useMobile; } });
-	setContext('calendar:autoHeight', { get current() { return heightProp === 'auto'; } });
-	setContext('calendar:compact', { get current() { return compact; } });
 
 	// ── Load range signal ──
 	// Views can write a wider range here to override the default viewState.range.
 	// This lets infinite-scroll views (PlannerWeek, PlannerDay) declare their
 	// buffer needs without directly calling store.load().
 	let viewLoadRange = $state<{ start: Date; end: Date } | null>(null);
-	setContext('calendar:loadRange', {
-		get current() { return viewLoadRange; },
-		set(range: { start: Date; end: Date } | null) { viewLoadRange = range; },
+
+	// ── Single context object ──
+	// All view state is exposed through one context key with reactive getters.
+	// Views read this via useCalendarContext() from views/shared/context.svelte.ts.
+	setContext('calendar', {
+		// Engine objects (hold $state internally)
+		get store() { return store; },
+		viewState,
+		selection,
+		drag,
+		commitDrag,
+
+		// Callbacks
+		get oneventclick() { return oneventclick; },
+		get oneventcreate() { return effectiveCreate; },
+		get oneventmove() { return effectiveMove; },
+		get oneventhover() { return oneventhover; },
+
+		// Config (reactive via getters)
+		get readOnly() { return readOnly; },
+		get visibleHours() { return visibleHours; },
+		get snapInterval() { return snapInterval; },
+		get eventSnippet() { return eventSnippet; },
+		get emptySnippet() { return emptySnippet; },
+		get showNavigation() { return showNavigation; },
+		get equalDays() { return equalDays; },
+		get showDates() { return showDates; },
+		get hideDays() { return hideDays; },
+		get blockedSlots() { return blockedSlots; },
+		get dayHeaderSnippet() { return dayHeaderSnippet; },
+		get minDuration() { return minDuration; },
+		get maxDuration() { return maxDuration; },
+		get disabledDates() { return disabledDates; },
+		get mobile() { return useMobile; },
+		get autoHeight() { return heightProp === 'auto'; },
+		get compact() { return compact; },
+
+		// Load range (read/write)
+		get loadRange() { return viewLoadRange; },
+		setLoadRange(range: { start: Date; end: Date } | null) { viewLoadRange = range; },
 	});
 
 	// ── Load events when effective range changes ──

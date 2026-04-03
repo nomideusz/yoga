@@ -6,7 +6,8 @@
   Events positioned absolutely within hour lanes.
 -->
 <script lang="ts">
-	import { getContext, onMount, tick, untrack } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
+	import { useCalendarContext } from '../shared/context.svelte.js';
 	import { createClock } from '../../core/clock.svelte.js';
 	import type { TimelineEvent, BlockedSlot } from '../../core/types.js';
 	import type { DragState } from '../../engine/drag.svelte.js';
@@ -45,20 +46,14 @@
 	}: Props = $props();
 
 	// ── Context ────────────────────────────────────────
-	const viewState = getContext<ViewState>('calendar:viewState') as ViewState | undefined;
-	const loadRangeCtx = getContext<{ current: { start: Date; end: Date } | null; set: (r: { start: Date; end: Date } | null) => void }>('calendar:loadRange') as { current: { start: Date; end: Date } | null; set: (r: { start: Date; end: Date } | null) => void } | undefined;
-	const blockedSlotsCtx = getContext<{ current: BlockedSlot[] | undefined }>('calendar:blockedSlots') as { current: BlockedSlot[] | undefined } | undefined;
-	const minDurationCtx = getContext<{ current: number | undefined }>('calendar:minDuration') as { current: number | undefined } | undefined;
-	const callbacksCtx = getContext<{ oneventhover?: (event: TimelineEvent) => void }>('calendar:callbacks') as { oneventhover?: (event: TimelineEvent) => void } | undefined;
-	const disabledDatesCtx = getContext<{ current: Date[] | undefined }>('calendar:disabledDates') as { current: Date[] | undefined } | undefined;
-	const autoHeightCtx = getContext<{ current: boolean }>('calendar:autoHeight') as { current: boolean } | undefined;
-
-	const blockedSlots = $derived(blockedSlotsCtx?.current);
-	const minDuration = $derived(minDurationCtx?.current);
-	const autoHeight = $derived(autoHeightCtx?.current ?? false);
-	const oneventhover = $derived(callbacksCtx?.oneventhover);
-	const disabledDates = $derived(disabledDatesCtx?.current);
-	const disabledSet = $derived(new Set(disabledDates?.map(d => sod(d.getTime())) ?? []));
+	const ctx = useCalendarContext();
+	const viewState = $derived(ctx.viewState);
+	const autoHeight = $derived(ctx.autoHeight);
+	const oneventhover = $derived(ctx.oneventhover);
+	const disabledSet = $derived(ctx.disabledSet);
+	const loadRangeCtx = $derived(ctx.loadRange);
+	const minDuration = $derived(ctx.minDuration);
+	const blockedSlots = $derived(ctx.blockedSlots);
 
 	const clock = createClock();
 

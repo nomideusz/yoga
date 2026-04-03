@@ -29,6 +29,7 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
+		"@chenglou/pretext": "^0.0.4",
 		"@fontsource-variable/karla": "^5.2.8",
 		"@fontsource-variable/playfair-display": "^5.2.8",
 		"@libsql/client": "^0.17.0",

@@ -130,11 +130,11 @@ describe('createRecurringAdapter — auto-coloring', () => {
 });
 // ── Read-only ───────────────────────────────────────────
 describe('createRecurringAdapter — read-only', () => {
-    it('create/update/delete throw', async () => {
+    it('does not expose create/update/delete methods', () => {
         const adapter = createRecurringAdapter(schedule);
-        await expect(adapter.createEvent({ title: 'x', start: new Date(), end: new Date() })).rejects.toThrow('read-only');
-        await expect(adapter.updateEvent('yoga-mon', { title: 'y' })).rejects.toThrow('read-only');
-        await expect(adapter.deleteEvent('yoga-mon')).rejects.toThrow('read-only');
+        expect(adapter.createEvent).toBeUndefined();
+        expect(adapter.updateEvent).toBeUndefined();
+        expect(adapter.deleteEvent).toBeUndefined();
     });
 });
 // ── parseTime validation ────────────────────────────────

@@ -9,3 +9,5 @@ export { setDefaultLocale, getDefaultLocale, is24HourLocale, fmtH, fmtTime, fmtD
 export { toZonedTime, fromZonedTime, nowInZone, formatInTimeZone, } from './timezone.js';
 // Palette
 export { generatePalette, extractAccent, VIVID_PALETTE } from './palette.js';
+// Text measurement (optional Pretext integration)
+export { createTextMeasure, initTextMeasure } from './measure.js';

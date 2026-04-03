@@ -9,14 +9,15 @@
 	 *
 	 * Answers: "What's coming up and when do I need to be ready?"
 	 */
-	import { getContext, type Snippet } from 'svelte';
 	import { createClock } from '../../core/clock.svelte.js';
 	import type { TimelineEvent } from '../../core/types.js';
 	import { sod, DAY_MS, startOfWeek, dayNum, isAllDay, isMultiDay } from '../../core/time.js';
-	import { weekdayLong, monthLong, fmtTime as _fmtTime, fmtDuration, getLabels } from '../../core/locale.js';
-	import type { ViewState } from '../../engine/view-state.svelte.js';
+	import { weekdayLong, monthLong, getLabels } from '../../core/locale.js';
+	import { useCalendarContext } from '../shared/context.svelte.js';
+	import { fmtTime, duration, timeUntilMs, progress, groupIntoSlots } from '../shared/format.js';
 
 	const L = $derived(getLabels());
+	const ctx = useCalendarContext();
 
 	interface Props {
 		mondayStart?: boolean;
@@ -42,21 +43,17 @@
 	}: Props = $props();
 
 	const clock = createClock();
-	const viewState = getContext<ViewState>('calendar:viewState') as ViewState | undefined;
-	const showNavCtx = getContext<{ current: boolean }>('calendar:showNavigation') as { current: boolean } | undefined;
-	const equalDaysCtx = getContext<{ current: boolean }>('calendar:equalDays') as { current: boolean } | undefined;
-	const showDatesCtx = getContext<{ current: boolean }>('calendar:showDates') as { current: boolean } | undefined;
-	const hideDaysCtx = getContext<{ current: number[] | undefined }>('calendar:hideDays') as { current: number[] | undefined } | undefined;
-	const mobileCtx = getContext<{ current: boolean }>('calendar:mobile') as { current: boolean } | undefined;
-	const autoHeightCtx = getContext<{ current: boolean }>('calendar:autoHeight') as { current: boolean } | undefined;
-	const compactCtx = getContext<{ current: boolean }>('calendar:compact') as { current: boolean } | undefined;
-	const showNav = $derived(showNavCtx?.current ?? true);
-	const equalDays = $derived(equalDaysCtx?.current ?? false);
-	const showDates = $derived(showDatesCtx?.current ?? true);
-	const hideDays = $derived(hideDaysCtx?.current);
-	const isMobile = $derived(mobileCtx?.current ?? false);
-	const autoHeight = $derived(autoHeightCtx?.current ?? false);
-	const compact = $derived(compactCtx?.current ?? false);
+	const viewState = $derived(ctx.viewState);
+	const showNav = $derived(ctx.showNav);
+	const equalDays = $derived(ctx.equalDays);
+	const showDates = $derived(ctx.showDates);
+	const hideDays = $derived(ctx.hideDays);
+	const isMobile = $derived(ctx.isMobile);
+	const autoHeight = $derived(ctx.autoHeight);
+	const compact = $derived(ctx.compact);
+	const dayHeaderSnippet = $derived(ctx.dayHeaderSnippet);
+	const oneventhover = $derived(ctx.oneventhover);
+	const disabledSet = $derived(ctx.disabledSet);
 
 	// ── Swipe navigation (mobile) ──────────────────────
 	let swipeStartX = 0;
@@ -79,68 +76,12 @@
 		}
 	}
 
-	// ── New feature contexts ──
-	const dayHeaderSnippetCtx = getContext<{ current: Snippet<[{ date: Date; isToday: boolean; dayName: string }]> | undefined }>('calendar:dayHeaderSnippet') as { current: Snippet<[{ date: Date; isToday: boolean; dayName: string }]> | undefined } | undefined;
-	const callbacksCtx = getContext<{ oneventhover?: (event: TimelineEvent) => void }>('calendar:callbacks') as { oneventhover?: (event: TimelineEvent) => void } | undefined;
-	const disabledDatesCtx = getContext<{ current: Date[] | undefined }>('calendar:disabledDates') as { current: Date[] | undefined } | undefined;
-
-	const dayHeaderSnippet = $derived(dayHeaderSnippetCtx?.current);
-	const oneventhover = $derived(callbacksCtx?.oneventhover);
-	const disabledDates = $derived(disabledDatesCtx?.current);
-	const disabledSet = $derived(new Set(disabledDates?.map(d => sod(d.getTime())) ?? []));
-
-	// ── Format helpers ──────────────────────────────────
-	function fmtTime(d: Date): string {
-		return _fmtTime(d, locale);
-	}
-
-	function duration(ev: TimelineEvent): string {
-		return fmtDuration(ev.start, ev.end);
-	}
-
-	function timeUntilMs(ms: number): string {
-		const diff = ms - clock.tick;
-		if (diff <= 0) return L.now;
-		const tMins = Math.floor(diff / 60000);
-		if (tMins < 60) return `in ${tMins}m`;
-		const hrs = Math.floor(tMins / 60);
-		const rm = tMins % 60;
-		if (hrs < 24) return rm > 0 ? `in ${hrs}h ${rm}m` : `in ${hrs}h`;
-		const days = Math.floor(hrs / 24);
-		return `in ${days}d`;
-	}
-
-	function progress(ev: TimelineEvent): number {
-		const s = ev.start.getTime();
-		const e = ev.end.getTime();
-		return Math.min(1, Math.max(0, (clock.tick - s) / (e - s)));
-	}
-
-	// ── Overlap grouping ────────────────────────────────
-	interface TimeSlot {
-		startMs: number;
-		endMs: number;
-		events: TimelineEvent[];
-	}
-
-	function groupIntoSlots(evts: TimelineEvent[]): TimeSlot[] {
-		const sorted = [...evts].sort((a, b) => a.start.getTime() - b.start.getTime());
-		const slots: TimeSlot[] = [];
-		for (const ev of sorted) {
-			const last = slots[slots.length - 1];
-			if (last && ev.start.getTime() < last.endMs) {
-				last.events.push(ev);
-				last.endMs = Math.max(last.endMs, ev.end.getTime());
-			} else {
-				slots.push({
-					startMs: ev.start.getTime(),
-					endMs: ev.end.getTime(),
-					events: [ev],
-				});
-			}
-		}
-		return slots;
-	}
+	// ── Format helpers (delegated to shared/format.ts) ──
+	// fmtTime, duration, groupIntoSlots imported at top
+	// Thin wrappers that bind locale / clock.tick:
+	const fmt = (d: Date) => fmtTime(d, locale);
+	const eta = (ms: number) => timeUntilMs(ms, clock.tick);
+	const prog = (ev: TimelineEvent) => progress(ev, clock.tick);
 
 	// ── Event handlers ──────────────────────────────────
 	function handleClick(ev: TimelineEvent): void {
@@ -268,7 +209,7 @@
 		style:--ev-color={ev.color || 'var(--dt-accent)'}
 		role="button"
 		tabindex="0"
-		aria-label="{ev.title}{ev.status === 'cancelled' ? ' (cancelled)' : ''}{ev.status === 'tentative' ? ' (tentative)' : ''}{ev.status === 'full' ? ' (full)' : ''}{ev.status === 'limited' ? ' (limited)' : ''}, {fmtTime(ev.start)} to {fmtTime(ev.end)}, {duration(ev)}"
+		aria-label="{ev.title}{ev.status === 'cancelled' ? ' (cancelled)' : ''}{ev.status === 'tentative' ? ' (tentative)' : ''}{ev.status === 'full' ? ' (full)' : ''}{ev.status === 'limited' ? ' (limited)' : ''}, {fmt(ev.start)} to {fmt(ev.end)}, {duration(ev)}"
 		onclick={() => handleClick(ev)}
 		onpointerenter={() => oneventhover?.(ev)}
 		onkeydown={(e) => handleKeydown(e, ev)}
@@ -283,9 +224,9 @@
 			{/if}
 			<span class="ag-card-meta">
 				{#if isNow}
-					{L.until} {fmtTime(ev.end)}
+					{L.until} {fmt(ev.end)}
 				{:else}
-					{fmtTime(ev.start)} – {fmtTime(ev.end)}
+					{fmt(ev.start)} – {fmt(ev.end)}
 				{/if}
 				<span class="ag-card-dur">{duration(ev)}</span>
 				{#if eta}
@@ -301,7 +242,7 @@
 			{/if}
 			{#if isNow}
 				<div class="ag-card-progress">
-					<div class="ag-card-progress-fill" style:width="{progress(ev) * 100}%"></div>
+					<div class="ag-card-progress-fill" style:width="{prog(ev) * 100}%"></div>
 				</div>
 			{/if}
 		</div>
@@ -399,13 +340,13 @@
 								style:--ev-color={ev.color || 'var(--dt-accent)'}
 								role="button"
 								tabindex="0"
-								aria-label="{ev.title}, {fmtTime(ev.start)}, {duration(ev)}"
+								aria-label="{ev.title}, {fmt(ev.start)}, {duration(ev)}"
 								onclick={() => handleClick(ev)}
 								onpointerenter={() => oneventhover?.(ev)}
 								onkeydown={(e) => handleKeydown(e, ev)}
 							>
 								<span class="ag-compact-dot"></span>
-								<span class="ag-compact-time">{fmtTime(ev.start)}</span>
+								<span class="ag-compact-time">{fmt(ev.start)}</span>
 								<span class="ag-compact-title">{ev.title}</span>
 								{#if ev.subtitle}
 									<span class="ag-compact-sub">{ev.subtitle}</span>
@@ -451,7 +392,7 @@
 
 								<div class="ag-wslot-cards" class:ag-wslot-cards--multi={slot.events.length > 1}>
 									{#each slot.events as ev (ev.id)}
-										{@render eventCard(ev, false, day.tier === 'today' ? timeUntilMs(ev.start.getTime()) : undefined)}
+										{@render eventCard(ev, false, day.tier === 'today' ? eta(ev.start.getTime()) : undefined)}
 									{/each}
 								</div>
 							</div>
@@ -474,11 +415,11 @@
 								style:--ev-color={ev.color || 'var(--dt-accent)'}
 								role="button"
 								tabindex="0"
-								aria-label="{ev.title}, {fmtTime(ev.start)}, {duration(ev)}"
+								aria-label="{ev.title}, {fmt(ev.start)}, {duration(ev)}"
 								onclick={() => handleClick(ev)}							onpointerenter={() => oneventhover?.(ev)}								onkeydown={(e) => handleKeydown(e, ev)}
 							>
 								<span class="ag-compact-dot"></span>
-								<span class="ag-compact-time">{fmtTime(ev.start)}</span>
+								<span class="ag-compact-time">{fmt(ev.start)}</span>
 								<span class="ag-compact-title">{ev.title}</span>
 								{#if ev.location}
 									<span class="ag-compact-loc">{ev.location}</span>

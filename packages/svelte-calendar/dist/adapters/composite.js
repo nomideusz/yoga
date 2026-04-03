@@ -29,14 +29,37 @@ export function createCompositeAdapter(adapters, options = {}) {
             }
             return merged;
         },
-        createEvent(event) {
-            return primary.createEvent(event);
+        // Create always goes to primary
+        ...(primary.createEvent ? { createEvent: (event) => primary.createEvent(event) } : {}),
+        // Update/delete: try each adapter that supports the operation.
+        // This handles the case where a recurring adapter generates events
+        // that the primary (memory) adapter doesn't know about.
+        async updateEvent(id, patch) {
+            for (const adapter of adapters) {
+                if (!adapter.updateEvent)
+                    continue;
+                try {
+                    return await adapter.updateEvent(id, patch);
+                }
+                catch {
+                    // Event not in this adapter, try next
+                }
+            }
+            throw new Error(`Event not found in any adapter: ${id}`);
         },
-        updateEvent(id, patch) {
-            return primary.updateEvent(id, patch);
-        },
-        deleteEvent(id) {
-            return primary.deleteEvent(id);
+        async deleteEvent(id) {
+            for (const adapter of adapters) {
+                if (!adapter.deleteEvent)
+                    continue;
+                try {
+                    await adapter.deleteEvent(id);
+                    return;
+                }
+                catch {
+                    // Event not in this adapter, try next
+                }
+            }
+            throw new Error(`Event not found in any adapter: ${id}`);
         },
     };
 }

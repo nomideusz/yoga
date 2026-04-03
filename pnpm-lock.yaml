@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@chenglou/pretext':
+        specifier: ^0.0.4
+        version: 0.0.4
       '@fontsource-variable/karla':
         specifier: ^5.2.8
         version: 5.2.8
@@ -19,7 +22,7 @@ importers:
         version: 0.17.0
       '@nomideusz/svelte-calendar':
         specifier: file:packages/svelte-calendar
-        version: file:packages/svelte-calendar(svelte@5.53.6)
+        version: file:packages/svelte-calendar(@chenglou/pretext@0.0.4)(svelte@5.53.6)
       '@nomideusz/svelte-i18n':
         specifier: file:packages/svelte-i18n
         version: file:packages/svelte-i18n(svelte@5.53.6)
@@ -74,6 +77,9 @@ importers:
         version: 7.3.1(@types/node@25.3.3)(tsx@4.21.0)
 
 packages:
+
+  '@chenglou/pretext@0.0.4':
+    resolution: {integrity: sha512-FnPAFMid1/p1j2V2gRPUVBarGUIb2PhkkC9YNnTOfPtTDgHKh8siO8PP9pCxpFfYlcodWPJpE1UbSHGQqt8pQQ==}
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
@@ -615,7 +621,11 @@ packages:
   '@nomideusz/svelte-calendar@file:packages/svelte-calendar':
     resolution: {directory: packages/svelte-calendar, type: directory}
     peerDependencies:
+      '@chenglou/pretext': ^0.0.4
       svelte: ^5.0.0
+    peerDependenciesMeta:
+      '@chenglou/pretext':
+        optional: true
 
   '@nomideusz/svelte-i18n@file:packages/svelte-i18n':
     resolution: {directory: packages/svelte-i18n, type: directory}
@@ -1294,6 +1304,8 @@ packages:
 
 snapshots:
 
+  '@chenglou/pretext@0.0.4': {}
+
   '@drizzle-team/brocli@0.10.2': {}
 
   '@esbuild-kit/core-utils@3.3.2':
@@ -1615,11 +1627,13 @@ snapshots:
 
   '@neon-rs/load@0.0.4': {}
 
-  '@nomideusz/svelte-calendar@file:packages/svelte-calendar(svelte@5.53.6)':
+  '@nomideusz/svelte-calendar@file:packages/svelte-calendar(@chenglou/pretext@0.0.4)(svelte@5.53.6)':
     dependencies:
       date-fns: 4.1.0
       date-fns-tz: 3.2.0(date-fns@4.1.0)
       svelte: 5.53.6
+    optionalDependencies:
+      '@chenglou/pretext': 0.0.4
 
   '@nomideusz/svelte-i18n@file:packages/svelte-i18n(svelte@5.53.6)':
     dependencies:
