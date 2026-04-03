@@ -364,6 +364,9 @@
 		const range = viewLoadRange ?? viewState.range;
 		store.load({ start: range.start, end: range.end });
 	});
+	// Eager initial load — $effect runs after paint, but for sync adapters
+	// (memory, recurring) this resolves in the same microtask.
+	untrack(() => store.load({ start: viewState.range.start, end: viewState.range.end }));
 
 	// Keep active view in sync when external view prop changes after mount.
 	$effect(() => {
