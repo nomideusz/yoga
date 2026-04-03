@@ -571,6 +571,8 @@
 <style>
 	.cal {
 		position: relative;
+		width: 100%;
+		min-width: 0;
 		height: var(--cal-h, 600px);
 		background: var(--dt-bg, #0b0e14);
 		border-radius: var(--cal-r, 12px);
@@ -578,6 +580,7 @@
 		display: flex;
 		flex-direction: column;
 		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		box-sizing: border-box;
 	}
 	.cal--auto {
 		height: auto;

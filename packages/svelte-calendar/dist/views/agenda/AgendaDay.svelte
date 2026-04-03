@@ -517,6 +517,9 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		width: 100%;
+		min-width: 0;
+		box-sizing: border-box;
 		color: var(--dt-text, rgba(255, 255, 255, 0.92));
 		font-family: var(--dt-sans, system-ui, sans-serif);
 	}
