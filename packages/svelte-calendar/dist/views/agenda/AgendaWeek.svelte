@@ -660,10 +660,8 @@
 	.ag-card-title {
 		font-size: 13px;
 		font-weight: 600;
-		line-height: 1.2;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		line-height: 1.3;
+		word-break: break-word;
 		flex: 1;
 		min-width: 0;
 	}
