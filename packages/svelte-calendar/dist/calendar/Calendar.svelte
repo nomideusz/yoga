@@ -485,6 +485,10 @@
 	dir={dir}
 	lang={locale}
 >
+	{#if !themeReady}
+		<div class="cal-theme-skeleton"></div>
+	{/if}
+
 	<!-- ─── Mobile header (flow layout, no absolute) ─── -->
 	{#if useMobile}
 		<div class="cal-m-hd">
@@ -594,11 +598,25 @@
 		height: auto;
 		overflow: visible;
 	}
-	.cal--loading-theme {
+	.cal--loading-theme > :not(.cal-theme-skeleton) {
 		opacity: 0;
 	}
-	.cal:not(.cal--loading-theme) {
-		transition: opacity 80ms ease;
+	.cal-theme-skeleton {
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: linear-gradient(90deg,
+			rgba(128, 128, 128, 0.04) 25%,
+			rgba(128, 128, 128, 0.08) 50%,
+			rgba(128, 128, 128, 0.04) 75%
+		);
+		background-size: 200% 100%;
+		animation: cal-shimmer 1.5s ease-in-out infinite;
+		z-index: 1;
+	}
+	@keyframes cal-shimmer {
+		0% { background-position: 200% 0; }
+		100% { background-position: -200% 0; }
 	}
 
 	/* ── Floating pills ── */
