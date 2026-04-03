@@ -205,8 +205,6 @@
 	let probedTheme = $state('');
 	// Only delay rendering when auto-probe is actually needed
 	const needsProbe = $derived(theme === auto && autoTheme !== false);
-	let probeComplete = $state(false);
-	const themeReady = $derived(!needsProbe || probeComplete);
 
 	onMount(() => {
 		if (!calEl) return;
@@ -224,7 +222,6 @@
 		const opts: AutoThemeOptions = typeof autoTheme === 'object' ? autoTheme : {};
 		const stopTheme = observeHostTheme(calEl, (vars) => {
 			probedTheme = vars;
-			probeComplete = true;
 		}, opts);
 		return () => { ro.disconnect(); stopTheme?.(); };
 	});
@@ -476,7 +473,6 @@
 
 <div
 	class="cal"
-	class:cal--loading-theme={!themeReady}
 	bind:this={calEl}
 	style="{effectiveTheme}; {heightProp === 'auto' ? '' : `--cal-h: ${heightProp}px;`} --cal-r: {borderRadius}px"
 	class:cal--auto={heightProp === 'auto'}
@@ -594,12 +590,7 @@
 		height: auto;
 		overflow: visible;
 	}
-	.cal--loading-theme {
-		visibility: hidden;
-		height: 0 !important;
-		min-height: 0 !important;
-		overflow: hidden;
-	}
+
 
 	/* ── Floating pills ── */
 	.cal-pills {
