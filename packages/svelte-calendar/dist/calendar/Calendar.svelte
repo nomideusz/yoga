@@ -192,7 +192,6 @@
 
 	// ── Mobile detection (container-based, not viewport) ──
 	let containerWidth = $state(0);
-	let stableMinHeight = $state(0);
 	const isMobileContainer = $derived(containerWidth > 0 && containerWidth < MOBILE_BREAKPOINT);
 
 	const useMobile = $derived(
@@ -212,13 +211,7 @@
 		// Measure container width for mobile detection
 		containerWidth = calEl.clientWidth;
 		const ro = new ResizeObserver((entries) => {
-			const rect = entries[0].contentRect;
-			containerWidth = Math.round(rect.width);
-			// For auto-height: track peak height to prevent shrinking jumps
-			if (heightProp === 'auto') {
-				const h = Math.round(rect.height);
-				if (h > stableMinHeight) stableMinHeight = h;
-			}
+			containerWidth = Math.round(entries[0].contentRect.width);
 		});
 		ro.observe(calEl);
 
@@ -409,11 +402,6 @@
 		onviewchange?.(viewState.view);
 	});
 
-	// Reset stable min-height when view mode changes
-	$effect(() => {
-		void viewState.mode;
-		stableMinHeight = 0;
-	});
 
 	// ── Resolve active view ──
 	// When mobile is active, Planner views get remapped to Mobile variants.
@@ -491,17 +479,13 @@
 	class="cal"
 	class:cal--loading-theme={!themeReady}
 	bind:this={calEl}
-	style="{effectiveTheme}; {heightProp === 'auto' ? (stableMinHeight > 0 ? `min-height: ${stableMinHeight}px;` : '') : `--cal-h: ${heightProp}px;`} --cal-r: {borderRadius}px"
+	style="{effectiveTheme}; {heightProp === 'auto' ? '' : `--cal-h: ${heightProp}px;`} --cal-r: {borderRadius}px"
 	class:cal--auto={heightProp === 'auto'}
 	role="region"
 	aria-label={L.calendar}
 	dir={dir}
 	lang={locale}
 >
-	{#if !themeReady}
-		<div class="cal-theme-skeleton"></div>
-	{/if}
-
 	<!-- ─── Mobile header (flow layout, no absolute) ─── -->
 	{#if useMobile}
 		<div class="cal-m-hd">
@@ -612,28 +596,10 @@
 		overflow: visible;
 	}
 	.cal--loading-theme {
-		background: transparent !important;
-		border-color: transparent !important;
-	}
-	.cal--loading-theme > :not(.cal-theme-skeleton) {
-		opacity: 0;
-	}
-	.cal-theme-skeleton {
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		background: linear-gradient(90deg,
-			rgba(128, 128, 128, 0.04) 25%,
-			rgba(128, 128, 128, 0.08) 50%,
-			rgba(128, 128, 128, 0.04) 75%
-		);
-		background-size: 200% 100%;
-		animation: cal-shimmer 1.5s ease-in-out infinite;
-		z-index: 1;
-	}
-	@keyframes cal-shimmer {
-		0% { background-position: 200% 0; }
-		100% { background-position: -200% 0; }
+		visibility: hidden;
+		height: 0 !important;
+		min-height: 0 !important;
+		overflow: hidden;
 	}
 
 	/* ── Floating pills ── */
