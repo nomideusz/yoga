@@ -6,8 +6,27 @@
   import { i18n } from "$lib/i18n.js";
   const t = i18n.t;
 
+  type NavigatorConnection = {
+    saveData?: boolean;
+    effectiveType?: string;
+  };
+
+  function shouldUseViewTransitions() {
+    if (typeof document === "undefined" || typeof window === "undefined") return false;
+    if (!document.startViewTransition) return false;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+
+    const connection = (navigator as Navigator & { connection?: NavigatorConnection }).connection;
+    if (connection?.saveData) return false;
+    if (connection?.effectiveType === "slow-2g" || connection?.effectiveType === "2g") {
+      return false;
+    }
+
+    return true;
+  }
+
   onNavigate((navigation) => {
-    if (!document.startViewTransition) return;
+    if (!shouldUseViewTransitions()) return;
     return new Promise((resolve) => {
       document.startViewTransition(async () => {
         resolve();

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
+    import type { AutocompleteEntry } from "$lib/server/db/queries/types";
     import { haversine } from "$lib/utils/haversine";
     import { normalizePolish } from "$lib/utils/street";
     import { styleDisplayName } from "$lib/styles-metadata";
@@ -25,7 +26,20 @@
     const t = i18n.t;
 
     let { data } = $props();
-    const autocomplete = $derived(data.autocomplete);
+    const cityCounts = $derived(data.cityCounts);
+    const allCities = $derived(data.allCities);
+    const allStyles = $derived(data.allStyles);
+    const styleCounts = $derived(data.styleCounts);
+    const cityStyleCounts = $derived(data.cityStyleCounts);
+    const citySearchIndex = $derived(data.citySearchIndex);
+    const styleSearchIndex = $derived(data.styleSearchIndex);
+    const topCities = $derived(data.topCities);
+    const topCityChips = $derived(data.topCityChips);
+    const topStyles = $derived(data.topStyles);
+    let autocomplete = $state<AutocompleteEntry[]>([]);
+    let autocompleteLoading = $state(false);
+    let autocompleteLoaded = $state(false);
+    let autocompletePromise: Promise<void> | null = null;
 
     /** Translate a Polish city name based on current locale. */
     function cityDisplay(plName: string): string {
@@ -46,22 +60,20 @@
         return data.lookups?.cityMap?.get(normalize(name)) ?? getCitySlug(name);
     }
 
-    /** City -> school count, sorted descending */
-    const cityCounts = $derived(
-        autocomplete.reduce(
-            (acc, s) => {
-                acc[s.city] = (acc[s.city] || 0) + 1;
-                return acc;
-            },
-            {} as Record<string, number>,
-        ),
-    );
+    function findCityExact(term: string): string | undefined {
+        return citySearchIndex.find((entry) => entry.normalized === term)?.city;
+    }
 
-    const allCities = $derived(
-        Object.entries(cityCounts)
-            .sort(([, a], [, b]) => b - a)
-            .map(([city]) => city),
-    );
+    function findCityByPrefix(term: string): string | undefined {
+        if (term.length < MIN_SEARCH_TOKEN_LENGTH) return undefined;
+        return citySearchIndex.find((entry) => entry.normalized.startsWith(term))?.city;
+    }
+
+    function getMatchingStyles(term: string): string[] {
+        return styleSearchIndex
+            .filter((entry) => entry.normalized.includes(term))
+            .map((entry) => entry.style);
+    }
 
     function pluralSchool(n: number): string {
         if (i18n.locale === "en")
@@ -73,23 +85,6 @@
             return t("school_few");
         return t("school_many");
     }
-
-    /** All styles for search */
-    const allStyles = $derived(
-        [...new Set(autocomplete.flatMap((l) => l.styles))].sort(),
-    );
-
-    const styleCounts = $derived(
-        autocomplete.reduce(
-            (acc, s) => {
-                for (const st of s.styles) {
-                    acc[st] = (acc[st] || 0) + 1;
-                }
-                return acc;
-            },
-            {} as Record<string, number>,
-        ),
-    );
 
     // ── Unified search ──
     let query = $state("");
@@ -156,15 +151,6 @@
               count: number;
               distanceKm: number;
           };
-
-    /** Top cities shown when search is focused but empty */
-    const topCities = $derived(
-        allCities.slice(0, 8).map((city) => ({
-            type: "city" as const,
-            city,
-            count: cityCounts[city],
-        })),
-    );
 
     /** Get Polish locative form: DB value first, then polishLocative() fallback. */
     function getCityLocative(cityName: string): string {
@@ -260,17 +246,13 @@
         /** Find city by exact match or Polish stem match */
         function findCity(term: string): string | undefined {
             // Exact match first
-            const exact = allCities.find((c) => normalizePolish(c) === term);
+            const exact = findCityExact(term);
             if (exact) return exact;
             // Try Polish case form stems
             const stems = polishCityStems(term);
             for (const stem of stems) {
                 if (stem === term) continue;
-                const match = allCities.find(
-                    (c) =>
-                        normalizePolish(c) === stem ||
-                        normalizePolish(c).startsWith(stem),
-                );
+                const match = findCityExact(stem) ?? findCityByPrefix(stem);
                 if (match) return match;
             }
             return undefined;
@@ -285,17 +267,11 @@
                 // Try city-first: left=city, right=style(s)
                 const cityFirst = findCity(left);
                 if (cityFirst) {
-                    const matchingStyles = allStyles.filter((s) =>
-                        normalizePolish(s).includes(right),
-                    );
+                    const matchingStyles = getMatchingStyles(right);
                     for (const style of matchingStyles) {
                         const key = `${cityFirst}+${style}`;
                         if (!seen.has(key)) {
-                            const count = autocomplete.filter(
-                                (l) =>
-                                    l.city === cityFirst &&
-                                    l.styles.includes(style),
-                            ).length;
+                            const count = cityStyleCounts[cityFirst]?.[style] ?? 0;
                             if (count > 0) {
                                 seen.add(key);
                                 results.push({
@@ -312,17 +288,11 @@
                 // Try style-first: left=style(s), right=city
                 const citySecond = findCity(right);
                 if (citySecond) {
-                    const matchingStyles = allStyles.filter((s) =>
-                        normalizePolish(s).includes(left),
-                    );
+                    const matchingStyles = getMatchingStyles(left);
                     for (const style of matchingStyles) {
                         const key = `${citySecond}+${style}`;
                         if (!seen.has(key)) {
-                            const count = autocomplete.filter(
-                                (l) =>
-                                    l.city === citySecond &&
-                                    l.styles.includes(style),
-                            ).length;
+                            const count = cityStyleCounts[citySecond]?.[style] ?? 0;
                             if (count > 0) {
                                 seen.add(key);
                                 results.push({
@@ -346,25 +316,24 @@
         );
         const matchedCities =
             cityTokens.length > 0
-                ? allCities
-                      .filter((c) => {
-                          const cn = normalizePolish(c);
-                          return cityTokens.some((t) => cn.startsWith(t));
-                      })
+                ? citySearchIndex
+                      .filter((entry) =>
+                          cityTokens.some((token) => entry.normalized.startsWith(token)),
+                      )
                       .slice(0, 4)
+                      .map((entry) => entry.city)
                 : [];
         // Fall back to substring only if no prefix matches
         const cityResults =
             matchedCities.length > 0
                 ? matchedCities
                 : cityTokens.length > 0
-                  ? allCities
-                        .filter((c) =>
-                            cityTokens.some((t) =>
-                                normalizePolish(c).includes(t),
-                            ),
+                  ? citySearchIndex
+                        .filter((entry) =>
+                            cityTokens.some((token) => entry.normalized.includes(token)),
                         )
                         .slice(0, 4)
+                        .map((entry) => entry.city)
                   : [];
         for (const city of cityResults) {
             results.push({ type: "city", city, count: cityCounts[city] });
@@ -454,13 +423,12 @@
         );
         const matchedStyles =
             styleTokens.length > 0
-                ? allStyles
-                      .filter((s) =>
-                          styleTokens.some((t) =>
-                              normalizePolish(s).includes(t),
-                          ),
+                ? styleSearchIndex
+                      .filter((entry) =>
+                          styleTokens.some((token) => entry.normalized.includes(token)),
                       )
                       .slice(0, 4)
+                      .map((entry) => entry.style)
                 : [];
         for (const style of matchedStyles) {
             results.push({
@@ -566,9 +534,7 @@
                 const citySlugLeft = cityMap?.get(leftPart);
                 if (citySlugLeft && !styleMap?.get(rightPart)) {
                     const cityName =
-                        allCities.find(
-                            (c) => normalizePolish(c) === leftPart,
-                        ) ?? leftPart;
+                        findCityExact(leftPart) ?? leftPart;
                     results.push({
                         type: "address",
                         address: rightPart,
@@ -582,9 +548,7 @@
                 const citySlugRight = cityMap?.get(rightPart);
                 if (citySlugRight && !styleMap?.get(leftPart)) {
                     const cityName =
-                        allCities.find(
-                            (c) => normalizePolish(c) === rightPart,
-                        ) ?? rightPart;
+                        findCityExact(rightPart) ?? rightPart;
                     results.push({
                         type: "address",
                         address: leftPart,
@@ -845,12 +809,7 @@
             const tokens = inputNorm.split(/\s+/);
             if (tokens.length >= 2) {
                 const findCity = (part: string) =>
-                    allCities.find((c) => normalizePolish(c) === part) ??
-                    (part.length >= 3
-                        ? allCities.find((c) =>
-                              normalizePolish(c).startsWith(part),
-                          )
-                        : undefined);
+                    findCityExact(part) ?? findCityByPrefix(part);
                 // Check if any token group matches a city (prefix or suffix)
                 for (let i = 1; i <= tokens.length - 1; i++) {
                     const city =
@@ -1120,6 +1079,7 @@
         query = (e.target as HTMLInputElement).value;
         activeIndex = -1;
         showDropdown = query.trim().length > 0;
+        void ensureAutocompleteLoaded();
 
         const trimmed = query.trim();
 
@@ -1253,7 +1213,7 @@
         placeSuggestions = [];
 
         const cityUrlSlug = (slug: string) => {
-            const city = allCities.find((c) => normalizePolish(c) === slug);
+            const city = findCityExact(slug);
             return city ? citySlug(city) : slug;
         };
 
@@ -1278,9 +1238,7 @@
                 break;
             case "geocode_address": {
                 const cityName = allCities.find(
-                    (c) =>
-                        normalizePolish(c) === action.citySlug ||
-                        citySlug(c) === action.citySlug,
+                    (c) => citySlug(c) === action.citySlug,
                 );
                 geocodeAndNavigate(
                     action.address,
@@ -1300,9 +1258,7 @@
             case "needs_server": {
                 const qn = normalizePolish(rawQuery);
                 const stripped = stripStopWords(qn);
-                const fuzzyCity = allCities.find((c) =>
-                    normalizePolish(c).startsWith(stripped),
-                );
+                const fuzzyCity = findCityExact(stripped) ?? findCityByPrefix(stripped);
                 if (fuzzyCity) {
                     goto(`/${citySlug(fuzzyCity)}`);
                 } else {
@@ -1325,9 +1281,7 @@
             default: {
                 const qn = normalizePolish(rawQuery);
                 const stripped = stripStopWords(qn);
-                const fuzzyCity = allCities.find((c) =>
-                    normalizePolish(c).startsWith(stripped),
-                );
+                const fuzzyCity = findCityExact(stripped) ?? findCityByPrefix(stripped);
                 if (fuzzyCity) {
                     goto(`/${citySlug(fuzzyCity)}`);
                 } else {
@@ -1355,7 +1309,33 @@
         }, 200);
     }
 
+    async function ensureAutocompleteLoaded(): Promise<void> {
+        if (autocompleteLoaded) return;
+        if (autocompletePromise) return autocompletePromise;
+
+        autocompleteLoading = true;
+        autocompletePromise = fetch("/api/search/index")
+            .then(async (res) => {
+                if (!res.ok) throw new Error("Failed to load search index");
+                return (await res.json()) as AutocompleteEntry[];
+            })
+            .then((entries) => {
+                autocomplete = entries;
+                autocompleteLoaded = true;
+            })
+            .catch(() => {
+                autocompleteLoaded = false;
+            })
+            .finally(() => {
+                autocompleteLoading = false;
+                autocompletePromise = null;
+            });
+
+        return autocompletePromise;
+    }
+
     function handleFocus() {
+        void ensureAutocompleteLoaded();
         showDropdown = true;
         activeIndex = -1;
     }
@@ -1442,26 +1422,6 @@
         );
     }
 
-    // ── City pills — top N for chip row ──
-    const topCityChips = $derived(
-        allCities.slice(0, 16).map((city) => ({
-            city,
-            count: cityCounts[city],
-        })),
-    );
-
-    // ── Style pills (filtered, sorted by count) ──
-    const NON_YOGA_STYLES = new Set([
-        "Stretching",
-        "Barre",
-        "Tai Chi",
-    ]);
-    const topStyles = $derived(
-        allStyles
-            .filter((style) => !NON_YOGA_STYLES.has(style))
-            .map((style) => ({ style, count: styleCounts[style] ?? 0 }))
-            .sort((a, b) => b.count - a.count),
-    );
 </script>
 
 <svelte:head>
@@ -1515,7 +1475,7 @@
                 class:sf-search-open={showDropdown && activeResults.length > 0}
             >
                 <div class="search-icon-wrap">
-                    {#if placesLoading || serverLoading}
+                    {#if placesLoading || serverLoading || (autocompleteLoading && query.trim().length > 0)}
                         <svg
                             class="search-icon-spin"
                             width="22"
