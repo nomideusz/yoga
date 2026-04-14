@@ -12,4 +12,4 @@ export { createClock, startOfWeek, fmtH, fmtTime, fmtDuration, weekdayShort, wee
 export { auto, neutral, midnight, presets } from './theme/index.js';
 export { probeHostTheme, observeHostTheme } from './theme/index.js';
 // ─── Headless API ───────────────────────────────────────
-export { createCalendar } from './headless/index.js';
+export { createCalendar, createAgenda } from './headless/index.js';

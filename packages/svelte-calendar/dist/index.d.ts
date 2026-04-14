@@ -10,5 +10,5 @@ export type { Clock, TimelineEvent, BlockedSlot, DaySegment, CalendarLabels, Eve
 export { auto, neutral, midnight, presets } from './theme/index.js';
 export { probeHostTheme, observeHostTheme } from './theme/index.js';
 export type { PresetName, AutoThemeOptions } from './theme/index.js';
-export { createCalendar } from './headless/index.js';
-export type { HeadlessCalendarOptions, HeadlessCalendar, HeadlessDay, HeadlessWeek, TodayQueue, HeaderContext, NavigationContext, } from './headless/index.js';
+export { createCalendar, createAgenda } from './headless/index.js';
+export type { HeadlessCalendarOptions, HeadlessCalendar, HeadlessDay, HeadlessWeek, TodayQueue, HeaderContext, NavigationContext, AgendaOptions, HeadlessAgenda, } from './headless/index.js';
