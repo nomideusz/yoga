@@ -17,7 +17,7 @@
       "default": "./dist/locales/pl.js"
     }
   },
-  "files": ["dist", "!dist/**/*.test.*", "!dist/**/*.spec.*"],
+  "files": ["dist", "CHANGELOG.md", "!dist/**/*.test.*", "!dist/**/*.spec.*"],
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
@@ -44,5 +44,9 @@
     "vite": "^7.3.1",
     "vitest": "^4.0.18"
   },
-  "keywords": ["svelte", "search", "fts5", "trigram", "fuzzy", "geo", "autocomplete", "polish"]
+  "keywords": ["svelte", "search", "fts5", "trigram", "fuzzy", "geo", "autocomplete", "polish", "sqlite", "postgres"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nomideusz/asini"
+  }
 }
