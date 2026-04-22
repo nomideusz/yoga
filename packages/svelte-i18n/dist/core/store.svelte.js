@@ -15,30 +15,40 @@ import { interpolate } from './interpolate.js';
  */
 export function createI18n(config) {
     let _locale = $state(config.defaultLocale);
-    let _isLoading = $state(true);
+    let _isLoading = $state(false);
     let _messages = $state({});
     // Cache: locale → messages (never re-fetches the same locale)
     const cache = new Map();
-    async function loadMessages(locale) {
+    /** Extract messages from a loader result, handling `{ default: {...} }` from dynamic imports. */
+    function unwrap(loaded) {
+        const maybeDefault = loaded.default;
+        return (maybeDefault ? maybeDefault : loaded);
+    }
+    function applyMessages(locale, msgs) {
+        cache.set(locale, msgs);
+        _messages = msgs;
+        _isLoading = false;
+    }
+    function loadMessages(locale) {
         const cached = cache.get(locale);
         if (cached) {
             _messages = cached;
             _isLoading = false;
             return;
         }
+        const result = config.loader(locale);
+        // Synchronous loader — apply immediately so SSR's first render has messages.
+        if (!(result instanceof Promise)) {
+            applyMessages(locale, unwrap(result));
+            return;
+        }
         _isLoading = true;
-        try {
-            const loaded = await config.loader(locale);
-            // Handle both { default: {...} } (dynamic import) and plain objects
-            const msgs = loaded.default
-                ? loaded.default
-                : loaded;
-            cache.set(locale, msgs);
-            _messages = msgs;
-        }
-        finally {
+        return result
+            .then((loaded) => applyMessages(locale, unwrap(loaded)))
+            .catch((err) => {
             _isLoading = false;
-        }
+            throw err;
+        });
     }
     // Eagerly load default locale
     loadMessages(config.defaultLocale);
@@ -66,7 +76,9 @@ export function createI18n(config) {
             if (locale === _locale && cache.has(locale))
                 return;
             _locale = locale;
-            await loadMessages(locale);
+            const result = loadMessages(locale);
+            if (result)
+                await result;
         },
     };
 }

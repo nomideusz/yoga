@@ -20,7 +20,10 @@ export interface I18nConfig {
 export interface I18nInstance {
     /** Current locale (reactive via $state). */
     readonly locale: Locale;
-    /** True while loading messages for a new locale. */
+    /**
+     * True while an async loader is fetching messages for a locale.
+     * Synchronous loaders never flip this to true — messages are applied immediately.
+     */
     readonly isLoading: boolean;
     /** Translate a key, with optional {variable} interpolation. Returns the key itself if missing. */
     t: (key: string, params?: Record<string, string | number>) => string;
