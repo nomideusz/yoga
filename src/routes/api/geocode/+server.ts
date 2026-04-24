@@ -26,7 +26,14 @@ async function nearestCity(lat: number, lng: number): Promise<{ name: string; sl
   return best;
 }
 
-export async function GET({ url }) {
+function headerNumber(request: Request, name: string): number | null {
+  const value = request.headers.get(name);
+  if (!value) return null;
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export async function GET({ url, request }) {
   const placeId = url.searchParams.get('placeId')?.trim();
   const street = url.searchParams.get('street')?.trim();
   const city = url.searchParams.get('city')?.trim();
@@ -37,6 +44,18 @@ export async function GET({ url }) {
   // ── IP-based geolocation fallback (when browser geolocation fails) ──
   const ipGeo = url.searchParams.get('ipGeo')?.trim();
   if (ipGeo === '1') {
+    const vercelLat = headerNumber(request, 'x-vercel-ip-latitude');
+    const vercelLng = headerNumber(request, 'x-vercel-ip-longitude');
+    if (vercelLat != null && vercelLng != null) {
+      return json({
+        latitude: vercelLat,
+        longitude: vercelLng,
+        accuracy: 50000,
+        locationName: request.headers.get('x-vercel-ip-city') ?? null,
+        source: 'vercel-ip',
+      });
+    }
+
     const geoKey = publicEnv.PUBLIC_GOOGLE_MAPS_API_KEY || apiKey;
     try {
       const res = await fetch(

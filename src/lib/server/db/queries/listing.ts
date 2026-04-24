@@ -101,7 +101,14 @@ function buildCard(
     latitude: number | null;
     longitude: number | null;
     price: number | null;
+    priceEstimated: boolean | null;
     trialPrice: number | null;
+    singleClassPrice: number | null;
+    rating: number | null;
+    reviews: number | null;
+    healthStatus: string | null;
+    lastPriceCheck: string | null;
+    scheduleUrl: string | null;
   },
   styleNames: string[],
 ): ListingCard {
@@ -117,7 +124,14 @@ function buildCard(
     longitude: row.longitude,
     styles: styleNames,
     price: row.price,
+    priceEstimated: row.priceEstimated ?? false,
     trialPrice: row.trialPrice,
+    singleClassPrice: row.singleClassPrice,
+    rating: row.rating,
+    reviews: row.reviews,
+    healthStatus: row.healthStatus,
+    lastPriceCheck: row.lastPriceCheck,
+    scheduleUrl: row.scheduleUrl,
   };
 }
 
@@ -335,7 +349,14 @@ export async function getListingsByStyle(
         latitude: schools.latitude,
         longitude: schools.longitude,
         price: schools.price,
+        priceEstimated: schools.priceEstimated,
         trialPrice: schools.trialPrice,
+        singleClassPrice: schools.singleClassPrice,
+        rating: schools.rating,
+        reviews: schools.reviews,
+        healthStatus: schools.healthStatus,
+        lastPriceCheck: schools.lastPriceCheck,
+        scheduleUrl: schools.scheduleUrl,
       })
       .from(schools)
       .where(
@@ -379,7 +400,14 @@ export async function getListingsByCity(city: string): Promise<ListingCard[]> {
       latitude: schools.latitude,
       longitude: schools.longitude,
       price: schools.price,
+      priceEstimated: schools.priceEstimated,
       trialPrice: schools.trialPrice,
+      singleClassPrice: schools.singleClassPrice,
+      rating: schools.rating,
+      reviews: schools.reviews,
+      healthStatus: schools.healthStatus,
+      lastPriceCheck: schools.lastPriceCheck,
+      scheduleUrl: schools.scheduleUrl,
     })
     .from(schools)
     .where(

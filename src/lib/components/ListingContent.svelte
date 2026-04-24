@@ -69,10 +69,16 @@
     });
     let hasReviews = $derived(reviews.length > 0);
     let isUnclaimed = $derived(listing.source !== "manual");
+    let photoFailed = $state(false);
 
     let hasAnyPrice = $derived(
         listing.price != null || listing.singleClassPrice != null || hasTiers,
     );
+
+    $effect(() => {
+        listing.id;
+        photoFailed = false;
+    });
 
     // ── Schedule ──────────────────────────────────────────
     let scheduleMode = $derived(
@@ -183,13 +189,14 @@
 
 <div class="lc" class:lc--page={isPage}>
     <!-- ═══ HERO PHOTO ═══ -->
-    {#if listing.photoReference}
+    {#if listing.photoReference && !photoFailed}
         <div class="lc-hero">
             <img
                 src="/api/photo/{listing.id}?v=2"
                 alt={listing.name}
                 class="lc-hero-img"
                 loading="eager"
+                onerror={() => (photoFailed = true)}
             />
             <div class="lc-hero-attr">
                 {#if listing.photoAuthor}
@@ -205,14 +212,19 @@
                 <span class="lc-hero-gm" translate="no">Google Maps</span>
             </div>
         </div>
-    {:else if listing.imageUrl}
+    {:else if listing.imageUrl && !photoFailed}
         <div class="lc-hero">
             <img
                 src={listing.imageUrl}
                 alt={listing.name}
                 class="lc-hero-img"
                 loading="eager"
+                onerror={() => (photoFailed = true)}
             />
+        </div>
+    {:else}
+        <div class="lc-hero lc-hero--placeholder" aria-hidden="true">
+            <span>{t("listing_photo_placeholder")}</span>
         </div>
     {/if}
 
@@ -302,6 +314,30 @@
                 <span>{listing.phone}</span>
             </a>
         {/if}
+        {#if listing.googleMapsUrl}
+            <a
+                href={listing.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                class="lc-cta lc-cta--secondary"
+            >
+                <span class="lc-cta-icon"><MapPin size={13} /></span>
+                <span>{t("listing_map")}</span>
+            </a>
+        {/if}
+        <a
+            href="mailto:joga@zaur.app?subject={encodeURIComponent(
+                t('listing_report_subject'),
+            )}{encodeURIComponent(listing.name)}"
+            class="lc-cta lc-cta--secondary"
+        >
+            <span class="lc-cta-icon lc-cta-icon--at">!</span>
+            <span>{t("listing_report_short")}</span>
+        </a>
+    </div>
+
+    <div class="lc-trust">
+        <span>{t("listing_trust_note")}</span>
     </div>
 
     <!-- ═══ PRICING (collapsible, first reveal section) ═══ -->
@@ -619,6 +655,18 @@
         border-radius: 16px;
         aspect-ratio: 3 / 2;
     }
+    .lc-hero--placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed var(--sf-line);
+        color: var(--sf-muted);
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
 
     /* ═══ Header ═══ */
     .lc-header {
@@ -805,6 +853,18 @@
     }
     .lc-cta:hover .lc-cta-icon {
         color: var(--sf-accent);
+    }
+    .lc-cta--secondary {
+        color: var(--sf-muted);
+    }
+    .lc-trust {
+        margin-top: -10px;
+        padding: 9px 12px;
+        border-radius: var(--radius-sm, 12px);
+        background: color-mix(in srgb, var(--sf-frost) 58%, transparent);
+        color: var(--sf-muted);
+        font-size: 0.78rem;
+        line-height: 1.55;
     }
 
     /* ═══ Reviews (muted, minimal) ═══ */

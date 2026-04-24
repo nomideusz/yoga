@@ -104,5 +104,12 @@ export interface ListingCard {
   longitude: number | null;
   styles: string[];
   price: number | null;
+  priceEstimated: boolean;
   trialPrice: number | null;
+  singleClassPrice: number | null;
+  rating: number | null;
+  reviews: number | null;
+  healthStatus: string | null;
+  lastPriceCheck: string | null;
+  scheduleUrl: string | null;
 }

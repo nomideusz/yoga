@@ -294,6 +294,12 @@
         ...new Set(data.schools.map((s) => s.neighborhood).filter(Boolean)),
     ] as string[]);
 
+    function toggleStyle(style: string) {
+        activeStyles = activeStyles.includes(style)
+            ? activeStyles.filter((s) => s !== style)
+            : [...activeStyles, style];
+    }
+
     const autocompleteItems = $derived.by((): SearchBoxItem[] => {
         const q = query.trim();
         if (q.length < 2) return [...serverSuggestions, ...placeSuggestions];
@@ -1092,7 +1098,7 @@
         } catch {}
     }
 
-    async function fallbackIpGeolocation() {
+    async function fallbackIpGeolocation(errorMessage = t("geolocation_unavailable")) {
         try {
             const res = await fetch("/api/geocode?ipGeo=1");
             const data = await res.json();
@@ -1101,7 +1107,7 @@
                 return;
             }
         } catch {}
-        geocodeError = t("geolocation_unavailable");
+        geocodeError = errorMessage;
         geocoding = false;
     }
 
@@ -1114,6 +1120,7 @@
         geocodeError = false;
 
         try {
+            let permissionDenied = false;
             const pos = await new Promise<GeolocationPosition | null>(
                 (resolve) => {
                     if (!navigator.geolocation) {
@@ -1133,10 +1140,7 @@
                         (err) => {
                             clearTimeout(timer);
                             if (err.code === 1) {
-                                geocodeError = t("geolocation_denied");
-                                geocoding = false;
-                                locationRequestInFlight = false;
-                                return;
+                                permissionDenied = true;
                             }
                             resolve(null);
                         },
@@ -1150,8 +1154,10 @@
                     pos.coords.latitude,
                     pos.coords.longitude,
                 );
-            } else if (!geocodeError) {
-                await fallbackIpGeolocation();
+            } else {
+                await fallbackIpGeolocation(
+                    permissionDenied ? t("geolocation_denied") : t("geolocation_unavailable"),
+                );
             }
         } finally {
             locationRequestInFlight = false;
@@ -1623,6 +1629,8 @@
 
     $effect(() => {
         void activeFilterQuery;
+        void activeStyles;
+        void activeDistrict;
         currentPage = 1;
     });
 
@@ -1996,6 +2004,7 @@
         {#if enrichedSchools.length === 0}
             <div class="no-results">
                 {t("city_no_schools")}
+                <span>{t("city_no_schools_hint")}</span>
                 {#if activeFilterQuery || query || activeStyles.length > 0 || activeDistrict}
                     <button
                         class="no-results-btn"
@@ -2561,7 +2570,6 @@
     .school-card:active {
         transform: scale(0.98);
     }
-
     .school-name {
         font-weight: 600;
         color: var(--sf-dark);

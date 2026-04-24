@@ -1381,6 +1381,18 @@
         }
     }
 
+    async function fallbackToIpLocation() {
+        try {
+            const res = await fetch("/api/geocode?ipGeo=1");
+            const data = await res.json();
+            if (data?.latitude != null && data?.longitude != null) {
+                await navigateToNearest(data.latitude, data.longitude);
+                return;
+            }
+        } catch {}
+        locating = false;
+    }
+
     async function requestLocation() {
         if (typeof navigator === "undefined") return;
         locating = true;
@@ -1388,36 +1400,14 @@
         showDropdown = false;
 
         if (!navigator.geolocation) {
-            try {
-                const res = await fetch("/api/geocode?ipGeo=1");
-                const data = await res.json();
-                if (data?.latitude != null && data?.longitude != null) {
-                    await navigateToNearest(data.latitude, data.longitude);
-                    return;
-                }
-            } catch {}
-            locating = false;
+            await fallbackToIpLocation();
             return;
         }
 
         navigator.geolocation.getCurrentPosition(
             (pos) =>
                 navigateToNearest(pos.coords.latitude, pos.coords.longitude),
-            async (err) => {
-                if (err.code === 1) {
-                    locating = false;
-                    return;
-                }
-                try {
-                    const res = await fetch("/api/geocode?ipGeo=1");
-                    const data = await res.json();
-                    if (data?.latitude != null && data?.longitude != null) {
-                        await navigateToNearest(data.latitude, data.longitude);
-                        return;
-                    }
-                } catch {}
-                locating = false;
-            },
+            () => void fallbackToIpLocation(),
             { timeout: 10000 },
         );
     }
@@ -1902,7 +1892,7 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
-        overflow: hidden;
+        overflow: auto;
     }
 
     /* ── Hero wrap: flex:1, content sits above center (Google-like) ── */
