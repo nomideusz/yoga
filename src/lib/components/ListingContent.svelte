@@ -186,7 +186,7 @@
     {#if listing.photoReference}
         <div class="lc-hero">
             <img
-                src="/api/photo/{listing.id}"
+                src="/api/photo/{listing.id}?v=2"
                 alt={listing.name}
                 class="lc-hero-img"
                 loading="eager"

@@ -76,7 +76,7 @@
         }
 
         if (listing.photoReference) {
-            ld.image = `/api/photo/${listing.id}`;
+            ld.image = `/api/photo/${listing.id}?v=2`;
         } else if (listing.imageUrl) {
             ld.image = listing.imageUrl;
         }
@@ -172,7 +172,7 @@
     <meta property="og:type" content="article" />
     <meta property="og:url" content={canonicalUrl} />
     {#if listing.photoReference}
-        <meta property="og:image" content={`/api/photo/${listing.id}`} />
+        <meta property="og:image" content={`/api/photo/${listing.id}?v=2`} />
     {:else if listing.imageUrl}
         <meta property="og:image" content={listing.imageUrl} />
     {:else}
