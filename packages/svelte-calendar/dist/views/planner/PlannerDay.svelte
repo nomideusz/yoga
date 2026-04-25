@@ -297,15 +297,14 @@
 		const result: PositionedEvent[] = infos.map(({ startMs: _s, endMs: _e, ...info }) => {
 			const laneH = Math.max(MIN_EVENT_H, availH / info.groupMaxRow - EVENT_GAP);
 			const topPx = contentTop + info.row * (availH / info.groupMaxRow);
-			// Vertical text: text "width" = heightPx, content "height" = width
 			const fit = measure.fitContent({
 				title: info.ev.title,
 				subtitle: info.ev.subtitle,
 				location: info.ev.location,
 				time: `${fmtTime(info.ev.start, locale)} – ${fmtTime(info.ev.end, locale)}`,
 				tags: info.ev.tags,
-				maxWidth: laneH - 16, // vertical: heightPx minus padding
-				maxHeight: info.width - 16, // vertical: width minus padding
+				maxWidth: info.width - 16,
+				maxHeight: laneH - 16,
 			});
 			return { ...info, topPx, heightPx: laneH, isNext: info.isNext, fit };
 		});
@@ -328,8 +327,8 @@
 					subtitle: draggedEv.subtitle,
 					location: draggedEv.location,
 					tags: draggedEv.tags,
-					maxWidth: dragH - 16,
-					maxHeight: dragW - 16,
+					maxWidth: dragW - 16,
+					maxHeight: dragH - 16,
 				}),
 			});
 		}
@@ -894,7 +893,7 @@
 		bottom: 0;
 		left: 0;
 		width: 2px;
-		background: var(--dt-accent, #ef4444);
+		background: var(--dt-accent, #2563eb);
 		box-shadow: 0 0 8px var(--dt-glow, rgba(239, 68, 68, 0.35));
 	}
 	.fs-now-tag {
@@ -902,8 +901,8 @@
 		top: 8px;
 		left: 8px;
 		font: 700 11px/1 var(--dt-mono, ui-monospace, monospace);
-		color: var(--dt-accent, #ef4444);
-		background: color-mix(in srgb, var(--dt-bg, #0b0e14) 92%, var(--dt-accent, #ef4444));
+		color: var(--dt-accent, #2563eb);
+		background: color-mix(in srgb, var(--dt-bg, #ffffff) 92%, var(--dt-accent, #2563eb));
 		border: 1px solid var(--dt-accent-dim, rgba(239, 68, 68, 0.18));
 		padding: 3px 6px;
 		border-radius: 4px;
@@ -927,7 +926,7 @@
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		color: var(--dt-text, rgba(226, 232, 240, 0.85));
-		background: color-mix(in srgb, var(--dt-surface, #10141c) 85%, transparent);
+		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
 		backdrop-filter: blur(6px);
 		-webkit-backdrop-filter: blur(6px);
 		padding: 8px 16px;
@@ -945,7 +944,7 @@
 		z-index: 20;
 		display: flex;
 		gap: 2px;
-		background: color-mix(in srgb, var(--dt-surface, #10141c) 85%, transparent);
+		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
 		backdrop-filter: blur(6px);
 		-webkit-backdrop-filter: blur(6px);
 		border-radius: 8px;
@@ -957,7 +956,7 @@
 		background: transparent;
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
 		cursor: pointer;
-		font: 600 11px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 600 11px / 1 var(--dt-sans, system-ui, sans-serif);
 		padding: 6px 12px;
 		border-radius: 6px;
 		letter-spacing: 0.04em;
@@ -984,7 +983,7 @@
 		pointer-events: none;
 	}
 	.fs-nav-pill:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #ef4444) 55%, transparent);
+		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
 		outline-offset: 2px;
 	}
 
@@ -1009,7 +1008,7 @@
 		gap: 4px;
 		padding: 2px 8px;
 		border-radius: 4px;
-		background: color-mix(in srgb, var(--ev-color) 18%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 18%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-left: 3px solid var(--ev-color);
 		white-space: nowrap;
 		flex-shrink: 0;
@@ -1017,14 +1016,14 @@
 		transition: background 0.15s;
 	}
 	.fs-ad:hover {
-		background: color-mix(in srgb, var(--ev-color) 28%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 28%, var(--dt-surface, var(--dt-bg, #ffffff)));
 	}
 	.fs-ad:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #ef4444) 55%, transparent);
+		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
 		outline-offset: 2px;
 	}
 	.fs-ad--selected {
-		background: color-mix(in srgb, var(--ev-color) 30%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 30%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-left-width: 4px;
 	}
 
@@ -1057,7 +1056,7 @@
 		z-index: 6;
 		border-radius: 6px;
 		cursor: pointer;
-		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		overflow: hidden;
 		display: flex;
 		align-items: center;
@@ -1065,18 +1064,18 @@
 		transition: box-shadow 120ms, background 120ms;
 	}
 	.fs-event:hover {
-		background: color-mix(in srgb, var(--ev-color) 25%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 25%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		box-shadow: 0 2px 12px color-mix(in srgb, var(--ev-color) 25%, transparent);
 	}
 	.fs-event--selected {
 		box-shadow: 0 0 0 2px var(--ev-color), 0 2px 14px color-mix(in srgb, var(--ev-color) 35%, transparent);
 	}
 	.fs-event--current {
-		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ev-color) 20%, transparent);
 	}
 	.fs-event--next {
-		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border: 1px dashed color-mix(in srgb, var(--ev-color) 35%, transparent);
 	}
 	.fs-event--dragging {
@@ -1107,16 +1106,18 @@
 		cursor: default;
 	}
 
-	/* Event inner (vertical text, bottom-to-top reading) */
+	/* Event inner */
 	.fs-ev-inner {
-		writing-mode: vertical-rl;
-		transform: rotate(180deg);
 		display: flex;
-		align-items: center;
-		gap: 6px;
-		max-height: 100%;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+		gap: 3px;
+		width: 100%;
+		height: 100%;
 		overflow: hidden;
-		padding: 8px 4px;
+		box-sizing: border-box;
+		padding: 6px 8px;
 	}
 	.fs-ev-live {
 		flex-shrink: 0;
@@ -1164,7 +1165,7 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	.fs-ev-tags { display: flex; gap: 4px; }
+	.fs-ev-tags { display: flex; gap: 4px; flex-wrap: wrap; }
 	.fs-ev-tag {
 		font: 500 8px/1 var(--dt-sans, system-ui, sans-serif);
 		color: var(--ev-color, var(--dt-accent));
@@ -1176,7 +1177,7 @@
 
 	/* ─── Focus-visible ──────────────────────────────── */
 	.fs-event:focus-visible {
-		outline: 2px solid var(--dt-accent, #ef4444);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 </style>

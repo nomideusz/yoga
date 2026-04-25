@@ -444,11 +444,11 @@
 		left: 50%;
 		transform: translateX(-50%);
 		z-index: 20;
-		font: 600 11px/1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 600 11px/1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		color: var(--dt-text, rgba(226, 232, 240, 0.85));
-		background: color-mix(in srgb, var(--dt-surface, #10141c) 85%, transparent);
+		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
 		backdrop-filter: blur(6px);
 		-webkit-backdrop-filter: blur(6px);
 		padding: 8px 16px;
@@ -466,7 +466,7 @@
 		z-index: 20;
 		display: flex;
 		gap: 2px;
-		background: color-mix(in srgb, var(--dt-surface, #10141c) 85%, transparent);
+		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
 		backdrop-filter: blur(6px);
 		-webkit-backdrop-filter: blur(6px);
 		border-radius: 8px;
@@ -478,7 +478,7 @@
 		background: transparent;
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
 		cursor: pointer;
-		font: 600 11px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 600 11px / 1 var(--dt-sans, system-ui, sans-serif);
 		padding: 6px 12px;
 		border-radius: 6px;
 		letter-spacing: 0.04em;
@@ -505,7 +505,7 @@
 		pointer-events: none;
 	}
 	.ag-nav-pill:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #ef4444) 55%, transparent);
+		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
 		outline-offset: 2px;
 	}
 
@@ -527,8 +527,13 @@
 	.ag--auto { height: auto; overflow: visible; }
 
 	.ag--disabled {
-		opacity: 0.4;
-		pointer-events: none;
+		background-image: repeating-linear-gradient(
+			135deg,
+			transparent,
+			transparent 6px,
+			color-mix(in srgb, var(--dt-text, rgba(255, 255, 255, 0.92)) 4%, transparent) 6px,
+			color-mix(in srgb, var(--dt-text, rgba(255, 255, 255, 0.92)) 4%, transparent) 12px
+		);
 	}
 
 	/* ═══ Body ═══ */
@@ -581,22 +586,22 @@
 		gap: 5px;
 		padding: 3px 10px;
 		border-radius: 6px;
-		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border: 1px solid color-mix(in srgb, var(--ev-color) 20%, transparent);
 		cursor: pointer;
 		transition: background 0.15s, border-color 0.15s;
 	}
 	.ag-allday-chip:hover {
-		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-color: color-mix(in srgb, var(--ev-color) 35%, transparent);
 	}
 	.ag-allday-chip:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 	.ag-allday-chip--selected {
 		border-color: var(--ev-color);
-		background: color-mix(in srgb, var(--ev-color) 18%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 18%, var(--dt-surface, var(--dt-bg, #ffffff)));
 	}
 	.ag-allday-dot {
 		width: 6px;
@@ -616,23 +621,23 @@
 		display: flex;
 		align-items: stretch;
 		border-radius: 10px;
-		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border: 1px solid color-mix(in srgb, var(--ev-color) 10%, var(--dt-border, rgba(255, 255, 255, 0.06)));
 		overflow: hidden;
 		cursor: pointer;
 		transition: background 150ms, border-color 150ms;
 	}
 	.ag-card:hover {
-		background: color-mix(in srgb, var(--ev-color) 25%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color) 25%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-color: color-mix(in srgb, var(--ev-color) 40%, transparent);
 	}
 	.ag-card:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 	.ag-card--selected {
 		border-color: var(--ev-color);
-		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, var(--dt-bg, #ffffff)));
 	}
 	.ag-card--cancelled {
 		opacity: 0.5;
@@ -724,12 +729,12 @@
 		font-size: 9px;
 		font-weight: 600;
 		letter-spacing: 0.04em;
-		color: var(--dt-accent, #ff6b4a);
+		color: var(--dt-accent, #2563eb);
 		flex-shrink: 0;
 		white-space: nowrap;
 	}
 	.ag-card--hero {
-		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-color: color-mix(in srgb, var(--ev-color) 30%, transparent);
 	}
 	.ag-card--hero .ag-card-title {
@@ -738,7 +743,7 @@
 	}
 	.ag-card--hero .ag-card-eta {
 		font-size: 11px;
-		background: color-mix(in srgb, var(--dt-accent, #ff6b4a) 18%, transparent);
+		background: color-mix(in srgb, var(--dt-accent, #2563eb) 18%, transparent);
 		padding: 2px 7px;
 		border-radius: 4px;
 	}
@@ -766,7 +771,7 @@
 		font-size: 14px;
 	}
 	.ag-card--first {
-		background: color-mix(in srgb, var(--ev-color) 20%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color) 20%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-color: color-mix(in srgb, var(--ev-color) 25%, transparent);
 	}
 	.ag-card--first .ag-card-title {
@@ -876,24 +881,24 @@
 		font-size: 10px;
 		font-weight: 600;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-accent, #ff6b4a);
+		color: var(--dt-accent, #2563eb);
 		margin-left: 4px;
 	}
 	.ag-q-now {
 		padding: 8px 10px;
 		border-radius: 8px;
-		background: color-mix(in srgb, var(--ev-color, var(--dt-accent)) 15%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color, var(--dt-accent)) 15%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border: 1px solid color-mix(in srgb, var(--ev-color, var(--dt-accent)) 15%, transparent);
 		cursor: pointer;
 		transition: background 150ms, border-color 150ms;
 		margin-right: 10px;
 	}
 	.ag-q-now:hover {
-		background: color-mix(in srgb, var(--ev-color, var(--dt-accent)) 25%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color, var(--dt-accent)) 25%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-color: color-mix(in srgb, var(--ev-color, var(--dt-accent)) 35%, transparent);
 	}
 	.ag-q-now:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 	.ag-q-now--selected {
@@ -903,7 +908,7 @@
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: var(--ev-color, var(--dt-accent, #ff6b4a));
+		background: var(--ev-color, var(--dt-accent, #2563eb));
 		margin-bottom: 6px;
 		animation: ag-pulse 2.5s ease-in-out infinite;
 	}
@@ -935,7 +940,7 @@
 	}
 	.ag-q-now-fill {
 		height: 100%;
-		background: var(--ev-color, var(--dt-accent, #ff6b4a));
+		background: var(--ev-color, var(--dt-accent, #2563eb));
 		border-radius: 1px;
 		transition: width 1s linear;
 	}
@@ -975,7 +980,7 @@
 		opacity: 0.6;
 	}
 	.ag-q-done-item:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 		opacity: 0.6;
 	}
@@ -1025,7 +1030,7 @@
 		opacity: 1;
 	}
 	.ag-log-row:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 	.ag-log-row--selected {
@@ -1096,7 +1101,7 @@
 	}
 	.ag-compact-row:hover .ag-compact-row-title { color: var(--dt-text); }
 	.ag-compact-row:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 	.ag-compact-row-dot {

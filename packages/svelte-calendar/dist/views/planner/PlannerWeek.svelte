@@ -300,6 +300,36 @@
 	let evDragId = $state<string | null>(null);
 	let evDragEvent: TimelineEvent | null = null;
 
+	const dragPreviewEvent = $derived.by(() => {
+		const payload = drag?.active && drag.mode === 'move' ? drag.payload : null;
+		if (!payload?.eventId) return null;
+		const ev = events.find((event) => event.id === payload.eventId);
+		if (!ev) return null;
+		return { ...ev, start: payload.start, end: payload.end };
+	});
+
+	function isDraggedEvent(eventId: string): boolean {
+		return dragPreviewEvent?.id === eventId;
+	}
+
+	function timedEventsForDay(day: DayCell): TimelineEvent[] {
+		if (!dragPreviewEvent) return day.events;
+		return day.events.filter((ev) => ev.id !== dragPreviewEvent.id);
+	}
+
+	function dragPreviewTimedForDay(dayMs: number): TimelineEvent | null {
+		const ev = dragPreviewEvent;
+		if (!ev || isAllDay(ev) || isMultiDay(ev)) return null;
+		const dayEnd = dayMs + DAY_MS;
+		return ev.start.getTime() < dayEnd && ev.end.getTime() > dayMs ? ev : null;
+	}
+
+	function dragPreviewSegmentForDay(dayMs: number): DaySegment | null {
+		const ev = dragPreviewEvent;
+		if (!ev || (!isAllDay(ev) && !isMultiDay(ev))) return null;
+		return segmentForDay(ev, dayMs);
+	}
+
 	function getCellWidth(): number {
 		const cell = el?.querySelector('.wg-cell');
 		return cell ? cell.getBoundingClientRect().width : 100;
@@ -374,6 +404,26 @@
 	}
 </script>
 
+{#snippet allDaySegmentContent(seg: DaySegment)}
+	{#if seg.isStart}
+		<span class="wg-ad-title">{seg.ev.title}</span>
+	{:else}
+		<span class="wg-ad-cont" aria-hidden="true">◂</span>
+		<span class="wg-ad-title">{seg.ev.title}</span>
+	{/if}
+	{#if !seg.isEnd && seg.totalDays > 1}
+		<span class="wg-ad-arrow" aria-hidden="true">▸</span>
+	{/if}
+{/snippet}
+
+{#snippet timedEventContent(ev: TimelineEvent)}
+	<span class="wg-ev-time">{fmtAmPm(ev.start)}</span>
+	<span class="wg-ev-title">{ev.title}</span>
+	{#if ev.location}
+		<span class="wg-ev-loc">{ev.location}</span>
+	{/if}
+{/snippet}
+
 <div class="wg" class:wg--auto={autoHeight} style={style || undefined} style:height={autoHeight ? undefined : (height ? `${height}px` : '100%')}>
 	<div
 		class="wg-body"
@@ -388,11 +438,17 @@
 					<!-- Day columns (header inside each cell) -->
 					<div class="wg-days">
 						{#each week.days as day (day.ms)}
+							{@const visibleAllDaySegments = day.allDaySegments.filter((seg) => !isDraggedEvent(seg.ev.id))}
+							{@const visibleTimedEvents = timedEventsForDay(day)}
+							{@const previewTimedEvent = dragPreviewTimedForDay(day.ms)}
+							{@const previewSegment = dragPreviewSegmentForDay(day.ms)}
 							<div
 								class="wg-cell"
 								class:wg-cell--today={day.isToday}
 								class:wg-cell--past={day.isPast}
-								class:wg-cell--weekend={day.isWeekend}							class:wg-cell--disabled={disabledSet.has(day.ms)}								role="gridcell"
+								class:wg-cell--weekend={day.isWeekend}
+								class:wg-cell--disabled={disabledSet.has(day.ms)}
+								role="gridcell"
 								tabindex="0"
 								aria-label="{new Date(day.ms).toLocaleDateString(locale ?? 'en-US', { weekday: 'long', month: 'short', day: 'numeric' })}{day.isToday ? ` (${L.today.toLowerCase()})` : ''}, {L.nEvents(day.events.length)}"
 								onclick={(e) => handleDayCellClick(day.ms, e)}
@@ -435,9 +491,9 @@
 								{/if}
 
 								<!-- All-day / multi-day events -->
-								{#if day.allDaySegments.length > 0}
+								{#if visibleAllDaySegments.length > 0 || previewSegment}
 									<div class="wg-allday">
-										{#each day.allDaySegments as seg (seg.ev.id)}
+										{#each visibleAllDaySegments as seg (seg.ev.id)}
 											<div
 												class="wg-ad"
 												class:wg-ad--start={seg.isStart}
@@ -451,23 +507,27 @@
 												onpointerdown={(e) => onEventPointerDown(e, seg.ev)}
 												onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); oneventclick?.(seg.ev); } }}
 											>
-												{#if seg.isStart}
-													<span class="wg-ad-title">{seg.ev.title}</span>
-												{:else}
-													<span class="wg-ad-cont" aria-hidden="true">◂</span>
-													<span class="wg-ad-title">{seg.ev.title}</span>
-												{/if}
-												{#if !seg.isEnd && seg.totalDays > 1}
-													<span class="wg-ad-arrow" aria-hidden="true">▸</span>
-												{/if}
+												{@render allDaySegmentContent(seg)}
 											</div>
 										{/each}
+										{#if previewSegment}
+											<div
+												class="wg-ad wg-ad--drag-preview"
+												class:wg-ad--start={previewSegment.isStart}
+												class:wg-ad--end={previewSegment.isEnd}
+												class:wg-ad--mid={!previewSegment.isStart && !previewSegment.isEnd}
+												style:--ev-color={previewSegment.ev.color ?? 'var(--dt-accent)'}
+												aria-hidden="true"
+											>
+												{@render allDaySegmentContent(previewSegment)}
+											</div>
+										{/if}
 									</div>
 								{/if}
 
 								<!-- Timed events -->
 								<div class="wg-cell-events">
-									{#each day.events.slice(0, MAX_EVENTS_SHOWN) as ev (ev.id)}
+									{#each visibleTimedEvents.slice(0, MAX_EVENTS_SHOWN) as ev (ev.id)}
 										<div
 											class="wg-ev"
 											class:wg-ev--selected={selectedEventId === ev.id}
@@ -482,18 +542,24 @@
 											role="button"
 											tabindex="0"
 											aria-label="{ev.title}{ev.status === 'cancelled' ? ` (cancelled)` : ''}{ev.status === 'tentative' ? ` (tentative)` : ''}{ev.status === 'full' ? ` (full)` : ''}{ev.status === 'limited' ? ` (limited)` : ''}{ev.start.getTime() <= clock.tick && ev.end.getTime() > clock.tick ? ` (${L.inProgress})` : ''}"
-											onpointerdown={(e) => onEventPointerDown(e, ev)}										onpointerenter={() => oneventhover?.(ev)}
+											onpointerdown={(e) => onEventPointerDown(e, ev)}
+											onpointerenter={() => oneventhover?.(ev)}
 											onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); oneventclick?.(ev); } }}
 										>
-											<span class="wg-ev-time">{fmtAmPm(ev.start)}</span>
-										<span class="wg-ev-title">{ev.title}</span>
-										{#if ev.location}
-											<span class="wg-ev-loc">{ev.location}</span>
-										{/if}
+											{@render timedEventContent(ev)}
 										</div>
 									{/each}
-									{#if day.events.length > MAX_EVENTS_SHOWN}
-										<div class="wg-ev-more">{L.nMore(day.events.length - MAX_EVENTS_SHOWN)}</div>
+									{#if previewTimedEvent}
+										<div
+											class="wg-ev wg-ev--drag-preview"
+											style:--ev-color={previewTimedEvent.color ?? 'var(--dt-accent)'}
+											aria-hidden="true"
+										>
+											{@render timedEventContent(previewTimedEvent)}
+										</div>
+									{/if}
+									{#if visibleTimedEvents.length > MAX_EVENTS_SHOWN}
+										<div class="wg-ev-more">{L.nMore(visibleTimedEvents.length - MAX_EVENTS_SHOWN)}</div>
 									{/if}
 								</div>
 							</div>
@@ -534,6 +600,8 @@
 		flex: 1;
 		overflow-y: auto;
 		overflow-x: hidden;
+		box-sizing: border-box;
+		padding-top: 48px;
 		scrollbar-width: thin;
 		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.08)) transparent;
 	}
@@ -557,8 +625,8 @@
 
 	.wg-week--current {
 		background: var(--dt-today-bg, rgba(239, 68, 68, 0.02));
-		border: 2.5px solid var(--dt-accent, #ef4444);
-		box-shadow: 0 0 0 1px color-mix(in srgb, var(--dt-accent, #ef4444) 15%, transparent);
+		border: 2.5px solid var(--dt-accent, #2563eb);
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--dt-accent, #2563eb) 15%, transparent);
 	}
 
 	/* ─── Week body ──────────────────────────────────── */
@@ -604,8 +672,6 @@
 
 	/* ─── Disabled cell ──────────────────────────────── */
 	.wg-cell--disabled {
-		opacity: 0.35;
-		pointer-events: none;
 		background: repeating-linear-gradient(
 			45deg,
 			transparent,
@@ -668,7 +734,7 @@
 	}
 
 	.wg-cell-hd--today .wg-day-wd {
-		color: var(--dt-accent, #ef4444);
+		color: var(--dt-accent, #2563eb);
 		font-weight: 600;
 	}
 
@@ -682,7 +748,7 @@
 	}
 
 	.wg-day-num--today {
-		color: var(--dt-accent, #ef4444);
+		color: var(--dt-accent, #2563eb);
 		font-weight: 900;
 	}
 
@@ -719,15 +785,25 @@
 		gap: 3px;
 		padding: 2px 5px;
 		border-radius: 3px;
-		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		cursor: pointer;
 		overflow: hidden;
 		transition: background 0.12s;
 		min-height: 18px;
 	}
 
+	.wg-ad--drag-preview {
+		position: relative;
+		z-index: 8;
+		opacity: 0.95;
+		pointer-events: none;
+		box-shadow: 0 6px 18px color-mix(in srgb, var(--ev-color) 26%, rgba(0, 0, 0, 0.22));
+		outline: 1px solid color-mix(in srgb, var(--ev-color) 42%, transparent);
+		cursor: grabbing;
+	}
+
 	.wg-ad:hover {
-		background: color-mix(in srgb, var(--ev-color) 32%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 32%, var(--dt-surface, var(--dt-bg, #ffffff)));
 	}
 
 	.wg-ad--start {
@@ -787,14 +863,25 @@
 		gap: 3px 5px;
 		padding: 3px 6px;
 		border-radius: 4px;
-		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		cursor: pointer;
 		overflow: hidden;
 		transition: background 0.12s;
 	}
 
 	.wg-ev:hover {
-		background: color-mix(in srgb, var(--ev-color) 25%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 25%, var(--dt-surface, var(--dt-bg, #ffffff)));
+	}
+
+	.wg-ev--drag-preview {
+		position: relative;
+		z-index: 8;
+		opacity: 0.95;
+		pointer-events: none;
+		background: color-mix(in srgb, var(--ev-color) 28%, var(--dt-surface, var(--dt-bg, #ffffff)));
+		box-shadow: 0 6px 18px color-mix(in srgb, var(--ev-color) 24%, rgba(0, 0, 0, 0.22));
+		outline: 1px solid color-mix(in srgb, var(--ev-color) 42%, transparent);
+		cursor: grabbing;
 	}
 
 	.wg-ev--selected {
@@ -802,7 +889,7 @@
 	}
 
 	.wg-ev--current {
-		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, var(--dt-bg, #ffffff)));
 	}
 
 	.wg-ev--cancelled {
@@ -869,7 +956,7 @@
 		z-index: 20;
 		display: flex;
 		gap: 2px;
-		background: color-mix(in srgb, var(--dt-surface, #10141c) 85%, transparent);
+		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
 		backdrop-filter: blur(6px);
 		-webkit-backdrop-filter: blur(6px);
 		border-radius: 8px;
@@ -886,7 +973,7 @@
 		background: transparent;
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
 		cursor: pointer;
-		font: 600 11px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 600 11px / 1 var(--dt-sans, system-ui, sans-serif);
 		padding: 6px 12px;
 		border-radius: 6px;
 		letter-spacing: 0.04em;
@@ -900,18 +987,18 @@
 		color: var(--dt-text, rgba(226, 232, 240, 0.85));
 	}
 	.wg-nav-pill:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #ef4444) 55%, transparent);
+		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
 		outline-offset: 2px;
 	}
 
 	/* ─── Focus-visible ──────────────────────────────── */
 	.wg-cell:focus-visible {
-		outline: 2px solid var(--dt-accent, #ef4444);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: -2px;
 	}
 
 	.wg-ev:focus-visible {
-		outline: 2px solid var(--ev-color, var(--dt-accent, #ef4444));
+		outline: 2px solid var(--ev-color, var(--dt-accent, #2563eb));
 		outline-offset: 1px;
 	}
 

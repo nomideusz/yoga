@@ -61,7 +61,7 @@
 	}
 
 	.dh-name {
-		font: 500 10px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 500 10px / 1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
@@ -74,7 +74,7 @@
 	}
 
 	.dh-num {
-		font: 600 14px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 600 14px / 1 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text, rgba(226, 232, 240, 0.85));
 		width: 28px;
 		height: 28px;
@@ -84,20 +84,20 @@
 		border-radius: 50%;
 	}
 	.dh-num-today {
-		background: var(--dt-accent, #ef4444);
+		background: var(--dt-accent, #2563eb);
 		color: var(--dt-btn-text, #fff);
 	}
 
 	.dh-date {
-		font: 400 10px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 400 10px / 1 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
 	}
 
 	.dh-rel {
-		font: 500 12px / 1.3 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 500 12px / 1.3 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text, rgba(226, 232, 240, 0.85));
 	}
 	.dh-today .dh-rel {
-		color: var(--dt-accent, #ef4444);
+		color: var(--dt-accent, #2563eb);
 	}
 </style>

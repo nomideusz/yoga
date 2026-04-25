@@ -484,7 +484,7 @@
 		z-index: 20;
 		display: flex;
 		gap: 2px;
-		background: color-mix(in srgb, var(--dt-surface, #10141c) 85%, transparent);
+		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
 		backdrop-filter: blur(6px);
 		-webkit-backdrop-filter: blur(6px);
 		border-radius: 8px;
@@ -496,7 +496,7 @@
 		background: transparent;
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
 		cursor: pointer;
-		font: 600 11px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 600 11px / 1 var(--dt-sans, system-ui, sans-serif);
 		padding: 6px 12px;
 		border-radius: 6px;
 		letter-spacing: 0.04em;
@@ -523,7 +523,7 @@
 		pointer-events: none;
 	}
 	.ag-nav-pill:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #ef4444) 55%, transparent);
+		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
 		outline-offset: 2px;
 	}
 
@@ -552,6 +552,8 @@
 		min-width: 0;
 		overflow-y: auto;
 		overflow-x: hidden;
+		box-sizing: border-box;
+		padding-top: 44px;
 		scrollbar-width: thin;
 		scrollbar-color: var(--dt-border) transparent;
 	}
@@ -579,22 +581,22 @@
 		gap: 4px;
 		padding: 2px 8px;
 		border-radius: 5px;
-		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border: 1px solid color-mix(in srgb, var(--ev-color) 18%, transparent);
 		cursor: pointer;
 		transition: background 0.15s, border-color 0.15s;
 	}
 	.ag-allday-chip:hover {
-		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-color: color-mix(in srgb, var(--ev-color) 30%, transparent);
 	}
 	.ag-allday-chip:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 	.ag-allday-chip--selected {
 		border-color: var(--ev-color);
-		background: color-mix(in srgb, var(--ev-color) 18%, var(--dt-surface, #10141c));
+		background: color-mix(in srgb, var(--ev-color) 18%, var(--dt-surface, var(--dt-bg, #ffffff)));
 	}
 	.ag-allday-dot {
 		width: 5px;
@@ -614,23 +616,23 @@
 		display: flex;
 		align-items: stretch;
 		border-radius: 6px;
-		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border: 1px solid color-mix(in srgb, var(--ev-color) 8%, var(--dt-border, rgba(255, 255, 255, 0.06)));
 		overflow: hidden;
 		cursor: pointer;
 		transition: background 150ms, border-color 150ms;
 	}
 	.ag-card:hover {
-		background: color-mix(in srgb, var(--ev-color) 20%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color) 20%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border-color: color-mix(in srgb, var(--ev-color) 30%, transparent);
 	}
 	.ag-card:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 	.ag-card--selected {
 		border-color: var(--ev-color);
-		background: color-mix(in srgb, var(--ev-color) 20%, var(--dt-surface, #191919));
+		background: color-mix(in srgb, var(--ev-color) 20%, var(--dt-surface, var(--dt-bg, #ffffff)));
 	}
 	.ag-card--cancelled {
 		opacity: 0.5;
@@ -727,7 +729,7 @@
 		border-bottom: 1px solid var(--dt-border, rgba(255, 255, 255, 0.06));
 	}
 	.ag-wday--today {
-		background: color-mix(in srgb, var(--dt-accent, #ff6b4a) 2%, transparent);
+		background: color-mix(in srgb, var(--dt-accent, #2563eb) 2%, transparent);
 	}
 	.ag-wday--tomorrow .ag-card {
 		opacity: 0.82;
@@ -739,8 +741,6 @@
 		padding: 8px 20px;
 	}
 	.ag-wday--disabled {
-		opacity: 0.35;
-		pointer-events: none;
 		position: relative;
 	}
 	.ag-wday--disabled::after {
@@ -776,8 +776,8 @@
 		font-weight: 600;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: var(--dt-accent, #ff6b4a);
-		background: color-mix(in srgb, var(--dt-accent, #ff6b4a) 12%, transparent);
+		color: var(--dt-accent, #2563eb);
+		background: color-mix(in srgb, var(--dt-accent, #2563eb) 12%, transparent);
 		padding: 2px 7px;
 		border-radius: 3px;
 	}
@@ -824,7 +824,7 @@
 		font-weight: 700;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: var(--dt-accent, #ff6b4a);
+		color: var(--dt-accent, #2563eb);
 	}
 	.ag-wslot-cards {
 		display: flex;
@@ -866,7 +866,7 @@
 		color: var(--dt-text);
 	}
 	.ag-compact:focus-visible {
-		outline: 2px solid var(--dt-accent, #ff6b4a);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 	}
 	.ag-compact-dot {

@@ -68,7 +68,7 @@
 		background: var(--dt-accent-dim, rgba(239, 68, 68, 0.05));
 	}
 	.es:focus-visible {
-		outline: 2px solid var(--dt-accent, #ef4444);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 		border-color: var(--dt-accent-dim, rgba(239, 68, 68, 0.18));
 	}
@@ -88,8 +88,8 @@
 	}
 
 	.es-plus {
-		font: 500 14px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
-		color: var(--dt-accent, #ef4444);
+		font: 500 14px / 1 var(--dt-sans, system-ui, sans-serif);
+		color: var(--dt-accent, #2563eb);
 	}
 	.es-range {
 		font: 400 10px / 1 var(--dt-mono, 'SF Mono', monospace);

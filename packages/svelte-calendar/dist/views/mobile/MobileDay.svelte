@@ -6,12 +6,10 @@
   Events positioned absolutely within hour lanes.
 -->
 <script lang="ts">
-	import { onMount, tick, untrack } from 'svelte';
+	import { onMount } from 'svelte';
 	import { useCalendarContext } from '../shared/context.svelte.js';
 	import { createClock } from '../../core/clock.svelte.js';
 	import type { TimelineEvent, BlockedSlot } from '../../core/types.js';
-	import type { DragState } from '../../engine/drag.svelte.js';
-	import type { ViewState } from '../../engine/view-state.svelte.js';
 	import { DAY_MS, HOUR_MS, sod, isAllDay, isMultiDay, segmentForDay } from '../../core/time.js';
 	import type { DaySegment } from '../../core/time.js';
 	import { fmtH, fmtTime, getLabels } from '../../core/locale.js';
@@ -181,8 +179,8 @@
 			ev: info.ev,
 			top: info.top,
 			height: info.height,
-			left: `calc(${GUTTER_W}px + ${(info.col / info.totalCols) * 100}% * (1 - ${GUTTER_W} / var(--mb-grid-w, 300)))`,
-			width: `calc((100% - ${GUTTER_W}px) / ${info.totalCols} - 2px)`,
+			left: `calc(${GUTTER_W}px + ${(info.col / info.totalCols) * 100}% - ${(GUTTER_W * info.col) / info.totalCols}px)`,
+			width: `calc(${100 / info.totalCols}% - ${GUTTER_W / info.totalCols + 2}px)`,
 			isCurrent: info.isCurrent,
 			isNext: info.isNext,
 			col: info.col,
@@ -316,7 +314,6 @@
 		onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleGridClick(e as unknown as MouseEvent); }}
 		role="grid"
 		tabindex="-1"
-		style:--mb-grid-w="300"
 	>
 		<div class="mb-grid-inner" style:height="{gridHeight}px">
 			<!-- Hour lanes -->

@@ -104,7 +104,7 @@
 		height: 0;
 	}
 	.ni-line-bar {
-		background: var(--ni-color, var(--dt-accent, #ef4444));
+		background: var(--ni-color, var(--dt-accent, #2563eb));
 	}
 	.ni-line.vertical .ni-line-bar {
 		width: 2px;
@@ -122,7 +122,7 @@
 		width: 10px;
 		height: 10px;
 		border-radius: 50%;
-		background: var(--ni-color, var(--dt-accent, #ef4444));
+		background: var(--ni-color, var(--dt-accent, #2563eb));
 		box-shadow: 0 0 6px var(--ni-color, var(--dt-glow, rgba(239, 68, 68, 0.35)));
 	}
 	.ni-dot.vertical .ni-dot-circle {
@@ -138,7 +138,7 @@
 		white-space: nowrap;
 		font: 600 10px / 1 var(--dt-mono, 'SF Mono', 'Fira Code', monospace);
 		color: var(--dt-btn-text, #fff);
-		background: var(--ni-color, var(--dt-accent, #ef4444));
+		background: var(--ni-color, var(--dt-accent, #2563eb));
 		padding: 3px 6px;
 		border-radius: 4px;
 	}
@@ -161,11 +161,11 @@
 	.ni-badge {
 		display: inline-flex;
 		align-items: center;
-		font: 700 9px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 700 9px / 1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--dt-btn-text, #fff);
-		background: var(--ni-color, var(--dt-accent, #ef4444));
+		background: var(--ni-color, var(--dt-accent, #2563eb));
 		padding: 2px 7px;
 		border-radius: 3px;
 		animation: ni-pulse 2s ease-in-out infinite;

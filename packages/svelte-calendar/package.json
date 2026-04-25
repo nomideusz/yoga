@@ -1,6 +1,6 @@
 {
 	"name": "@nomideusz/svelte-calendar",
-	"version": "0.6.4",
+	"version": "0.6.5",
 	"description": "A themeable Svelte 5 calendar with Day and Week views — Planner and Agenda.",
 	"type": "module",
 	"license": "MIT",

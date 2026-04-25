@@ -47,7 +47,7 @@
 		children,
 	}: Props = $props();
 
-	const accentColor = $derived(event.color || 'var(--dt-accent, #ef4444)');
+	const accentColor = $derived(event.color || 'var(--dt-accent, #2563eb)');
 	const isCancelled = $derived(event.status === 'cancelled');
 	const isTentative = $derived(event.status === 'tentative');
 	const isFull = $derived(event.status === 'full');
@@ -176,7 +176,7 @@
 
 <style>
 	.eb {
-		--_color: var(--eb-color, var(--dt-accent, #ef4444));
+		--_color: var(--eb-color, var(--dt-accent, #2563eb));
 		cursor: default;
 		transition: opacity 120ms, transform 80ms;
 	}
@@ -187,7 +187,7 @@
 		transform: translateY(-1px);
 	}
 	.eb:focus-visible {
-		outline: 2px solid var(--dt-accent, #ef4444);
+		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
 		border-radius: 4px;
 	}
@@ -225,7 +225,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 5px;
-		font: 400 11px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 400 11px / 1 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text, rgba(226, 232, 240, 0.85));
 		white-space: nowrap;
 		overflow: hidden;
@@ -252,7 +252,7 @@
 	.eb-card {
 		display: flex;
 		border-radius: 8px;
-		background: var(--dt-surface, #10141c);
+		background: var(--dt-surface, var(--dt-bg, #ffffff));
 		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
 		overflow: hidden;
 	}
@@ -269,7 +269,7 @@
 		min-width: 0;
 	}
 	.eb-card .eb-title {
-		font: 500 12px / 1.3 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 500 12px / 1.3 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text, rgba(226, 232, 240, 0.85));
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -280,7 +280,7 @@
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
 	}
 	.eb-card .eb-dur {
-		font: 300 10px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 300 10px / 1 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
 	}
 
@@ -307,7 +307,7 @@
 		width: 90px;
 	}
 	.eb-row .eb-title {
-		font: 400 12px / 1.3 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 400 12px / 1.3 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text, rgba(226, 232, 240, 0.85));
 		flex: 1;
 		overflow: hidden;
@@ -315,14 +315,14 @@
 		white-space: nowrap;
 	}
 	.eb-row .eb-dur {
-		font: 300 10px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 300 10px / 1 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
 		flex-shrink: 0;
 	}
 
 	/* ── Shared ── */
 	.eb-subtitle {
-		font: 400 10px / 1.2 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 400 10px / 1.2 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.65));
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -335,7 +335,7 @@
 	}
 	.eb-tag {
 		display: inline-block;
-		font: 500 8px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 500 8px / 1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		padding: 2px 5px;
@@ -344,7 +344,7 @@
 		color: var(--_color);
 	}
 	.eb-location {
-		font: 400 9px / 1.2 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 400 9px / 1.2 var(--dt-sans, system-ui, sans-serif);
 		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -353,7 +353,7 @@
 	.eb-status-badge {
 		display: inline-flex;
 		align-items: center;
-		font: 700 8px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 700 8px / 1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		padding: 2px 6px;
@@ -369,8 +369,8 @@
 		background: color-mix(in srgb, var(--_color) 12%, transparent);
 	}
 	.eb-full-badge {
-		color: #ef4444;
-		background: color-mix(in srgb, #ef4444 15%, transparent);
+		color: #2563eb;
+		background: color-mix(in srgb, #2563eb 15%, transparent);
 	}
 	.eb-limited-badge {
 		color: var(--_color);
@@ -379,7 +379,7 @@
 	.eb-live-badge {
 		display: inline-flex;
 		align-items: center;
-		font: 700 8px / 1 var(--dt-sans, 'Outfit', system-ui, sans-serif);
+		font: 700 8px / 1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--dt-btn-text, #fff);
