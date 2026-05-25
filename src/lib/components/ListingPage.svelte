@@ -1,7 +1,9 @@
 <script lang="ts">
+    import { browser } from "$app/environment";
     import ListingContent from "$lib/components/ListingContent.svelte";
     import { getListingAbsoluteUrl } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
+    import { trackListingView } from "$lib/analytics/umami.js";
     import type { Listing } from "$lib/data";
     import type { ReviewData } from "$lib/server/db/queries";
 
@@ -16,6 +18,16 @@
         reviews?: ReviewData[];
         preferredLangs?: string[];
     } = $props();
+
+    $effect(() => {
+        if (!browser) return;
+        trackListingView({
+            city: listing.city,
+            slug: listing.slug ?? listing.id,
+            name: listing.name,
+            styles: listing.styles.length ? listing.styles.join(", ") : undefined,
+        });
+    });
 
     const canonicalUrl = $derived(getListingAbsoluteUrl(listing));
 

@@ -1,9 +1,11 @@
 <script lang="ts">
   import "../app.css";
+  import { browser } from "$app/environment";
   import { navigating, page } from "$app/stores";
-  import { onNavigate } from "$app/navigation";
+  import { afterNavigate, onNavigate } from "$app/navigation";
   import { setLabels } from "@nomideusz/svelte-calendar";
   import { i18n } from "$lib/i18n.js";
+  import { trackLocaleChange, trackNavigation } from "$lib/analytics/umami.js";
   const t = i18n.t;
 
   type NavigatorConnection = {
@@ -33,6 +35,21 @@
         await navigation.complete;
       });
     });
+  });
+
+  afterNavigate(({ to }) => {
+    if (!to) return;
+    trackNavigation(to.url.pathname, to.url.searchParams, i18n.locale);
+  });
+
+  let previousLocale = $state<string | undefined>(undefined);
+  $effect(() => {
+    if (!browser) return;
+    const locale = i18n.locale;
+    if (previousLocale && previousLocale !== locale) {
+      trackLocaleChange(locale);
+    }
+    previousLocale = locale;
   });
 
   // Reactive calendar labels — update when locale changes

@@ -9,6 +9,7 @@
     import { getListingAbsoluteUrl, getListingPath } from "$lib/paths";
     import LocateButton from "$lib/components/LocateButton.svelte";
     import type { SearchBoxItem } from "$lib/components/SearchBox.svelte";
+    import { trackCityView } from "$lib/analytics/umami.js";
     import {
         resolveSearch,
         findNearestCityWithSchools,
@@ -33,6 +34,11 @@
     const t = i18n.t;
 
     let { data }: { data: PageData } = $props();
+
+    $effect(() => {
+        if (!browser) return;
+        trackCityView(data.citySlug, data.schools.length);
+    });
 
     /** Translate a Polish city name based on current locale. */
     function cityDisplay(plName: string): string {

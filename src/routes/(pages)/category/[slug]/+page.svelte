@@ -4,6 +4,7 @@
     import Pagination from "$lib/components/Pagination.svelte";
     import SlideOver from "$lib/components/SlideOver.svelte";
     import ListingContent from "$lib/components/ListingContent.svelte";
+    import { trackCategoryView } from "$lib/analytics/umami.js";
     import {
         getCityPath,
         getListingAbsoluteUrl,
@@ -14,6 +15,11 @@
     const t = i18n.t;
 
     let { data } = $props();
+
+    $effect(() => {
+        if (!browser) return;
+        trackCategoryView(data.slug, data.styleName, data.listings.length);
+    });
 
     /** Translate a Polish city name based on current locale. */
     function cityDisplay(plName: string): string {
