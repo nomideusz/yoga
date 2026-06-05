@@ -297,14 +297,15 @@
 		const result: PositionedEvent[] = infos.map(({ startMs: _s, endMs: _e, ...info }) => {
 			const laneH = Math.max(MIN_EVENT_H, availH / info.groupMaxRow - EVENT_GAP);
 			const topPx = contentTop + info.row * (availH / info.groupMaxRow);
+			// Vertical labels: text runs along lane height, columns stack across duration width.
 			const fit = measure.fitContent({
 				title: info.ev.title,
 				subtitle: info.ev.subtitle,
 				location: info.ev.location,
 				time: `${fmtTime(info.ev.start, locale)} – ${fmtTime(info.ev.end, locale)}`,
 				tags: info.ev.tags,
-				maxWidth: info.width - 16,
-				maxHeight: laneH - 16,
+				maxWidth: laneH - 16,
+				maxHeight: info.width - 16,
 			});
 			return { ...info, topPx, heightPx: laneH, isNext: info.isNext, fit };
 		});
@@ -327,8 +328,8 @@
 					subtitle: draggedEv.subtitle,
 					location: draggedEv.location,
 					tags: draggedEv.tags,
-					maxWidth: dragW - 16,
-					maxHeight: dragH - 16,
+					maxWidth: dragH - 16,
+					maxHeight: dragW - 16,
 				}),
 			});
 		}
@@ -1106,18 +1107,21 @@
 		cursor: default;
 	}
 
-	/* Event inner */
+	/* Event inner — vertical text along lane height (day filmstrip) */
 	.fs-ev-inner {
+		writing-mode: vertical-rl;
+		text-orientation: mixed;
+		transform: rotate(180deg);
 		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
+		flex-direction: row;
+		align-items: center;
 		justify-content: center;
-		gap: 3px;
-		width: 100%;
+		gap: 6px;
 		height: 100%;
+		max-width: 100%;
 		overflow: hidden;
 		box-sizing: border-box;
-		padding: 6px 8px;
+		padding: 8px 4px;
 	}
 	.fs-ev-live {
 		flex-shrink: 0;
@@ -1143,12 +1147,15 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		max-height: 100%;
+		flex-shrink: 0;
 	}
 	.fs-ev-time {
 		font: 400 10px/1 var(--dt-mono, ui-monospace, monospace);
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.72));
 		opacity: 0.7;
 		white-space: nowrap;
+		flex-shrink: 0;
 	}
 	.fs-ev-sub {
 		font: 400 11px/1 var(--dt-sans, system-ui, sans-serif);
@@ -1157,6 +1164,8 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		max-height: 100%;
+		flex-shrink: 0;
 	}
 	.fs-ev-loc {
 		font: 400 10px/1 var(--dt-sans, system-ui, sans-serif);
@@ -1164,8 +1173,15 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		max-height: 100%;
+		flex-shrink: 0;
 	}
-	.fs-ev-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+	.fs-ev-tags {
+		display: flex;
+		flex-direction: row;
+		gap: 4px;
+		flex-shrink: 0;
+	}
 	.fs-ev-tag {
 		font: 500 8px/1 var(--dt-sans, system-ui, sans-serif);
 		color: var(--ev-color, var(--dt-accent));
