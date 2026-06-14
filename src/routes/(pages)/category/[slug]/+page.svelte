@@ -4,6 +4,7 @@
     import Pagination from "$lib/components/Pagination.svelte";
     import SlideOver from "$lib/components/SlideOver.svelte";
     import ListingContent from "$lib/components/ListingContent.svelte";
+    import { listing, listingReviews } from "$lib/listing.remote";
     import { trackCategoryView } from "$lib/analytics/umami.js";
     import {
         getCityPath,
@@ -48,16 +49,11 @@
         slideOverData = null;
 
         try {
-            const [listingRes, reviewsRes] = await Promise.all([
-                fetch(`/api/listing/${schoolId}`),
-                fetch(`/api/listing/${schoolId}/reviews`),
+            const [listingData, reviews] = await Promise.all([
+                listing(schoolId),
+                listingReviews(schoolId),
             ]);
-            if (listingRes.ok && reviewsRes.ok) {
-                slideOverData = {
-                    listing: await listingRes.json(),
-                    reviews: await reviewsRes.json(),
-                };
-            }
+            slideOverData = { listing: listingData, reviews };
         } catch {
             // Keep slide-over open with error state
         } finally {

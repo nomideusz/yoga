@@ -7,6 +7,17 @@
     import { normalizePolish } from "$lib/utils/street";
     import { haversine } from "$lib/utils/haversine";
     import { getListingAbsoluteUrl, getListingPath } from "$lib/paths";
+    import { searchSchools } from "$lib/search.remote";
+    import { listing, listingReviews } from "$lib/listing.remote";
+    import { autocomplete as placesAutocomplete } from "$lib/autocomplete.remote";
+    import { walkingDistances as computeWalkingDistances } from "$lib/distances.remote";
+    import {
+        reverseGeocode,
+        ipGeolocate,
+        geocodeByPlaceId,
+        geocodeByPostalCode,
+        geocodeByStreet,
+    } from "$lib/geocode.remote";
     import LocateButton from "$lib/components/LocateButton.svelte";
     import type { SearchBoxItem } from "$lib/components/SearchBox.svelte";
     import { trackCityView } from "$lib/analytics/umami.js";
@@ -83,16 +94,11 @@
         slideOverData = null;
 
         try {
-            const [listingRes, reviewsRes] = await Promise.all([
-                fetch(`/api/listing/${schoolId}`),
-                fetch(`/api/listing/${schoolId}/reviews`),
+            const [listingData, reviews] = await Promise.all([
+                listing(schoolId),
+                listingReviews(schoolId),
             ]);
-            if (listingRes.ok && reviewsRes.ok) {
-                slideOverData = {
-                    listing: await listingRes.json(),
-                    reviews: await reviewsRes.json(),
-                };
-            }
+            slideOverData = { listing: listingData, reviews };
         } catch {
             // Keep slide-over open with error state
         } finally {
@@ -720,17 +726,11 @@
 
     async function fetchServerSuggestions(input: string, version: number) {
         try {
-            const params = new URLSearchParams({
+            const result = await searchSchools({
                 q: input,
                 citySlug: data.citySlug,
-                limit: "8",
+                limit: 8,
             });
-            const res = await fetch(`/api/search?${params}`);
-            if (!res.ok || version !== citySearchVersion) {
-                serverSuggestions = [];
-                return;
-            }
-            const result = await res.json();
             if (version !== citySearchVersion) return;
             serverSuggestions = (
                 (result.results ?? []) as Array<{
@@ -760,13 +760,8 @@
         }
         placesLoading = true;
         try {
-            const params = new URLSearchParams({ input, city: data.city });
-            const res = await fetch(`/api/autocomplete?${params}`);
-            const body = await res.json();
-            const places = (body.suggestions ?? body) as Array<{
-                description: string;
-                placeId: string;
-            }>;
+            const body = await placesAutocomplete({ input, city: data.city });
+            const places = body.suggestions;
             placeSuggestions = places.map(
                 (p, i): SearchBoxItem => ({
                     key: `gp-${p.placeId}-${i}`,
@@ -1073,10 +1068,7 @@
                     // Reverse geocode for a nice label, then redirect
                     let label = t("your_location");
                     try {
-                        const res = await fetch(
-                            `/api/geocode?revLat=${lat}&revLng=${lng}`,
-                        );
-                        const result = await res.json();
+                        const result = await reverseGeocode({ lat, lng });
                         if (result?.locationName) label = result.locationName;
                     } catch {}
                     geocoding = false;
@@ -1098,16 +1090,14 @@
         showDropdown = false;
         geocoding = false;
         try {
-            const res = await fetch(`/api/geocode?revLat=${lat}&revLng=${lng}`);
-            const result = await res.json();
+            const result = await reverseGeocode({ lat, lng });
             if (result?.locationName) locationLabel = result.locationName;
         } catch {}
     }
 
     async function fallbackIpGeolocation(errorMessage = t("geolocation_unavailable")) {
         try {
-            const res = await fetch("/api/geocode?ipGeo=1");
-            const data = await res.json();
+            const data = await ipGeolocate();
             if (data?.latitude != null && data?.longitude != null) {
                 await applyGeolocation(data.latitude, data.longitude);
                 return;
@@ -1209,10 +1199,7 @@
         geocoding = true;
         geocodeError = false;
         try {
-            const res = await fetch(
-                `/api/geocode?placeId=${encodeURIComponent(placeId)}&city=${encodeURIComponent(data.city)}`,
-            );
-            const result = await res.json();
+            const result = await geocodeByPlaceId({ placeId, city: data.city });
             if (result?.latitude != null && result?.longitude != null) {
                 // Check if the place is far from this city — redirect to nearest city
                 if (cityCenter) {
@@ -1278,10 +1265,7 @@
         geocoding = true;
         clearBadges();
         try {
-            const res = await fetch(
-                `/api/geocode?postalCode=${encodeURIComponent(code)}`,
-            );
-            const result = await res.json();
+            const result = await geocodeByPostalCode({ postalCode: code });
             if (result?.latitude != null && result?.longitude != null) {
                 const cityName = result.locationName ?? "";
                 const citySlug = result.locationSlug ?? "";
@@ -1310,9 +1294,7 @@
         geocoding = true;
         clearBadges();
         try {
-            const params = new URLSearchParams({ street, city: cityName });
-            const res = await fetch(`/api/geocode?${params}`);
-            const result = await res.json();
+            const result = await geocodeByStreet({ street, city: cityName });
             if (result?.latitude != null && result?.longitude != null) {
                 geocodePoint = result;
                 locationLabel = `${street}, ${cityName}`;
@@ -1338,9 +1320,7 @@
     ) {
         geocoding = true;
         try {
-            const params = new URLSearchParams({ street, city: cityName });
-            const res = await fetch(`/api/geocode?${params}`);
-            const result = await res.json();
+            const result = await geocodeByStreet({ street, city: cityName });
             if (result?.latitude != null && result?.longitude != null) {
                 const label = `${street}, ${cityName}`;
                 goto(
@@ -1362,16 +1342,11 @@
         fetchingDistances = true;
         const allIds = data.schools.map((s) => s.id);
         try {
-            const res = await fetch("/api/distances", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    origin: { lat, lng },
-                    schoolIds: allIds,
-                }),
+            const { distances, budgetExceeded } = await computeWalkingDistances({
+                origin: { lat, lng },
+                schoolIds: allIds,
             });
-            if (res.ok) {
-                const { distances, budgetExceeded } = await res.json();
+            {
                 const map = new Map<
                     string,
                     { distanceMeters: number; durationMinutes: number }

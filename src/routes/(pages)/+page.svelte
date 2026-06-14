@@ -3,6 +3,16 @@
     import type { AutocompleteEntry } from "$lib/server/db/queries/types";
     import { haversine } from "$lib/utils/haversine";
     import { normalizePolish } from "$lib/utils/street";
+    import { autocomplete as placesAutocomplete } from "$lib/autocomplete.remote";
+    import { searchSchools, searchIndex } from "$lib/search.remote";
+    import {
+        geocodeByPlaceId,
+        nearestCityFromCoords,
+        reverseGeocode,
+        ipGeolocate,
+        geocodeByStreet,
+        geocodeByPostalCode,
+    } from "$lib/geocode.remote";
     import { styleDisplayName } from "$lib/styles-metadata";
     import {
         getCityPath,
@@ -680,10 +690,7 @@
         const timer = setTimeout(async () => {
             if (version !== resolveVersion) return;
             try {
-                const res = await fetch(
-                    `/api/geocode?placeId=${encodeURIComponent(first.placeId)}`,
-                );
-                const geo = await res.json();
+                const geo = await geocodeByPlaceId({ placeId: first.placeId });
                 if (version !== resolveVersion) return;
                 if (geo?.latitude != null && geo?.longitude != null) {
                     // Find nearest city with schools
@@ -764,13 +771,7 @@
 
     async function fetchServerResults(input: string, version: number) {
         try {
-            const params = new URLSearchParams({ q: input, limit: "8" });
-            const res = await fetch(`/api/search?${params}`);
-            if (!res.ok || version !== searchVersion) {
-                serverResults = [];
-                return;
-            }
-            const data = await res.json();
+            const data = await searchSchools({ q: input, limit: 8 });
             if (version !== searchVersion) return; // stale
             serverResults = (
                 (data.results ?? []) as Array<{
@@ -804,26 +805,25 @@
         try {
             // Send full input to Google — don't strip the city from the query.
             // But detect city for locationBias so Google prioritizes the right area.
-            const params = new URLSearchParams({ input });
-            const inputNorm = normalizePolish(input);
-            const tokens = inputNorm.split(/\s+/);
+            let city: string | undefined;
+            const tokens = normalizePolish(input).split(/\s+/);
             if (tokens.length >= 2) {
                 const findCity = (part: string) =>
                     findCityExact(part) ?? findCityByPrefix(part);
                 // Check if any token group matches a city (prefix or suffix)
                 for (let i = 1; i <= tokens.length - 1; i++) {
-                    const city =
+                    const match =
                         findCity(tokens.slice(0, i).join(" ")) ||
                         findCity(tokens.slice(i).join(" "));
-                    if (city) {
-                        params.set("city", city);
+                    if (match) {
+                        city = match;
                         break;
                     }
                 }
             }
-            const res = await fetch(`/api/autocomplete?${params}`);
-            const data = await res.json();
-            placeSuggestions = data.suggestions ?? data;
+            // Remote query: typed call, no fetch / URLSearchParams / res.json().
+            const data = await placesAutocomplete({ input, city });
+            placeSuggestions = data.suggestions;
         } catch {
             placeSuggestions = [];
         } finally {
@@ -834,10 +834,7 @@
     async function selectGooglePlace(placeId: string, description?: string) {
         geocodeLoading = true;
         try {
-            const res = await fetch(
-                `/api/geocode?placeId=${encodeURIComponent(placeId)}`,
-            );
-            const result = await res.json();
+            const result = await geocodeByPlaceId({ placeId });
             if (result?.latitude != null && result?.longitude != null) {
                 let nearest = "";
                 let minDist = Infinity;
@@ -870,43 +867,17 @@
         geocodeLoading = true;
         try {
             // Use Google Places Autocomplete to get a placeId, then geocode it
-            const params = new URLSearchParams({ input: text });
-            const res = await fetch(`/api/autocomplete?${params}`);
-            const body = await res.json();
-            const suggestions = body.suggestions ?? body;
+            const body = await placesAutocomplete({ input: text });
+            const suggestions = body.suggestions;
             if (suggestions.length > 0) {
                 await selectGooglePlace(
                     suggestions[0].placeId,
                     suggestions[0].description,
                 );
-                return;
             }
-            // No Places result — try direct postal/reverse geocode
-            const geoRes = await fetch(
-                `/api/geocode?ncLat=52&ncLng=19&q=${encodeURIComponent(text)}`,
-            );
-            const geoResult = await geoRes.json();
-            if (geoResult?.latitude != null && geoResult?.longitude != null) {
-                let nearest = "";
-                let minDist = Infinity;
-                for (const [city, coords] of Object.entries(data.cityCoords)) {
-                    const d = haversine(
-                        geoResult.latitude,
-                        geoResult.longitude,
-                        coords.lat,
-                        coords.lng,
-                    );
-                    if (d < minDist) {
-                        minDist = d;
-                        nearest = city;
-                    }
-                }
-                if (nearest) {
-                    goto(
-                        `/${citySlug(nearest)}?lat=${geoResult.latitude}&lng=${geoResult.longitude}&label=${encodeURIComponent(text)}`,
-                    );
-                }
-            }
+            // (The old `?ncLat=52&ncLng=19` fallback returned a nearest-city
+            //  object with no lat/lng, so its coordinate check never fired — it
+            //  was dead code and has been dropped in the remote-function migration.)
         } catch {
             // Geocoding failed — nothing we can do
         } finally {
@@ -921,9 +892,7 @@
     ) {
         geocodeLoading = true;
         try {
-            const params = new URLSearchParams({ street, city: cityName });
-            const res = await fetch(`/api/geocode?${params}`);
-            const result = await res.json();
+            const result = await geocodeByStreet({ street, city: cityName });
             if (result?.latitude != null && result?.longitude != null) {
                 const label = `${street}, ${cityName}`;
                 goto(
@@ -1042,9 +1011,7 @@
         if (!/^\d{2}-\d{3}$/.test(code)) return;
         postalLoading = true;
         try {
-            const params = new URLSearchParams({ postalCode: code });
-            const res = await fetch(`/api/geocode?${params}`);
-            const result = await res.json();
+            const result = await geocodeByPostalCode({ postalCode: code });
             if (result?.latitude != null && result?.longitude != null) {
                 // Find nearest city
                 let nearest = "";
@@ -1314,22 +1281,17 @@
         if (autocompletePromise) return autocompletePromise;
 
         autocompleteLoading = true;
-        autocompletePromise = fetch("/api/search/index")
-            .then(async (res) => {
-                if (!res.ok) throw new Error("Failed to load search index");
-                return (await res.json()) as AutocompleteEntry[];
-            })
-            .then((entries) => {
-                autocomplete = entries;
+        autocompletePromise = (async () => {
+            try {
+                autocomplete = await searchIndex();
                 autocompleteLoaded = true;
-            })
-            .catch(() => {
+            } catch {
                 autocompleteLoaded = false;
-            })
-            .finally(() => {
+            } finally {
                 autocompleteLoading = false;
                 autocompletePromise = null;
-            });
+            }
+        })();
 
         return autocompletePromise;
     }
@@ -1369,10 +1331,7 @@
         if (nearest) {
             let label = t("your_location");
             try {
-                const res = await fetch(
-                    `/api/geocode?revLat=${userLat}&revLng=${userLng}`,
-                );
-                const result = await res.json();
+                const result = await reverseGeocode({ lat: userLat, lng: userLng });
                 if (result?.locationName) label = result.locationName;
             } catch {}
             goto(
@@ -1383,8 +1342,7 @@
 
     async function fallbackToIpLocation() {
         try {
-            const res = await fetch("/api/geocode?ipGeo=1");
-            const data = await res.json();
+            const data = await ipGeolocate();
             if (data?.latitude != null && data?.longitude != null) {
                 await navigateToNearest(data.latitude, data.longitude);
                 return;
