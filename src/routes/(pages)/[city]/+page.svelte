@@ -1667,6 +1667,18 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://szkolyjogi.pl/{data.citySlug}" />
     <meta property="og:image" content="https://szkolyjogi.pl/og-default.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+        name="twitter:title"
+        content="{t('meta_yoga_schools')} {cityDisplay(data.city)} | {t(
+            'meta_prices_locations_reviews',
+        )}"
+    />
+    <meta
+        name="twitter:description"
+        content={t("meta_city_desc", { city: cityDisplay(data.city), count: data.schools.length })}
+    />
+    <meta name="twitter:image" content="https://szkolyjogi.pl/og-default.png" />
     {@html `<script type="application/ld+json">${JSON.stringify({
         "@context": "https://schema.org",
         "@type": "ItemList",

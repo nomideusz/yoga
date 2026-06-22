@@ -159,6 +159,18 @@
   "claim_step_3": "You get full control over the profile",
   "claim_free_note": "Claiming a profile is free and comes with no obligations.",
 
+  "claim_consent_modal_title": "Data processing consent (GDPR)",
+  "claim_consent_intro": "Before sending your request, please read the information below and consent to the processing of your data.",
+  "claim_consent_controller": "The data controller is szkolyjogi.pl (contact: joga@zaur.app).",
+  "claim_consent_purpose": "Purpose of processing: handling your request to claim the studio profile and contacting you to verify your identity.",
+  "claim_consent_legal_basis": "Legal basis: Article 6(1)(a) GDPR — your freely given consent.",
+  "claim_consent_withdraw": "You can withdraw your consent at any time by writing to joga@zaur.app, without affecting the lawfulness of processing carried out before its withdrawal.",
+  "claim_consent_terms_link": "You can find more details in our <a href=\"/terms\" target=\"_blank\" rel=\"noopener\">Terms</a>.",
+  "claim_consent_checkbox": "I consent to the processing of my personal data for the purpose of handling my request to claim the studio profile.",
+  "claim_consent_confirm": "Confirm and send",
+  "claim_consent_cancel": "Cancel",
+  "claim_consent_required_error": "To send your request, you must consent to the processing of your data.",
+
   "about_title": "About",
   "about_meta_desc": "szkolyjogi.pl is a directory of yoga schools in Poland — compare prices, styles and locations in one place.",
   "about_mission_title": "Mission: Simple Practice",

@@ -1,9 +1,10 @@
 <script lang="ts">
     import { browser } from "$app/environment";
     import ListingContent from "$lib/components/ListingContent.svelte";
-    import { getListingAbsoluteUrl } from "$lib/paths";
+    import { getListingAbsoluteUrl, BASE_URL } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
     import { trackListingView } from "$lib/analytics/umami.js";
+    import { parsePricingJson } from "$lib/data";
     import type { Listing } from "$lib/data";
     import type { ReviewData } from "$lib/server/db/queries";
 
@@ -30,6 +31,19 @@
     });
 
     const canonicalUrl = $derived(getListingAbsoluteUrl(listing));
+
+    // Shared social-card values (used by both OG and Twitter tags below)
+    let ogTitle = $derived(`${listing.name} | Joga ${listing.city}`);
+    let ogDescription = $derived(
+        `${listing.price ? t("listing_meta_monthly", { price: listing.price }) + " " : ""}${t("listing_meta_styles")} ${listing.styles.length ? listing.styles.join(", ") : "Yoga"}. ${t("listing_meta_check")}`,
+    );
+    let ogImage = $derived(
+        listing.photoReference
+            ? `${BASE_URL}/api/photo/${listing.id}?v=2`
+            : listing.imageUrl
+              ? listing.imageUrl
+              : "https://szkolyjogi.pl/og-default.png",
+    );
 
     let metaDescription = $derived.by(() => {
         if (listing.description) {
@@ -88,7 +102,7 @@
         }
 
         if (listing.photoReference) {
-            ld.image = `/api/photo/${listing.id}?v=2`;
+            ld.image = `${BASE_URL}/api/photo/${listing.id}?v=2`;
         } else if (listing.imageUrl) {
             ld.image = listing.imageUrl;
         }
@@ -164,6 +178,66 @@
             };
         }
 
+        // ── Reviews (nest up to 5 with text) ──
+        const reviewLd = (reviews ?? [])
+            .filter((r) => r.text && r.rating != null)
+            .slice(0, 5)
+            .map((r) => {
+                const review: Record<string, unknown> = {
+                    "@type": "Review",
+                    author: { "@type": "Person", name: r.authorName },
+                    reviewBody: r.text,
+                    reviewRating: {
+                        "@type": "Rating",
+                        ratingValue: r.rating,
+                        bestRating: 5,
+                    },
+                };
+                if (r.publishedAt) {
+                    review.datePublished = r.publishedAt.slice(0, 10);
+                }
+                return review;
+            });
+        if (reviewLd.length > 0) {
+            ld.review = reviewLd;
+        }
+
+        // ── Offers (priced tiers only, currency PLN) ──
+        const offers: Array<Record<string, unknown>> = [];
+        const addOffer = (name: string, price: number) => {
+            offers.push({
+                "@type": "Offer",
+                name,
+                priceSpecification: {
+                    "@type": "PriceSpecification",
+                    price,
+                    priceCurrency: "PLN",
+                },
+            });
+        };
+
+        if (listing.price != null) {
+            addOffer(t("listing_price_per_month"), listing.price);
+        }
+        // single-class price is already emitted via hasOfferCatalog above
+        if (listing.trialPrice != null) {
+            addOffer(t("listing_first_class"), listing.trialPrice);
+        }
+
+        const pricingData = parsePricingJson(listing.pricingJson);
+        if (pricingData) {
+            for (const tier of pricingData.tiers) {
+                if (tier.price_pln != null) {
+                    addOffer(tier.name, Math.round(tier.price_pln));
+                }
+            }
+        }
+
+        if (offers.length > 0) {
+            // makesOffer is the schema.org-valid property on LocalBusiness/HealthClub
+            ld.makesOffer = offers;
+        }
+
         return ld;
     });
 </script>
@@ -172,28 +246,15 @@
     <link rel="canonical" href={canonicalUrl} />
     <title>{listing.name} | Joga {listing.city} | szkolyjogi.pl</title>
     <meta name="description" content={metaDescription} />
-    <meta property="og:title" content="{listing.name} | Joga {listing.city}" />
-    <meta
-        property="og:description"
-        content="{listing.price
-            ? t('listing_meta_monthly', { price: listing.price }) + ' '
-            : ''}{t('listing_meta_styles')} {listing.styles.length
-            ? listing.styles.join(', ')
-            : 'Yoga'}. {t('listing_meta_check')}"
-    />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
     <meta property="og:type" content="article" />
     <meta property="og:url" content={canonicalUrl} />
-    {#if listing.photoReference}
-        <meta property="og:image" content={`/api/photo/${listing.id}?v=2`} />
-    {:else if listing.imageUrl}
-        <meta property="og:image" content={listing.imageUrl} />
-    {:else}
-        <meta
-            property="og:image"
-            content="https://szkolyjogi.pl/og-default.png"
-        />
-    {/if}
+    <meta property="og:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={ogDescription} />
+    <meta name="twitter:image" content={ogImage} />
     {@html `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>`}
     {@html `<script type="application/ld+json">${JSON.stringify({
         "@context": "https://schema.org",

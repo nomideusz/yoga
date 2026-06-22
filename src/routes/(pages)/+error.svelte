@@ -6,6 +6,7 @@
 
 <svelte:head>
   <title>{t("error_system")} {page.status} | szkolyjogi.pl</title>
+  <meta name="robots" content="noindex, follow" />
 </svelte:head>
 
 <section class="error-shell">

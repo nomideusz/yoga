@@ -24,9 +24,17 @@ export type ClaimNotificationData = {
   claimantPhone: string | null;
   claimantRole: string;
   message: string | null;
+  consentedAt: string | null;  // RODO/GDPR consent timestamp (ISO) or null
 };
 
 function claimNotificationHtml(data: ClaimNotificationData): string {
+  const esc = (value: string): string =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
   const roleLabels: Record<string, string> = {
     owner: 'Właściciel/ka',
     manager: 'Manager/ka',
@@ -44,28 +52,32 @@ function claimNotificationHtml(data: ClaimNotificationData): string {
   <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
     <tr>
       <td style="padding: 8px 0; color: #6b7a8f; font-size: 13px; width: 120px;">Studio</td>
-      <td style="padding: 8px 0; font-weight: 500;">${data.schoolName}</td>
+      <td style="padding: 8px 0; font-weight: 500;">${esc(data.schoolName)}</td>
     </tr>
     <tr>
       <td style="padding: 8px 0; color: #6b7a8f; font-size: 13px;">Imię i nazwisko</td>
-      <td style="padding: 8px 0;">${data.claimantName}</td>
+      <td style="padding: 8px 0;">${esc(data.claimantName)}</td>
     </tr>
     <tr>
       <td style="padding: 8px 0; color: #6b7a8f; font-size: 13px;">E-mail</td>
-      <td style="padding: 8px 0;"><a href="mailto:${data.claimantEmail}" style="color: #3d7ce0;">${data.claimantEmail}</a></td>
+      <td style="padding: 8px 0;"><a href="mailto:${esc(data.claimantEmail)}" style="color: #3d7ce0;">${esc(data.claimantEmail)}</a></td>
     </tr>
     ${data.claimantPhone ? `<tr>
       <td style="padding: 8px 0; color: #6b7a8f; font-size: 13px;">Telefon</td>
-      <td style="padding: 8px 0;">${data.claimantPhone}</td>
+      <td style="padding: 8px 0;">${esc(data.claimantPhone)}</td>
     </tr>` : ''}
     <tr>
       <td style="padding: 8px 0; color: #6b7a8f; font-size: 13px;">Rola</td>
-      <td style="padding: 8px 0;">${roleLabels[data.claimantRole] ?? data.claimantRole}</td>
+      <td style="padding: 8px 0;">${roleLabels[data.claimantRole] ?? esc(data.claimantRole)}</td>
     </tr>
     ${data.message ? `<tr>
       <td style="padding: 8px 0; color: #6b7a8f; font-size: 13px; vertical-align: top;">Wiadomość</td>
-      <td style="padding: 8px 0;">${data.message}</td>
+      <td style="padding: 8px 0;">${esc(data.message)}</td>
     </tr>` : ''}
+    <tr>
+      <td style="padding: 8px 0; color: #6b7a8f; font-size: 13px;">Zgoda RODO</td>
+      <td style="padding: 8px 0;">${data.consentedAt ? `tak (${data.consentedAt})` : 'nie'}</td>
+    </tr>
   </table>
 
   <a href="${data.listingUrl}"

@@ -2,10 +2,28 @@
     import type { PageData, ActionData } from "./$types";
     import { getListingClaimAbsoluteUrl, getListingPath } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
+    import ConsentModal from "$lib/components/ConsentModal.svelte";
     const t = i18n.t;
 
     let { data, form }: { data: PageData; form: ActionData } = $props();
     let listing = $derived(data.listing);
+
+    // RODO consent gate: the submit button opens the modal; only after the
+    // user confirms consent do we mark the hidden field and submit the form.
+    let consentOpen = $state(false);
+    let formEl: HTMLFormElement | null = $state(null);
+    let consentInput: HTMLInputElement | null = $state(null);
+
+    function openConsent() {
+        // Let the browser validate required fields before asking for consent.
+        if (formEl && !formEl.reportValidity()) return;
+        consentOpen = true;
+    }
+
+    function onConsentConfirmed() {
+        if (consentInput) consentInput.value = "true";
+        formEl?.requestSubmit();
+    }
 </script>
 
 <svelte:head>
@@ -99,7 +117,12 @@
                     </div>
                 {/if}
 
-                <form method="POST" class="claim-form" novalidate>
+                <form
+                    method="POST"
+                    class="claim-form"
+                    novalidate
+                    bind:this={formEl}
+                >
                     <div class="field">
                         <label for="name" class="field-label"
                             >{t("claim_name_label")}
@@ -201,10 +224,24 @@
                         >
                     </div>
 
-                    <button type="submit" class="submit-btn"
-                        >{t("claim_submit")}</button
+                    <input
+                        type="hidden"
+                        name="consent"
+                        value=""
+                        bind:this={consentInput}
+                    />
+
+                    <button
+                        type="button"
+                        class="submit-btn"
+                        onclick={openConsent}>{t("claim_submit")}</button
                     >
                 </form>
+
+                <ConsentModal
+                    bind:open={consentOpen}
+                    onConfirm={onConsentConfirmed}
+                />
             {/if}
         </div>
 

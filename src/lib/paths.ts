@@ -1,4 +1,4 @@
-const BASE_URL = "https://szkolyjogi.pl";
+export const BASE_URL = "https://szkolyjogi.pl";
 
 function slugifySegment(value: string): string {
   // Polish-specific diacritics must be replaced BEFORE NFD + strip,

@@ -171,6 +171,7 @@ export const claimRequests = sqliteTable('claim_requests', {
   role: text('role').notNull(),           // 'owner' | 'manager' | 'instructor'
   message: text('message'),
   status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
+  consentedAt: text('consented_at'),        // RODO/GDPR consent timestamp (ISO); null = no consent recorded
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 

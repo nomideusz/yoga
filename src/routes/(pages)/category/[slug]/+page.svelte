@@ -240,6 +240,13 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://szkolyjogi.pl/category/{slug}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{displayName} | szkolyjogi.pl" />
+    <meta
+        name="twitter:description"
+        content={t("cat_meta_desc", { style: displayName, count: categoryListings.length })}
+    />
+    <meta name="twitter:image" content="https://szkolyjogi.pl/og-default.png" />
     {@html `<script type="application/ld+json">${JSON.stringify({
         "@context": "https://schema.org",
         "@type": "ItemList",

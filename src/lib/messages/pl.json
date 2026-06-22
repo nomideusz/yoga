@@ -159,6 +159,18 @@
   "claim_step_3": "Otrzymasz pełną kontrolę nad profilem",
   "claim_free_note": "Przejęcie profilu jest bezpłatne i nie wymaga zobowiązań.",
 
+  "claim_consent_modal_title": "Zgoda na przetwarzanie danych (RODO)",
+  "claim_consent_intro": "Zanim wyślesz zgłoszenie, prosimy o zapoznanie się z poniższą informacją i wyrażenie zgody na przetwarzanie Twoich danych.",
+  "claim_consent_controller": "Administratorem danych jest szkolyjogi.pl (kontakt: joga@zaur.app).",
+  "claim_consent_purpose": "Cel przetwarzania: rozpatrzenie Twojego zgłoszenia przejęcia profilu studia i kontakt w celu weryfikacji tożsamości.",
+  "claim_consent_legal_basis": "Podstawa prawna: art. 6 ust. 1 lit. a RODO — Twoja dobrowolna zgoda.",
+  "claim_consent_withdraw": "Zgodę możesz wycofać w każdej chwili, pisząc na adres joga@zaur.app, bez wpływu na zgodność z prawem przetwarzania dokonanego przed jej wycofaniem.",
+  "claim_consent_terms_link": "Szczegóły znajdziesz w <a href=\"/terms\" target=\"_blank\" rel=\"noopener\">Regulaminie</a>.",
+  "claim_consent_checkbox": "Wyrażam zgodę na przetwarzanie moich danych osobowych w celu rozpatrzenia zgłoszenia przejęcia profilu studia.",
+  "claim_consent_confirm": "Potwierdzam i wysyłam",
+  "claim_consent_cancel": "Anuluj",
+  "claim_consent_required_error": "Aby wysłać zgłoszenie, musisz wyrazić zgodę na przetwarzanie danych.",
+
   "about_title": "O projekcie",
   "about_meta_desc": "szkolyjogi.pl to katalog szkół jogi w Polsce — porównuj ceny, style i lokalizacje w jednym miejscu.",
   "about_mission_title": "Misja: Prosta Praktyka",

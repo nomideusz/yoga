@@ -230,7 +230,11 @@
 
     <!-- ═══ HEADER ═══ -->
     <header class="lc-header">
-        <h2 class="lc-name">{listing.name}</h2>
+        {#if isPage}
+            <h1 class="lc-name">{listing.name}</h1>
+        {:else}
+            <h2 class="lc-name">{listing.name}</h2>
+        {/if}
         <div class="lc-meta">
             {#if listing.googleMapsUrl}
                 <a href={listing.googleMapsUrl} target="_blank" rel="noopener noreferrer" class="lc-address lc-address--link">

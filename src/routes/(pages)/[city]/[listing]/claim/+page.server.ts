@@ -35,6 +35,7 @@ export const actions: Actions = {
     const phone = data.get('phone')?.toString().trim() || null;
     const role = data.get('role')?.toString().trim();
     const message = data.get('message')?.toString().trim() || null;
+    const consent = data.get('consent')?.toString().trim() === 'true';
 
     if (!name || !email || !role) {
       return fail(400, {
@@ -50,6 +51,15 @@ export const actions: Actions = {
       });
     }
 
+    if (!consent) {
+      return fail(400, {
+        error: 'Aby wysłać zgłoszenie, musisz wyrazić zgodę na przetwarzanie danych.',
+        name, email, phone, role, message,
+      });
+    }
+
+    const consentedAt = new Date().toISOString();
+
     const listing = await getListingByIdentifier(params.listing);
 
     if (!listing) {
@@ -63,6 +73,7 @@ export const actions: Actions = {
       phone,
       role,
       message,
+      consentedAt,
     });
 
     try {
@@ -75,6 +86,7 @@ export const actions: Actions = {
         claimantPhone: phone,
         claimantRole: role,
         message,
+        consentedAt,
       });
     } catch {
       // Email failure should not block the claim submission
