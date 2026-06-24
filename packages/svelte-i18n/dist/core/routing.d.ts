@@ -4,6 +4,14 @@ export interface LocaleRoutingConfig {
     defaultLocale: Locale;
     /** Every locale the app serves, including the default. */
     supportedLocales: Locale[];
+    /**
+     * Optional URL-segment overrides: locale code → URL prefix. Use when the
+     * recognizable URL segment differs from the ISO language code — e.g.
+     * `{ uk: 'ua' }` serves Ukrainian at `/ua/*` while `hreflang` and
+     * `<html lang>` correctly stay `uk`. Locales without an entry use their
+     * own code as the prefix.
+     */
+    prefixes?: Record<Locale, string>;
 }
 /**
  * Split a pathname into its locale and the delocalized remainder.

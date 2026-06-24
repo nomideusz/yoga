@@ -243,13 +243,11 @@
 </script>
 
 <svelte:head>
-    <link rel="canonical" href={canonicalUrl} />
     <title>{listing.name} | Joga {listing.city} | szkolyjogi.pl</title>
     <meta name="description" content={metaDescription} />
     <meta property="og:title" content={ogTitle} />
     <meta property="og:description" content={ogDescription} />
     <meta property="og:type" content="article" />
-    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={ogTitle} />

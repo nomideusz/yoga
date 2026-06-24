@@ -2,6 +2,8 @@ import { db } from "$lib/server/db/index";
 import { schools, styles as stylesTable } from "$lib/server/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { getCityPath, getStylePath } from "$lib/paths";
+import { localizeHref } from "@nomideusz/svelte-i18n";
+import { i18nRouting } from "$lib/i18n-routing";
 import type { RequestHandler } from "./$types";
 
 const BASE = "https://szkolyjogi.pl";
@@ -48,48 +50,43 @@ export const GET: RequestHandler = async () => {
 
   const urls: string[] = [];
 
+  // Emit one <url> per locale for a delocalized (bare pl) path. hreflang
+  // relationships are signalled in each page's <head>; the sitemap's job is
+  // discovery of all locale URLs.
+  function pushAll(path: string, opts: { changefreq: string; priority: string; lastmod?: string | null }) {
+    for (const locale of i18nRouting.supportedLocales) {
+      urls.push(renderUrl({ loc: `${BASE}${localizeHref(path, locale, i18nRouting)}`, ...opts }));
+    }
+  }
+
   // ── Static pages ──────────────────────────────────────────────────────
-  urls.push(renderUrl({ loc: BASE, changefreq: "daily", priority: "1.0" }));
-  urls.push(renderUrl({ loc: `${BASE}/about`, changefreq: "monthly", priority: "0.5" }));
-  urls.push(renderUrl({ loc: `${BASE}/post`, changefreq: "monthly", priority: "0.5" }));
-  urls.push(renderUrl({ loc: `${BASE}/terms`, changefreq: "monthly", priority: "0.3" }));
+  pushAll("/", { changefreq: "daily", priority: "1.0" });
+  pushAll("/about", { changefreq: "monthly", priority: "0.5" });
+  pushAll("/post", { changefreq: "monthly", priority: "0.5" });
+  pushAll("/terms", { changefreq: "monthly", priority: "0.3" });
 
   // ── City pages ────────────────────────────────────────────────────────
   for (const { city, citySlug } of cityRows) {
-    urls.push(
-      renderUrl({
-        loc: `${BASE}${getCityPath(city, citySlug)}`,
-        changefreq: "weekly",
-        priority: "0.8",
-      }),
-    );
+    // locale 'pl' → bare delocalized path; pushAll re-localizes per locale.
+    pushAll(getCityPath(city, citySlug, "pl"), { changefreq: "weekly", priority: "0.8" });
   }
 
   // ── Category (style) pages ────────────────────────────────────────────
   for (const { name, slug } of styleRows) {
     // Use slug from DB if available, otherwise getStylePath computes it
-    const path = slug ? `/category/${encodeURIComponent(slug)}` : getStylePath(name);
-    urls.push(
-      renderUrl({
-        loc: `${BASE}${path}`,
-        changefreq: "weekly",
-        priority: "0.6",
-      }),
-    );
+    const path = slug ? `/category/${encodeURIComponent(slug)}` : getStylePath(name, "pl");
+    pushAll(path, { changefreq: "weekly", priority: "0.6" });
   }
 
   // ── Listing pages ─────────────────────────────────────────────────────
   for (const listing of listingRows) {
-    const cityPath = getCityPath(listing.city, listing.citySlug);
+    const cityPath = getCityPath(listing.city, listing.citySlug, "pl");
     const listingSlug = listing.slug || listing.id;
-    urls.push(
-      renderUrl({
-        loc: `${BASE}${cityPath}/${listingSlug}`,
-        changefreq: "weekly",
-        priority: "0.7",
-        lastmod: listing.lastUpdated,
-      }),
-    );
+    pushAll(`${cityPath}/${listingSlug}`, {
+      changefreq: "weekly",
+      priority: "0.7",
+      lastmod: listing.lastUpdated,
+    });
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

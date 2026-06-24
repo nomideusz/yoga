@@ -62,6 +62,8 @@ async function getCachedLayoutData(): Promise<LayoutData> {
   return value;
 }
 
-export async function load() {
-  return getCachedLayoutData();
+export async function load({ locals }) {
+  // Layout data is locale-independent and cached; locale is per-request.
+  const data = await getCachedLayoutData();
+  return { ...data, locale: locals.locale };
 }

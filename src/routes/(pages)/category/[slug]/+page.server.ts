@@ -2,6 +2,8 @@ import { error, redirect } from "@sveltejs/kit";
 import { getListingsByStyle } from "$lib/server/db/queries/index";
 import { normalize } from "$lib/search";
 import { STYLES_METADATA } from "$lib/styles-metadata";
+import { localizeHref } from "@nomideusz/svelte-i18n";
+import { i18nRouting } from "$lib/i18n-routing";
 import type { PageServerLoad } from "./$types";
 
 function slugToStyleName(slug: string): string {
@@ -19,7 +21,7 @@ function metadataStyleNameFromSlug(slug: string): string | null {
   return null;
 }
 
-export const load: PageServerLoad = async ({ params, parent }) => {
+export const load: PageServerLoad = async ({ params, parent, locals }) => {
   const slug = params.slug;
   const parentData = await parent();
   const lookups = parentData.lookups;
@@ -36,7 +38,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
     : params.slug;
 
   if (canonicalSlug !== params.slug) {
-    throw redirect(301, `/category/${canonicalSlug}`);
+    throw redirect(301, localizeHref(`/category/${canonicalSlug}`, locals.locale, i18nRouting));
   }
 
   const fallbackMetadataStyleName = metadataStyleNameFromSlug(canonicalSlug);

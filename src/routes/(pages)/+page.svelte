@@ -1373,13 +1373,11 @@
 </script>
 
 <svelte:head>
-    <link rel="canonical" href="https://szkolyjogi.pl/" />
     <title>{t("meta_main_title")}</title>
     <meta name="description" content={t("meta_main_desc")} />
     <meta property="og:title" content={t("meta_main_title")} />
     <meta property="og:description" content={t("meta_main_desc")} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://szkolyjogi.pl/" />
     <meta property="og:image" content="https://szkolyjogi.pl/og-default.png" />
     <meta name="twitter:card" content="summary_large_image" />
     {@html `<script type="application/ld+json">${JSON.stringify({
@@ -1820,7 +1818,7 @@
             <div class="chip-label">{t("label_city")}</div>
             <div class="chip-scroll">
                 {#each topCityChips as { city, count } (city)}
-                    <a href="/{citySlug(city)}" class="chip-pill">
+                    <a href={getCityPath(city)} class="chip-pill">
                         <span class="chip-pill-name">{cityDisplay(city)}</span>
                         <span class="chip-pill-count">{count}</span>
                     </a>

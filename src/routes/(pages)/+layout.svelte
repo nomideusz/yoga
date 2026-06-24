@@ -1,8 +1,21 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { afterNavigate } from "$app/navigation";
+    import { extractLocale, localizeHref } from "@nomideusz/svelte-i18n";
     import { i18n } from "$lib/i18n.js";
+    import { i18nRouting } from "$lib/i18n-routing";
     const t = i18n.t;
+
+    // Locale switch = real navigation to the same page under another prefix,
+    // preserving query (e.g. ?style=). The server re-resolves locale from the URL.
+    const localeHref = $derived((target: string) => {
+        const { pathname } = extractLocale($page.url.pathname, i18nRouting);
+        return localizeHref(pathname + $page.url.search, target, i18nRouting);
+    });
+
+    // Static nav links localized to the active locale.
+    const homeHref = $derived(localizeHref("/", i18n.locale, i18nRouting));
+    const termsHref = $derived(localizeHref("/terms", i18n.locale, i18nRouting));
 
     const isLanding = $derived($page.url.pathname === "/");
     const isCanonicalListingSheet = $derived(
@@ -89,7 +102,7 @@
                         <span>{backLabel}</span>
                     </button>
                     <a
-                        href="/"
+                        href={homeHref}
                         class="sf-nav-home"
                         title="szkolyjogi.pl"
                         aria-label={t("home_aria")}
@@ -100,7 +113,7 @@
             {:else}
                 <!-- Solo home dot -->
                 <a
-                    href="/"
+                    href={homeHref}
                     class="sf-home-dot"
                     title="szkolyjogi.pl"
                     aria-label={t("home_aria")}
@@ -114,36 +127,27 @@
 
         <nav class="sf-lang-nav" aria-label="Language switcher">
             <a
-                href="?lang=pl"
+                href={localeHref("pl")}
                 class="sf-lang-link"
                 class:is-current={i18n.locale === "pl"}
                 aria-current={i18n.locale === "pl" ? "true" : undefined}
-                onclick={(e) => {
-                    e.preventDefault();
-                    i18n.setLocale("pl");
-                }}>PL</a
+                hreflang="pl">PL</a
             >
             <span class="sf-lang-separator" aria-hidden="true">·</span>
             <a
-                href="?lang=en"
+                href={localeHref("en")}
                 class="sf-lang-link"
                 class:is-current={i18n.locale === "en"}
                 aria-current={i18n.locale === "en" ? "true" : undefined}
-                onclick={(e) => {
-                    e.preventDefault();
-                    i18n.setLocale("en");
-                }}>EN</a
+                hreflang="en">EN</a
             >
             <span class="sf-lang-separator" aria-hidden="true">·</span>
             <a
-                href="?lang=uk"
+                href={localeHref("uk")}
                 class="sf-lang-link"
                 class:is-current={i18n.locale === "uk"}
                 aria-current={i18n.locale === "uk" ? "true" : undefined}
-                onclick={(e) => {
-                    e.preventDefault();
-                    i18n.setLocale("uk");
-                }}>UA</a
+                hreflang="uk">UA</a
             >
         </nav>
     </header>
@@ -153,8 +157,8 @@
 
 {#if !isCanonicalListingSheet}
     <footer class="sf-site-footer">
-        <a href="/" class="sf-footer-link">szkolyjogi.pl</a>
-        <a href="/terms" class="sf-footer-link">{t("footer_terms")}</a>
+        <a href={homeHref} class="sf-footer-link">szkolyjogi.pl</a>
+        <a href={termsHref} class="sf-footer-link">{t("footer_terms")}</a>
     </footer>
 {/if}
 

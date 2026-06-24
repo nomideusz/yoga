@@ -4,7 +4,6 @@
 </script>
 
 <svelte:head>
-  <link rel="canonical" href="https://szkolyjogi.pl/post" />
   <title>{t("post_title")} | szkolyjogi.pl</title>
   <meta
     name="description"

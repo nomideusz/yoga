@@ -4,7 +4,10 @@
   import { navigating, page } from "$app/stores";
   import { afterNavigate, onNavigate } from "$app/navigation";
   import { setLabels } from "@nomideusz/svelte-calendar";
+  import { alternates, extractLocale, localizeHref } from "@nomideusz/svelte-i18n";
   import { i18n } from "$lib/i18n.js";
+  import { i18nRouting } from "$lib/i18n-routing.js";
+  import { BASE_URL } from "$lib/paths.js";
   import { trackLocaleChange, trackNavigation } from "$lib/analytics/umami.js";
   const t = i18n.t;
 
@@ -84,8 +87,40 @@
 
   const isLanding = $derived($page.url.pathname === "/");
 
-  let { children } = $props();
+  let { data, children } = $props();
+
+  // SSR + first paint: apply the server-resolved locale synchronously. The
+  // sync loader (see $lib/i18n) makes this safe — the singleton is set during
+  // the non-interleaved render pass, never across an await. Capturing the
+  // initial value here is intentional; the $effect below tracks later changes.
+  // svelte-ignore state_referenced_locally
+  i18n.setLocale(data.locale);
+  // Client navigations between /en, /uk, / keep the store in sync with the URL.
+  $effect(() => {
+    i18n.setLocale(data.locale);
+  });
+
+  // ── Centralized SEO: one canonical + hreflang set for every indexable page ──
+  // Derived from the URL (locale-stripped), so canonical always points at the
+  // current-locale URL and hreflang lists all locales + x-default. Gated to
+  // public content routes (skips admin/lab and the claim form).
+  const seoPath = $derived(extractLocale($page.url.pathname, i18nRouting).pathname);
+  const isIndexable = $derived(
+    !!$page.route?.id?.startsWith("/(pages)") && !$page.route.id.endsWith("/claim"),
+  );
+  const canonicalUrl = $derived(BASE_URL + localizeHref(seoPath, data.locale, i18nRouting));
+  const hreflangLinks = $derived(alternates(seoPath, i18nRouting, BASE_URL));
 </script>
+
+<svelte:head>
+  {#if isIndexable}
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:url" content={canonicalUrl} />
+    {#each hreflangLinks as link (link.hreflang)}
+      <link rel="alternate" hreflang={link.hreflang} href={link.href} />
+    {/each}
+  {/if}
+</svelte:head>
 
 <div class="app" class:is-landing={isLanding}>
   <div class="sf-topline" class:is-loading={$navigating}></div>

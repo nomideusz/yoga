@@ -11,6 +11,10 @@
 // The default locale is intentionally never a valid prefix, so /pl/krakow is
 // treated as an ordinary path (a city literally named "pl") rather than a
 // duplicate of /krakow. The app can 301 any stray /pl/* → /* if desired.
+/** The URL segment for a locale (alias if configured, else the code itself). */
+function urlPrefix(locale, config) {
+    return config.prefixes?.[locale] ?? locale;
+}
 /** Locales that appear as a URL prefix = supported minus default. */
 function prefixLocales(config) {
     return config.supportedLocales.filter((l) => l !== config.defaultLocale);
@@ -26,7 +30,7 @@ function prefixLocales(config) {
  */
 export function extractLocale(pathname, config) {
     for (const locale of prefixLocales(config)) {
-        const prefix = `/${locale}`;
+        const prefix = `/${urlPrefix(locale, config)}`;
         if (pathname === prefix) {
             return { locale, pathname: '/' };
         }
@@ -57,10 +61,11 @@ export function localizeHref(path, locale, config) {
         return path;
     if (!config.supportedLocales.includes(locale))
         return path;
+    const seg = urlPrefix(locale, config);
     // Guard against double-prefixing if a caller passes an already-localized path.
-    if (path === `/${locale}` || path.startsWith(`/${locale}/`))
+    if (path === `/${seg}` || path.startsWith(`/${seg}/`))
         return path;
-    return path === '/' ? `/${locale}` : `/${locale}${path}`;
+    return path === '/' ? `/${seg}` : `/${seg}${path}`;
 }
 /**
  * Build the `<link rel="alternate" hreflang>` set for a page, including

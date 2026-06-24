@@ -4,9 +4,11 @@ import {
   getUniqueCities,
 } from "$lib/server/db/queries/index";
 import { normalize } from "$lib/search";
+import { localizeHref } from "@nomideusz/svelte-i18n";
+import { i18nRouting } from "$lib/i18n-routing";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params, url, parent }) => {
+export const load: PageServerLoad = async ({ params, url, parent, locals }) => {
   const requestedCity = params.city;
   // URL slugs use hyphens for spaces: "wola-kopcowa" → "wola kopcowa"
   const requestedNorm = normalize(requestedCity.replace(/-/g, " "));
@@ -26,7 +28,7 @@ export const load: PageServerLoad = async ({ params, url, parent }) => {
 
   if (!exactCityName) {
     if (canonicalSlug && canonicalSlug !== requestedCity.toLowerCase()) {
-      throw redirect(301, `/${canonicalSlug}`);
+      throw redirect(301, localizeHref(`/${canonicalSlug}`, locals.locale, i18nRouting));
     }
 
     throw error(404, "Nie znaleziono takiego miasta w naszej bazie.");
@@ -38,7 +40,7 @@ export const load: PageServerLoad = async ({ params, url, parent }) => {
     requestedCity.toLowerCase();
 
   if (resolvedCitySlug !== requestedCity.toLowerCase()) {
-    throw redirect(301, `/${resolvedCitySlug}${url.search}`);
+    throw redirect(301, localizeHref(`/${resolvedCitySlug}${url.search}`, locals.locale, i18nRouting));
   }
 
   const cityListing = await getListingsByCity(exactCityName);

@@ -6,7 +6,7 @@
     import type { ListingCard } from "$lib/data";
     import { normalizePolish } from "$lib/utils/street";
     import { haversine } from "$lib/utils/haversine";
-    import { getListingAbsoluteUrl, getListingPath } from "$lib/paths";
+    import { getListingAbsoluteUrl, getListingPath, getCitySlugPath } from "$lib/paths";
     import { searchSchools } from "$lib/search.remote";
     import { listing, listingReviews } from "$lib/listing.remote";
     import { autocomplete as placesAutocomplete } from "$lib/autocomplete.remote";
@@ -1645,7 +1645,6 @@
 <svelte:window onpopstate={handlePopState} />
 
 <svelte:head>
-    <link rel="canonical" href="https://szkolyjogi.pl/{data.citySlug}" />
     <title
         >{t("meta_yoga_schools")}
         {cityDisplay(data.city)} | {t("meta_prices_locations_reviews")} | szkolyjogi.pl</title
@@ -1665,7 +1664,6 @@
         content={t("meta_city_desc", { city: cityDisplay(data.city), count: data.schools.length })}
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://szkolyjogi.pl/{data.citySlug}" />
     <meta property="og:image" content="https://szkolyjogi.pl/og-default.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta
@@ -1911,7 +1909,7 @@
             {#if distantPostal}
                 <span class="filter-chip"
                     >{distantPostal.code} &rarr;
-                    <a href="/{distantPostal.citySlug}"
+                    <a href={getCitySlugPath(distantPostal.citySlug)}
                         >{cityDisplay(distantPostal.cityName)}</a
                     >
                     <button
@@ -1939,7 +1937,7 @@
                         >
                     {:else}
                         {citySwitchPrompt.targetCity}?
-                        <a href="/{citySwitchPrompt.targetSlug}"
+                        <a href={getCitySlugPath(citySwitchPrompt.targetSlug)}
                             >{t("city_go")}</a
                         >
                     {/if}

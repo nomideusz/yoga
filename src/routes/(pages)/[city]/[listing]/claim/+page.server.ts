@@ -4,24 +4,26 @@ import { claimRequests } from '$lib/server/db/schema';
 import { getListingByIdentifier } from '$lib/server/db/queries';
 import { sendClaimNotification } from '$lib/server/email';
 import { getListingAbsoluteUrl, getListingClaimPath, getListingPath } from '$lib/paths';
+import { localizeHref } from '@nomideusz/svelte-i18n';
+import { i18nRouting } from '$lib/i18n-routing';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
   const listing = await getListingByIdentifier(params.listing);
 
   if (!listing) {
     throw error(404, 'Nie znaleziono szkoły');
   }
 
-  const canonicalPath = getListingClaimPath(listing);
+  const canonicalPath = getListingClaimPath(listing, 'pl');
   const requestedPath = `/${params.city}/${params.listing}/claim`;
 
   if (requestedPath !== canonicalPath) {
-    throw redirect(301, canonicalPath);
+    throw redirect(301, localizeHref(canonicalPath, locals.locale, i18nRouting));
   }
 
   if (listing.source === 'manual') {
-    throw redirect(302, getListingPath(listing));
+    throw redirect(302, localizeHref(getListingPath(listing, 'pl'), locals.locale, i18nRouting));
   }
 
   return { listing };
@@ -80,7 +82,7 @@ export const actions: Actions = {
       await sendClaimNotification({
         schoolName: listing.name,
         schoolId: listing.id,
-        listingUrl: getListingAbsoluteUrl(listing),
+        listingUrl: getListingAbsoluteUrl(listing, 'pl'),
         claimantName: name,
         claimantEmail: email,
         claimantPhone: phone,

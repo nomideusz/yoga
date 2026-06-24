@@ -227,7 +227,6 @@
 </script>
 
 <svelte:head>
-    <link rel="canonical" href="https://szkolyjogi.pl/category/{slug}" />
     <title>{displayName} | szkolyjogi.pl</title>
     <meta
         name="description"
@@ -239,7 +238,6 @@
         content={t("cat_meta_desc", { style: displayName, count: categoryListings.length })}
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://szkolyjogi.pl/category/{slug}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{displayName} | szkolyjogi.pl" />
     <meta
