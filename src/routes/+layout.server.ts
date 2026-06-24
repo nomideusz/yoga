@@ -62,8 +62,8 @@ async function getCachedLayoutData(): Promise<LayoutData> {
   return value;
 }
 
-export async function load({ locals }) {
-  // Layout data is locale-independent and cached; locale is per-request.
-  const data = await getCachedLayoutData();
-  return { ...data, locale: locals.locale };
+export async function load() {
+  // Locale is derived from the URL client-side (see root +layout.svelte), not
+  // from here — this layout load has no url dependency and isn't re-run on nav.
+  return getCachedLayoutData();
 }

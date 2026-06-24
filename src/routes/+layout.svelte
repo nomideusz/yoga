@@ -87,28 +87,31 @@
 
   const isLanding = $derived($page.url.pathname === "/");
 
-  let { data, children } = $props();
+  let { children } = $props();
 
-  // SSR + first paint: apply the server-resolved locale synchronously. The
-  // sync loader (see $lib/i18n) makes this safe — the singleton is set during
-  // the non-interleaved render pass, never across an await. Capturing the
-  // initial value here is intentional; the $effect below tracks later changes.
-  // svelte-ignore state_referenced_locally
-  i18n.setLocale(data.locale);
-  // Client navigations between /en, /uk, / keep the store in sync with the URL.
+  // Locale is a pure function of the URL. Deriving from $page (reactive on the
+  // client) — NOT from the layout server load, which has no url/params
+  // dependency and so isn't re-run on client navigation (that left the locale
+  // stale until a manual refresh).
+  const active = $derived(extractLocale($page.url.pathname, i18nRouting));
+  const activeLocale = $derived(active.locale);
+  const seoPath = $derived(active.pathname);
+
+  // SSR + first paint: apply the locale synchronously. The sync loader (see
+  // $lib/i18n) makes this safe — the singleton is set during the
+  // non-interleaved render pass, never across an await.
+  i18n.setLocale(extractLocale($page.url.pathname, i18nRouting).locale);
+  // Client navigations between /, /en, /ua keep the store in sync with the URL.
   $effect(() => {
-    i18n.setLocale(data.locale);
+    i18n.setLocale(activeLocale);
   });
 
   // ── Centralized SEO: one canonical + hreflang set for every indexable page ──
-  // Derived from the URL (locale-stripped), so canonical always points at the
-  // current-locale URL and hreflang lists all locales + x-default. Gated to
-  // public content routes (skips admin/lab and the claim form).
-  const seoPath = $derived(extractLocale($page.url.pathname, i18nRouting).pathname);
+  // Gated to public content routes (skips admin/lab and the claim form).
   const isIndexable = $derived(
     !!$page.route?.id?.startsWith("/(pages)") && !$page.route.id.endsWith("/claim"),
   );
-  const canonicalUrl = $derived(BASE_URL + localizeHref(seoPath, data.locale, i18nRouting));
+  const canonicalUrl = $derived(BASE_URL + localizeHref(seoPath, activeLocale, i18nRouting));
   const hreflangLinks = $derived(alternates(seoPath, i18nRouting, BASE_URL));
 </script>
 
