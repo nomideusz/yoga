@@ -2,3 +2,4 @@
 export { createI18n } from './core/store.svelte.js';
 export { interpolate } from './core/interpolate.js';
 export { default as LocaleSwitcher } from './components/LocaleSwitcher.svelte';
+export { extractLocale, localizeHref, alternates, negotiateLocale, resolveLocale, createReroute, } from './core/routing.js';

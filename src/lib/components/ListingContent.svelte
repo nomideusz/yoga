@@ -196,6 +196,8 @@
                 alt={listing.name}
                 class="lc-hero-img"
                 loading="eager"
+                fetchpriority="high"
+                decoding="async"
                 onerror={() => (photoFailed = true)}
             />
             <div class="lc-hero-attr">
@@ -219,6 +221,8 @@
                 alt={listing.name}
                 class="lc-hero-img"
                 loading="eager"
+                fetchpriority="high"
+                decoding="async"
                 onerror={() => (photoFailed = true)}
             />
         </div>
