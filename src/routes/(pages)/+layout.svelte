@@ -77,6 +77,10 @@
     function goBack() {
         history.back();
     }
+
+    function setLocaleCookie(locale: string) {
+        document.cookie = `locale=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+    }
 </script>
 
 <!-- ── Header ── -->
@@ -131,6 +135,7 @@
                 class="sf-lang-link"
                 class:is-current={i18n.locale === "pl"}
                 aria-current={i18n.locale === "pl" ? "true" : undefined}
+                onclick={() => setLocaleCookie("pl")}
                 hreflang="pl">PL</a
             >
             <span class="sf-lang-separator" aria-hidden="true">·</span>
@@ -139,6 +144,7 @@
                 class="sf-lang-link"
                 class:is-current={i18n.locale === "en"}
                 aria-current={i18n.locale === "en" ? "true" : undefined}
+                onclick={() => setLocaleCookie("en")}
                 hreflang="en">EN</a
             >
             <span class="sf-lang-separator" aria-hidden="true">·</span>
@@ -147,6 +153,7 @@
                 class="sf-lang-link"
                 class:is-current={i18n.locale === "uk"}
                 aria-current={i18n.locale === "uk" ? "true" : undefined}
+                onclick={() => setLocaleCookie("uk")}
                 hreflang="uk">UA</a
             >
         </nav>

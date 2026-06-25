@@ -9,22 +9,38 @@ import { i18nRouting } from '$lib/i18n-routing';
 
 export const handle: Handle = async ({ event, resolve }) => {
   const acceptLanguage = event.request.headers.get('accept-language');
+  const cookieLocale = event.cookies.get('locale');
 
-  // Bare-root entry: send foreign visitors to their prefixed home. Bots without
-  // an Accept-Language header (and pl visitors) stay on the canonical pl root.
+  // Bare-root entry: send foreign visitors to their prefixed home, respecting cookie preference.
   if (event.url.pathname === '/') {
-    const negotiated = negotiateLocale(acceptLanguage, i18nRouting);
-    if (negotiated !== i18nRouting.defaultLocale) {
+    const targetLocale = cookieLocale || negotiateLocale(acceptLanguage, i18nRouting);
+    if (targetLocale !== i18nRouting.defaultLocale && i18nRouting.supportedLocales.includes(targetLocale)) {
       return new Response(null, {
         status: 302,
-        // localizeHref applies the URL prefix alias (e.g. uk → /ua).
-        headers: { location: localizeHref('/', negotiated, i18nRouting), vary: 'accept-language' },
+        headers: {
+          location: localizeHref('/', targetLocale, i18nRouting),
+          vary: 'accept-language, cookie',
+        },
       });
     }
   }
 
-  const locale = resolveLocale({ pathname: event.url.pathname, acceptLanguage }, i18nRouting);
+  let locale = resolveLocale({ pathname: event.url.pathname, acceptLanguage }, i18nRouting);
+  if (event.url.pathname === '/' && cookieLocale && i18nRouting.supportedLocales.includes(cookieLocale)) {
+    locale = cookieLocale;
+  }
   event.locals.locale = locale;
+
+  // Sync / refresh the language preference cookie
+  if (cookieLocale !== locale) {
+    event.cookies.set('locale', locale, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      httpOnly: false, // allow client-side modification for immediate switcher updates
+      sameSite: 'lax',
+      secure: event.url.protocol === 'https:'
+    });
+  }
 
   return resolve(event, {
     transformPageChunk: ({ html }) => html.replace('%lang%', locale),
