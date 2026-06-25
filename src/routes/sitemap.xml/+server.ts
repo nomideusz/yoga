@@ -1,6 +1,6 @@
 import { db } from "$lib/server/db/index";
 import { schools, styles as stylesTable } from "$lib/server/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, gt } from "drizzle-orm";
 import { getCityPath, getStylePath } from "$lib/paths";
 import { localizeHref } from "@nomideusz/svelte-i18n";
 import { i18nRouting } from "$lib/i18n-routing";
@@ -45,7 +45,9 @@ export const GET: RequestHandler = async () => {
       .selectDistinct({ city: schools.city, citySlug: schools.citySlug })
       .from(schools)
       .where(and(eq(schools.isListed, true), sql`${schools.city} != ''`)),
-    db.select({ name: stylesTable.name, slug: stylesTable.slug }).from(stylesTable),
+    // Only styles with at least one school — skips empty/broken styles
+    // (e.g. "Pilates" with a null slug and 0 schools) that would emit a dead URL.
+    db.select({ name: stylesTable.name, slug: stylesTable.slug }).from(stylesTable).where(gt(stylesTable.schoolCount, 0)),
   ]);
 
   const urls: string[] = [];
