@@ -9,6 +9,7 @@
   import { i18nRouting } from "$lib/i18n-routing.js";
   import { BASE_URL } from "$lib/paths.js";
   import { trackLocaleChange, trackNavigation } from "$lib/analytics/umami.js";
+  import { trackTempsPageview } from "$lib/analytics/temps.js";
   const t = i18n.t;
 
   type NavigatorConnection = {
@@ -43,6 +44,7 @@
   afterNavigate(({ to }) => {
     if (!to) return;
     trackNavigation(to.url.pathname, to.url.searchParams, i18n.locale);
+    trackTempsPageview(to.url.pathname, to.url.searchParams);
   });
 
   let previousLocale = $state<string | undefined>(undefined);
