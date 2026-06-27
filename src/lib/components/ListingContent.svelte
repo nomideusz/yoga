@@ -3,7 +3,6 @@
         priceFreshness,
         parsePricingJson,
         groupTiers,
-        healthDotColor,
         formatDateEU,
         formatDatePL,
         healthSuffix,
@@ -17,9 +16,10 @@
         createMemoryAdapter,
     } from "@nomideusz/svelte-calendar";
     import ScheduleSection from "$lib/components/listing/ScheduleSection.svelte";
-    import { getListingPath } from "$lib/paths";
+    import { getListingPath, getCityPath } from "$lib/paths";
+    import { localizeHref } from "@nomideusz/svelte-i18n";
+    import { i18nRouting } from "$lib/i18n-routing";
     import Globe from "lucide-svelte/icons/globe";
-
     import MapPin from "lucide-svelte/icons/map-pin";
     import Phone from "lucide-svelte/icons/phone";
 
@@ -27,23 +27,22 @@
         listing,
         reviews: rawReviews = [],
         preferredLangs = ["pl", "en"],
-        layout = "panel",
     }: {
         listing: Listing;
         reviews?: ReviewData[];
         preferredLangs?: string[];
-        layout?: "panel" | "page";
     } = $props();
 
-    const isPage = $derived(layout === "page");
-
-    // ── Derived state ──────────────────────────────────────
+    // ── Pricing ───────────────────────────────────────────
     let freshness = $derived(priceFreshness(listing));
     let pricingData = $derived(parsePricingJson(listing.pricingJson));
     let tierGroups = $derived(pricingData ? groupTiers(pricingData.tiers) : []);
     let hasTiers = $derived(tierGroups.length > 0);
+    let hasAnyPrice = $derived(
+        listing.price != null || listing.singleClassPrice != null || hasTiers,
+    );
 
-    let dotColor = $derived(healthDotColor(listing.healthStatus));
+    // ── Data freshness ────────────────────────────────────
     let isStaleData = $derived.by(() => {
         if (!listing.lastUpdated) return false;
         const days = Math.floor(
@@ -52,39 +51,19 @@
         return days > 60;
     });
 
-    let schedule = $derived(listing.schedule ?? []);
-    let hasSchedule = $derived(schedule.length > 0);
+    // ── Breadcrumb (usable nav: Joga → city → here) ───────
+    let homeHref = $derived(localizeHref("/", i18n.locale, i18nRouting));
+    let cityHref = $derived(getCityPath(listing.city, listing.citySlug));
 
-    let reviews = $derived.by(() => {
-        const all = rawReviews ?? [];
-        const prefs = preferredLangs ?? ["pl", "en"];
-        return [...all].sort((a, b) => {
-            const aLangIdx = prefs.indexOf(a.language ?? "");
-            const bLangIdx = prefs.indexOf(b.language ?? "");
-            const aRank = aLangIdx >= 0 ? aLangIdx : 999;
-            const bRank = bLangIdx >= 0 ? bLangIdx : 999;
-            if (aRank !== bRank) return aRank - bRank;
-            return (b.rating ?? 0) - (a.rating ?? 0);
-        });
-    });
-    let hasReviews = $derived(reviews.length > 0);
-    let isUnclaimed = $derived(listing.source !== "manual");
-    let photoFailed = $state(false);
-
-    let hasAnyPrice = $derived(
-        listing.price != null || listing.singleClassPrice != null || hasTiers,
-    );
-
-    $effect(() => {
-        listing.id;
-        photoFailed = false;
-    });
+    // ── Actions (one always-prominent primary) ────────────
+    let hasWebsite = $derived(!!listing.websiteUrl);
 
     // ── Schedule ──────────────────────────────────────────
+    let schedule = $derived(listing.schedule ?? []);
+    let hasSchedule = $derived(schedule.length > 0);
     let scheduleMode = $derived(
         schedule.length > 0 ? schedule[0].scheduleType : null,
     );
-
     let datedIsStale = $derived.by(() => {
         if (scheduleMode !== "dated" || schedule.length === 0) return false;
         const today = new Date().toISOString().slice(0, 10);
@@ -157,428 +136,499 @@
               )
             : undefined,
     );
-
     let calendarAdapter = $derived(buildAdapter(schedule));
 
-    // ── Description ──────────────────────────────────────
-    let descriptionFull = $derived.by(() => {
-        return (
+    // ── Reviews ───────────────────────────────────────────
+    let reviews = $derived.by(() => {
+        const all = rawReviews ?? [];
+        const prefs = preferredLangs ?? ["pl", "en"];
+        return [...all].sort((a, b) => {
+            const aLangIdx = prefs.indexOf(a.language ?? "");
+            const bLangIdx = prefs.indexOf(b.language ?? "");
+            const aRank = aLangIdx >= 0 ? aLangIdx : 999;
+            const bRank = bLangIdx >= 0 ? bLangIdx : 999;
+            if (aRank !== bRank) return aRank - bRank;
+            return (b.rating ?? 0) - (a.rating ?? 0);
+        });
+    });
+    let hasReviews = $derived(reviews.length > 0);
+    let isUnclaimed = $derived(listing.source !== "manual");
+
+    // ── Description ───────────────────────────────────────
+    let descriptionFull = $derived.by(() =>
+        (
             listing.description ||
             listing.editorialSummary ||
             listing.descriptionRaw ||
             ""
-        ).replace(/\*\*/g, "");
-    });
+        ).replace(/\*\*/g, ""),
+    );
     let isRawDesc = $derived(
         !listing.description &&
             !listing.editorialSummary &&
             !!listing.descriptionRaw,
     );
 
-    let descExpanded = $state(false);
-    let descNeedsTruncation = $derived(
-        layout === "panel" && descriptionFull.length > 280,
-    );
-    let descDisplay = $derived.by(() => {
-        if (!descNeedsTruncation || descExpanded) return descriptionFull;
-        return descriptionFull.slice(0, 277) + "...";
+    // ── Photo ─────────────────────────────────────────────
+    let photoFailed = $state(false);
+    $effect(() => {
+        listing.id;
+        photoFailed = false;
     });
-
-
 </script>
 
-<div class="lc" class:lc--page={isPage}>
+<article class="ld">
+    <!-- ═══ IDENTITY (name leads, photo follows) ═══ -->
+    <header class="ld-id">
+        <nav class="ld-crumbs" aria-label="breadcrumb">
+            <a href={homeHref} class="ld-crumb">Joga</a>
+            <span class="ld-crumb-sep" aria-hidden="true">·</span>
+            <a href={cityHref} class="ld-crumb">{listing.city}</a>
+        </nav>
+        <h1 class="ld-name">{listing.name}</h1>
+
+        <div class="ld-facts">
+            {#if listing.googleMapsUrl}
+                <a
+                    href={listing.googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="ld-addr ld-addr--link"
+                >
+                    <MapPin size={14} class="ld-addr-icon" />
+                    {#if listing.neighborhood && listing.neighborhood !== listing.city}{listing.neighborhood}
+                        · {/if}{listing.address || listing.city}
+                </a>
+            {:else}
+                <span class="ld-addr">
+                    {#if listing.neighborhood && listing.neighborhood !== listing.city}{listing.neighborhood}
+                        · {/if}{listing.address || listing.city}
+                </span>
+            {/if}
+            {#if listing.rating != null}
+                <span class="ld-dot" aria-hidden="true">·</span>
+                <span class="ld-rating">
+                    <span class="ld-rating-star" aria-hidden="true">★</span>
+                    {listing.rating.toFixed(1)}
+                    {#if listing.reviews != null}
+                        <span class="ld-rating-count">({listing.reviews})</span>
+                    {/if}
+                </span>
+            {/if}
+        </div>
+
+        {#if listing.styles.length > 0}
+            <ul class="ld-styles">
+                {#each listing.styles as style}
+                    <li class="ld-style">{style}</li>
+                {/each}
+            </ul>
+        {/if}
+    </header>
+
     <!-- ═══ HERO PHOTO ═══ -->
     {#if listing.photoReference && !photoFailed}
-        <div class="lc-hero">
+        <figure class="ld-hero">
             <img
                 src="/api/photo/{listing.id}?v=2"
                 alt={listing.name}
-                class="lc-hero-img"
+                class="ld-hero-img"
                 loading="eager"
                 fetchpriority="high"
                 decoding="async"
                 onerror={() => (photoFailed = true)}
             />
-            <div class="lc-hero-attr">
+            <figcaption class="ld-hero-attr">
                 {#if listing.photoAuthor}
-                    <span class="lc-hero-author">
+                    <span class="ld-hero-author">
                         {#if listing.photoAuthorUrl}
-                            <a href={listing.photoAuthorUrl} target="_blank" rel="noopener noreferrer">{listing.photoAuthor}</a>
+                            <a
+                                href={listing.photoAuthorUrl}
+                                target="_blank"
+                                rel="noopener noreferrer">{listing.photoAuthor}</a
+                            >
                         {:else}
                             {listing.photoAuthor}
                         {/if}
                     </span>
-                    <span class="lc-hero-sep">·</span>
+                    <span class="ld-hero-sep">·</span>
                 {/if}
-                <span class="lc-hero-gm" translate="no">Google Maps</span>
-            </div>
-        </div>
+                <span class="ld-hero-gm" translate="no">Google Maps</span>
+            </figcaption>
+        </figure>
     {:else if listing.imageUrl && !photoFailed}
-        <div class="lc-hero">
+        <figure class="ld-hero">
             <img
                 src={listing.imageUrl}
                 alt={listing.name}
-                class="lc-hero-img"
+                class="ld-hero-img"
                 loading="eager"
                 fetchpriority="high"
                 decoding="async"
                 onerror={() => (photoFailed = true)}
             />
-        </div>
+        </figure>
     {:else}
-        <div class="lc-hero lc-hero--placeholder" aria-hidden="true">
+        <div class="ld-hero ld-hero--placeholder" aria-hidden="true">
             <span>{t("listing_photo_placeholder")}</span>
         </div>
     {/if}
 
-    <!-- ═══ HEADER ═══ -->
-    <header class="lc-header">
-        {#if isPage}
-            <h1 class="lc-name">{listing.name}</h1>
-        {:else}
-            <h2 class="lc-name">{listing.name}</h2>
-        {/if}
-        <div class="lc-meta">
-            {#if listing.googleMapsUrl}
-                <a href={listing.googleMapsUrl} target="_blank" rel="noopener noreferrer" class="lc-address lc-address--link">
-                    <MapPin size={13} class="lc-map-icon" />
-                    {#if listing.neighborhood && listing.neighborhood !== listing.city}{listing.neighborhood}
-                        ·
-                    {/if}{listing.address || listing.city}
-                </a>
-            {:else}
-                <span class="lc-address">
-                    {#if listing.neighborhood && listing.neighborhood !== listing.city}{listing.neighborhood}
-                        ·
-                    {/if}{listing.address || listing.city}
-                </span>
-            {/if}
-            {#if listing.rating != null}
-                <span class="lc-dot">·</span>
-                <span class="lc-rating">
-                    <span class="lc-rating-star" aria-hidden="true">★</span>
-                    {listing.rating.toFixed(1)}
-                    {#if listing.reviews != null}
-                        <span class="lc-rating-count">({listing.reviews})</span>
-                    {/if}
-                </span>
-            {/if}
-        </div>
-        {#if listing.styles.length > 0}
-            <div class="lc-styles">
-                {#each listing.styles as style}
-                    <span class="lc-style-tag">{style}</span>
-                {/each}
-            </div>
-        {/if}
-    </header>
-
-    <!-- ═══ DESCRIPTION ═══ -->
-    {#if descriptionFull}
-        <section class="lc-section">
-            <p
-                class="lc-desc"
-                style:white-space={isRawDesc ? "pre-line" : undefined}
-            >
-                {descDisplay}
-            </p>
-            {#if descNeedsTruncation}
-                <button
-                    class="lc-expand"
-                    onclick={() => (descExpanded = !descExpanded)}
-                >
-                    {descExpanded
-                        ? t("listing_desc_less")
-                        : t("listing_desc_more")}
-                </button>
-            {/if}
-        </section>
-    {/if}
-
-    <!-- ═══ CTAs ═══ -->
-    <div class="lc-ctas">
-        {#if listing.websiteUrl}
-            <a
-                href={listing.websiteUrl}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                class="lc-cta"
-                title={t("listing_website")}
-            >
-                <span class="lc-cta-icon"><Globe size={14} /></span>
-                <span>{t("listing_website")}</span>
-            </a>
-        {/if}
-        {#if listing.email}
-            <a href="mailto:{listing.email}" class="lc-cta" title={t("listing_email")}>
-                <span class="lc-cta-icon lc-cta-icon--at">@</span>
-                <span>{t("listing_email")}</span>
-            </a>
-        {/if}
-        {#if listing.phone}
-            <a href="tel:{listing.phone}" class="lc-cta">
-                <span class="lc-cta-icon"><Phone size={13} /></span>
-                <span>{listing.phone}</span>
-            </a>
-        {/if}
-        {#if listing.googleMapsUrl}
-            <a
-                href={listing.googleMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                class="lc-cta lc-cta--secondary"
-            >
-                <span class="lc-cta-icon"><MapPin size={13} /></span>
-                <span>{t("listing_map")}</span>
-            </a>
-        {/if}
-        <a
-            href="mailto:joga@zaur.app?subject={encodeURIComponent(
-                t('listing_report_subject'),
-            )}{encodeURIComponent(listing.name)}"
-            class="lc-cta lc-cta--secondary"
-        >
-            <span class="lc-cta-icon lc-cta-icon--at">!</span>
-            <span>{t("listing_report_short")}</span>
-        </a>
-    </div>
-
-    <div class="lc-trust">
-        <span>{t("listing_trust_note")}</span>
-    </div>
-
-    <!-- ═══ PRICING (collapsible, first reveal section) ═══ -->
-    {#if hasAnyPrice}
-        <details class="lc-section lc-section--border lc-pricing-reveal">
-            <summary class="lc-pricing-summary">
-                <span class="lc-section-label">{t("listing_pricing")}</span>
-                <span class="lc-pricing-hint">
-                    {#if listing.price != null}
-                        <span class="lc-pricing-hint-price">{listing.priceEstimated ? "~" : ""}{listing.price} zł</span>
-                        <span class="lc-pricing-hint-unit">
-                            {t("listing_price_per_month")}
-                        </span>
-                    {:else if listing.singleClassPrice != null}
-                        <span class="lc-pricing-hint-price">{listing.singleClassPrice} zł</span>
-                        <span class="lc-pricing-hint-unit">{t("listing_single_class")}</span>
-                    {/if}
-                    {#if listing.trialPrice === 0}
-                        <span class="lc-price-badge">{t("listing_trial_free")}</span>
-                    {/if}
-                    {#if listing.priceEstimated}
-                        <span class="lc-pricing-hint-estimated">{t("listing_price_estimated")}</span>
-                    {/if}
-                </span>
-                <span class="lc-pricing-chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="lc-pricing-content">
-                <div class="lc-price-row">
-                    {#if listing.price != null}
-                        <div class="lc-price-item">
-                            <span class="lc-price-value">{listing.price} zł</span>
-                            <span class="lc-price-unit">
-                                {listing.priceEstimated
-                                    ? `~${t("listing_price_per_month")}`
-                                    : t("listing_price_per_month")}
-                            </span>
-                        </div>
-                    {/if}
-                    {#if listing.singleClassPrice != null}
-                        <div class="lc-price-item">
-                            <span class="lc-price-value">{listing.singleClassPrice} zł</span>
-                            <span class="lc-price-unit">{t("listing_single_class")}</span>
-                        </div>
-                    {/if}
-                    {#if listing.trialPrice != null && listing.trialPrice > 0}
-                        <div class="lc-price-item">
-                            <span class="lc-price-value">{listing.trialPrice} zł</span>
-                            <span class="lc-price-unit">{t("listing_first_class")}</span>
-                        </div>
-                    {/if}
-                </div>
-
-                {#if listing.priceEstimated || listing.trialPrice === 0 || (pricingData?.trial_info && listing.trialPrice !== 0)}
-                    <div class="lc-price-notes">
-                        {#if listing.priceEstimated}
-                            <span class="lc-price-note">{t("listing_price_estimated_title")}</span>
-                        {/if}
-                        {#if listing.trialPrice === 0}
-                            <span class="lc-price-badge">{t("listing_trial_free")}</span>
-                        {:else if pricingData?.trial_info && listing.trialPrice !== 0}
-                            <span class="lc-price-badge">{pricingData.trial_info}</span>
-                        {/if}
-                    </div>
-                {/if}
-
-                {#if hasTiers}
-                    {#each tierGroups as group}
-                        <div class="lc-tier-group">
-                            <span class="lc-tier-label">{group.label}</span>
-                            {#each group.tiers as tier}
-                                <div class="lc-kv">
-                                    <span>{tier.name}</span>
-                                    <strong>{Math.round(tier.price_pln)} zł</strong>
-                                </div>
-                                {#if tier.notes}
-                                    <p class="lc-tier-note">{tier.notes}</p>
-                                {/if}
-                                {#if tier.class_types && tier.class_types.length > 0}
-                                    <div class="lc-tier-tags">
-                                        {#each tier.class_types as ct}
-                                            <span class="lc-tier-tag">{ct}</span>
-                                        {/each}
-                                    </div>
-                                {/if}
-                            {/each}
-                        </div>
-                    {/each}
-                    {#if pricingData?.discounts}
-                        <div class="lc-pricing-discounts">{pricingData.discounts}</div>
-                    {/if}
-                    {#if pricingData?.pricing_notes}
-                        <p class="lc-pricing-notes">{pricingData.pricing_notes}</p>
-                    {/if}
-                {:else if listing.pricingNotes}
-                    <p class="lc-pricing-notes">{listing.pricingNotes}</p>
-                {/if}
-
-                {#if listing.lastPriceCheck}
-                    <div class="lc-pricing-freshness">
-                        {formatDateEU(listing.lastPriceCheck)}
-                        {freshness === "fresh"
-                            ? `· ${t("listing_price_fresh")}`
-                            : freshness === "aging"
-                              ? `· ${t("listing_price_aging")}`
-                              : `· ${t("listing_price_stale")}`}
-                    </div>
-                {/if}
-
-                {#if listing.pricingUrl}
-                    <a
-                        href={listing.pricingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow"
-                        class="lc-pricing-link"
-                    >{t("listing_pricing_link")}</a>
-                {/if}
-            </div>
-        </details>
-    {/if}
-
-    <!-- ═══ SCHEDULE (only if we have data) ═══ -->
-    {#if hasSchedule}
-        <section class="lc-section lc-section--border">
-            <div class="lc-section-label">{t("schedule_title")}</div>
-            <ScheduleSection
-                {listing}
-                {hasSchedule}
-                {datedIsStale}
-                {scheduleMode}
-                {calendarAdapter}
-                {initialDate}
-                showScheduleEmpty={false}
-            />
-        </section>
-    {/if}
-
-    <!-- ═══ REVIEWS (muted, max 4, Google link) ═══ -->
-    {#if hasReviews}
-        <section class="lc-section lc-section--border lc-reviews">
-            <div class="lc-reviews-header">
-                <span class="lc-section-label">{t("reviews_label")}</span>
-                {#if listing.googleMapsUrl}
-                    <a
-                        href={listing.googleMapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow"
-                        class="lc-reviews-link"
+    <!-- ═══ BODY: learn (left, threaded spine) + act (right) ═══ -->
+    <div class="ld-grid">
+        <div class="ld-content">
+            {#if descriptionFull}
+                <section class="ld-sec">
+                    <p
+                        class="ld-lead"
+                        style:white-space={isRawDesc ? "pre-line" : undefined}
                     >
-                        {t("reviews_all", {
-                            count: listing.reviews ?? reviews.length,
-                        })}
-                    </a>
-                {/if}
-            </div>
-            <div class="lc-reviews-list">
-                {#each reviews.slice(0, 3) as review (review.id)}
-                    <div class="lc-review">
-                        <div class="lc-review-top">
-                            <span
-                                class="lc-review-stars"
-                                aria-label={t("reviews_stars", {
-                                    rating: review.rating,
-                                })}
-                            >
-                                {#each Array(5) as _, i}
-                                    <span
-                                        class="lc-review-star"
-                                        class:lc-review-star--on={i <
-                                            review.rating}>★</span
-                                    >
-                                {/each}
-                            </span>
-                            <span class="lc-review-author"
-                                >{review.authorName}</span
-                            >
-                            {#if review.relativeTime}
-                                <span class="lc-review-time"
-                                    >· {review.relativeTime}</span
+                        {descriptionFull}
+                    </p>
+                </section>
+            {/if}
+
+            {#if hasSchedule}
+                <section class="ld-sec">
+                    <h2 class="ld-label">{t("schedule_title")}</h2>
+                    <ScheduleSection
+                        {listing}
+                        {hasSchedule}
+                        {datedIsStale}
+                        {scheduleMode}
+                        {calendarAdapter}
+                        {initialDate}
+                        showScheduleEmpty={false}
+                    />
+                </section>
+            {/if}
+
+            {#if hasAnyPrice}
+                <section class="ld-sec">
+                    <h2 class="ld-label">{t("listing_pricing")}</h2>
+
+                    <div class="ld-price-row">
+                        {#if listing.price != null}
+                            <div class="ld-price-item">
+                                <span class="ld-price-value"
+                                    >{listing.priceEstimated
+                                        ? "~"
+                                        : ""}{listing.price} zł</span
+                                >
+                                <span class="ld-price-unit"
+                                    >{t("listing_price_per_month")}</span
+                                >
+                            </div>
+                        {/if}
+                        {#if listing.singleClassPrice != null}
+                            <div class="ld-price-item">
+                                <span class="ld-price-value"
+                                    >{listing.singleClassPrice} zł</span
+                                >
+                                <span class="ld-price-unit"
+                                    >{t("listing_single_class")}</span
+                                >
+                            </div>
+                        {/if}
+                        {#if listing.trialPrice != null && listing.trialPrice > 0}
+                            <div class="ld-price-item">
+                                <span class="ld-price-value"
+                                    >{listing.trialPrice} zł</span
+                                >
+                                <span class="ld-price-unit"
+                                    >{t("listing_first_class")}</span
+                                >
+                            </div>
+                        {/if}
+                    </div>
+
+                    {#if listing.priceEstimated || listing.trialPrice === 0 || (pricingData?.trial_info && listing.trialPrice !== 0)}
+                        <div class="ld-price-notes">
+                            {#if listing.priceEstimated}
+                                <span class="ld-price-note"
+                                    >{t("listing_price_estimated_title")}</span
+                                >
+                            {/if}
+                            {#if listing.trialPrice === 0}
+                                <span class="ld-badge"
+                                    >{t("listing_trial_free")}</span
+                                >
+                            {:else if pricingData?.trial_info && listing.trialPrice !== 0}
+                                <span class="ld-badge"
+                                    >{pricingData.trial_info}</span
                                 >
                             {/if}
                         </div>
-                        {#if review.text}
-                            <p class="lc-review-text">
-                                {review.text.length > 220
-                                    ? `${review.text.slice(0, 217)}...`
-                                    : review.text}
+                    {/if}
+
+                    {#if hasTiers}
+                        <div class="ld-tiers">
+                            {#each tierGroups as group}
+                                <div class="ld-tier-group">
+                                    <span class="ld-tier-label"
+                                        >{group.label}</span
+                                    >
+                                    {#each group.tiers as tier}
+                                        <div class="ld-kv">
+                                            <span>{tier.name}</span>
+                                            <strong
+                                                >{Math.round(
+                                                    tier.price_pln,
+                                                )} zł</strong
+                                            >
+                                        </div>
+                                        {#if tier.notes}
+                                            <p class="ld-tier-note">
+                                                {tier.notes}
+                                            </p>
+                                        {/if}
+                                        {#if tier.class_types && tier.class_types.length > 0}
+                                            <div class="ld-tier-tags">
+                                                {#each tier.class_types as ct}
+                                                    <span class="ld-tier-tag"
+                                                        >{ct}</span
+                                                    >
+                                                {/each}
+                                            </div>
+                                        {/if}
+                                    {/each}
+                                </div>
+                            {/each}
+                        </div>
+                        {#if pricingData?.discounts}
+                            <p class="ld-pricing-discounts">
+                                {pricingData.discounts}
                             </p>
                         {/if}
-                    </div>
-                {/each}
-            </div>
-            <div class="lc-reviews-footer">
-                <span class="lc-reviews-attr">{t("reviews_attribution")}</span>
-            </div>
-        </section>
-    {/if}
+                        {#if pricingData?.pricing_notes}
+                            <p class="ld-pricing-notes">
+                                {pricingData.pricing_notes}
+                            </p>
+                        {/if}
+                    {:else if listing.pricingNotes}
+                        <p class="ld-pricing-notes">{listing.pricingNotes}</p>
+                    {/if}
 
-    <!-- ═══ CLAIM (unclaimed studios) ═══ -->
-    {#if isUnclaimed}
-        <section class="lc-section lc-section--border lc-claim">
-            <div class="lc-claim-card">
-                <div class="lc-claim-icon" aria-hidden="true">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <line x1="19" y1="8" x2="19" y2="14" />
-                        <line x1="22" y1="11" x2="16" y2="11" />
-                    </svg>
+                    <div class="ld-pricing-foot">
+                        {#if listing.lastPriceCheck}
+                            <span class="ld-pricing-freshness">
+                                {formatDateEU(listing.lastPriceCheck)}
+                                {freshness === "fresh"
+                                    ? `· ${t("listing_price_fresh")}`
+                                    : freshness === "aging"
+                                      ? `· ${t("listing_price_aging")}`
+                                      : `· ${t("listing_price_stale")}`}
+                            </span>
+                        {/if}
+                        {#if listing.pricingUrl}
+                            <a
+                                href={listing.pricingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                class="ld-pricing-link"
+                                >{t("listing_pricing_link")}</a
+                            >
+                        {/if}
+                    </div>
+                </section>
+            {/if}
+
+            {#if hasReviews}
+                <section class="ld-sec ld-reviews">
+                    <div class="ld-label-row">
+                        <h2 class="ld-label">{t("reviews_label")}</h2>
+                        {#if listing.googleMapsUrl}
+                            <a
+                                href={listing.googleMapsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                class="ld-reviews-link"
+                            >
+                                {t("reviews_all", {
+                                    count: listing.reviews ?? reviews.length,
+                                })}
+                            </a>
+                        {/if}
+                    </div>
+                    <div class="ld-reviews-list">
+                        {#each reviews.slice(0, 3) as review (review.id)}
+                            <div class="ld-review">
+                                <div class="ld-review-top">
+                                    <span
+                                        class="ld-review-stars"
+                                        aria-label={t("reviews_stars", {
+                                            rating: review.rating,
+                                        })}
+                                    >
+                                        {#each Array(5) as _, i}
+                                            <span
+                                                class="ld-review-star"
+                                                class:ld-review-star--on={i <
+                                                    review.rating}>★</span
+                                            >
+                                        {/each}
+                                    </span>
+                                    <span class="ld-review-author"
+                                        >{review.authorName}</span
+                                    >
+                                    {#if review.relativeTime}
+                                        <span class="ld-review-time"
+                                            >· {review.relativeTime}</span
+                                        >
+                                    {/if}
+                                </div>
+                                {#if review.text}
+                                    <p class="ld-review-text">
+                                        {review.text.length > 220
+                                            ? `${review.text.slice(0, 217)}...`
+                                            : review.text}
+                                    </p>
+                                {/if}
+                            </div>
+                        {/each}
+                    </div>
+                </section>
+            {/if}
+
+            {#if isUnclaimed}
+                <section class="ld-sec ld-claim">
+                    <div class="ld-claim-icon" aria-hidden="true">
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path
+                                d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+                            />
+                            <circle cx="9" cy="7" r="4" />
+                            <line x1="19" y1="8" x2="19" y2="14" />
+                            <line x1="22" y1="11" x2="16" y2="11" />
+                        </svg>
+                    </div>
+                    <div class="ld-claim-body">
+                        <p class="ld-claim-text">
+                            {listing.city === "Warszawa"
+                                ? t("listing_claim_text_warsaw")
+                                : t("listing_claim_text")}
+                        </p>
+                        <a
+                            href={`${getListingPath(listing)}/claim`}
+                            class="ld-claim-btn"
+                        >
+                            {t("listing_claim_btn")}
+                            <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                                ><line x1="5" y1="12" x2="19" y2="12" /><polyline
+                                    points="12 5 19 12 12 19"
+                                /></svg
+                            >
+                        </a>
+                    </div>
+                </section>
+            {/if}
+        </div>
+
+        <!-- ═══ ACTION CARD (sticky on desktop) ═══ -->
+        <aside class="ld-aside">
+            <div class="ld-act">
+                {#if hasAnyPrice && (listing.price != null || listing.singleClassPrice != null)}
+                    <div class="ld-act-price">
+                        {#if listing.price != null}
+                            <span class="ld-act-price-value"
+                                >{listing.priceEstimated
+                                    ? "~"
+                                    : ""}{listing.price} zł</span
+                            >
+                            <span class="ld-act-price-unit"
+                                >{t("listing_price_per_month")}</span
+                            >
+                        {:else if listing.singleClassPrice != null}
+                            <span class="ld-act-price-value"
+                                >{listing.singleClassPrice} zł</span
+                            >
+                            <span class="ld-act-price-unit"
+                                >{t("listing_single_class")}</span
+                            >
+                        {/if}
+                        {#if listing.trialPrice === 0}
+                            <span class="ld-badge ld-badge--warm"
+                                >{t("listing_trial_free")}</span
+                            >
+                        {/if}
+                    </div>
+                {/if}
+
+                <div class="ld-act-btns">
+                    {#if listing.websiteUrl}
+                        <a
+                            href={listing.websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            class="ld-btn ld-btn--primary"
+                        >
+                            <Globe size={15} />
+                            <span>{t("listing_website")}</span>
+                        </a>
+                    {/if}
+                    {#if listing.phone}
+                        <a
+                            href="tel:{listing.phone}"
+                            class="ld-btn"
+                            class:ld-btn--primary={!hasWebsite}
+                        >
+                            <Phone size={14} />
+                            <span>{listing.phone}</span>
+                        </a>
+                    {/if}
+                    {#if listing.googleMapsUrl}
+                        <a
+                            href={listing.googleMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            class="ld-btn"
+                            class:ld-btn--primary={!hasWebsite && !listing.phone}
+                        >
+                            <MapPin size={14} />
+                            <span>{t("listing_map")}</span>
+                        </a>
+                    {/if}
+                    {#if listing.email}
+                        <a
+                            href="mailto:{listing.email}"
+                            class="ld-btn"
+                            title={t("listing_email")}
+                        >
+                            <span class="ld-btn-at">@</span>
+                            <span>{t("listing_email")}</span>
+                        </a>
+                    {/if}
                 </div>
-                <div class="lc-claim-body">
-                    <p class="lc-claim-text">
-                        {listing.city === "Warszawa"
-                            ? t("listing_claim_text_warsaw")
-                            : t("listing_claim_text")}
-                    </p>
-                    <a
-                        href={`${getListingPath(listing)}/claim`}
-                        class="lc-claim-btn"
-                    >
-                        {t("listing_claim_btn")}
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                    </a>
-                </div>
+
+                <p class="ld-trust">{t("listing_trust_note")}</p>
             </div>
-        </section>
-    {/if}
+        </aside>
+    </div>
 
     <!-- ═══ FOOTER ═══ -->
-    <footer class="lc-footer">
+    <footer class="ld-foot">
         {#if listing.lastUpdated}
-            <div class="lc-footer-meta">
-                <span class="lc-footer-label">{t("listing_data_updated")}</span>
-                <span class="lc-freshness">
+            <div class="ld-foot-meta">
+                <span class="ld-foot-label">{t("listing_data_updated")}</span>
+                <span class="ld-freshness">
                     {formatDatePL(listing.lastUpdated)}{healthSuffix(
                         listing.healthStatus,
                     )}{isStaleData ? ` · ${t("listing_data_stale")}` : ""}
@@ -589,638 +639,504 @@
             href="mailto:joga@zaur.app?subject={encodeURIComponent(
                 t('listing_report_subject'),
             )}{encodeURIComponent(listing.name)}"
-            class="lc-report"
+            class="ld-report"
         >
             {t("listing_report")}
         </a>
     </footer>
-</div>
+</article>
 
 <style>
-    /* ═══ Layout shell ═══ */
-    .lc {
+    /* ══════════════════════════════════════════════════════
+       Studio detail — "specimen plate"
+       Identity-led header → hero → threaded reading column +
+       sticky action card.  All --sf-* tokens; copper is the
+       single decision accent (rating, price, the left thread).
+       ══════════════════════════════════════════════════════ */
+    .ld {
         display: flex;
         flex-direction: column;
-        gap: 20px;
-    }
-    .lc--page {
+        gap: 28px;
         width: 100%;
-        max-width: 100%;
-        margin: 0 auto;
-        gap: 22px;
+        max-width: 1060px;
+        margin-inline: auto;
     }
 
-    /* ═══ Hero photo ═══ */
-    .lc-hero {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 3 / 2;
-        border-radius: var(--radius-sm, 12px);
-        overflow: hidden;
-        background: color-mix(in srgb, var(--sf-frost) 60%, transparent);
-    }
-
-    .lc-hero-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    .lc-hero-attr {
-        position: absolute;
-        bottom: 6px;
-        right: 8px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-family: Roboto, sans-serif;
-        font-size: 11px;
-        font-weight: 400;
-        color: rgba(255, 255, 255, 0.9);
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-        pointer-events: auto;
-    }
-
-    .lc-hero-attr a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .lc-hero-attr a:hover {
-        text-decoration: underline;
-    }
-
-    .lc-hero-sep {
-        opacity: 0.7;
-    }
-
-    .lc-hero-gm {
-        white-space: nowrap;
-    }
-
-    .lc--page .lc-hero {
-        border-radius: 16px;
-        aspect-ratio: 3 / 2;
-    }
-    .lc-hero--placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px dashed var(--sf-line);
-        color: var(--sf-muted);
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-    }
-
-    /* ═══ Header ═══ */
-    .lc-header {
+    /* ═══ Identity ═══ */
+    .ld-id {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 10px;
     }
-
-    .lc-name {
-        font-family: var(--font-display);
-        font-size: 1.5rem;
-        font-weight: 400;
-        color: var(--sf-dark);
-        letter-spacing: -0.02em;
-        line-height: 1.2;
-        margin: 0;
-    }
-    .lc--page .lc-name {
-        font-size: clamp(1.5rem, 3vw, 2.2rem);
-        letter-spacing: -0.025em;
-    }
-
-    .lc-meta {
+    .ld-crumbs {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 5px;
-        font-size: 0.88rem;
+        gap: 7px;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+    }
+    .ld-crumb {
+        color: var(--sf-accent);
+        text-decoration: none;
+        transition: color var(--dur-fast) ease;
+    }
+    .ld-crumb:hover {
+        color: var(--sf-accent-hover);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    .ld-crumb-sep {
+        color: var(--sf-muted);
+        user-select: none;
+    }
+    .ld-name {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4.5vw, 3.1rem);
+        font-weight: 400;
+        line-height: 1.06;
+        letter-spacing: -0.03em;
+        color: var(--sf-dark);
+        margin: 0;
+        max-width: 18ch;
+    }
+    .ld-facts {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.92rem;
         color: var(--sf-muted);
     }
-
-    .lc-address {
+    .ld-addr {
         color: var(--sf-text);
     }
-    .lc-address--link {
+    .ld-addr--link {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
         color: var(--sf-text);
         text-decoration: none;
         transition: color var(--dur-fast) ease;
     }
-    .lc-address--link :global(.lc-map-icon) {
+    .ld-addr--link :global(.ld-addr-icon) {
         color: var(--sf-warm);
         flex-shrink: 0;
         position: relative;
         top: -0.5px;
     }
-    .lc-address--link:hover {
-        color: var(--sf-accent, var(--sf-dark));
+    .ld-addr--link:hover {
+        color: var(--sf-accent);
     }
-    .lc-dot {
+    .ld-dot {
         color: var(--sf-line);
-        font-weight: 300;
         user-select: none;
     }
-
-    .lc-rating {
+    .ld-rating {
         font-weight: 600;
         color: var(--sf-dark);
         white-space: nowrap;
     }
-    .lc-rating-star {
+    .ld-rating-star {
         color: var(--sf-warm);
         font-size: 0.85em;
-        vertical-align: 0em;
     }
-    .lc-rating-count {
+    .ld-rating-count {
         font-weight: 400;
         color: var(--sf-muted);
         font-size: 0.88em;
     }
 
-    .lc-styles {
+    .ld-styles {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
-        margin-top: 10px;
+        margin: 4px 0 0;
+        padding: 0;
+        list-style: none;
     }
-    .lc-style-tag {
+    .ld-style {
         font-size: 0.72rem;
-        padding: 4px 9px;
-        border-radius: var(--radius-pill, 100px);
-        background: color-mix(in srgb, var(--sf-ice) 72%, transparent);
+        padding: 4px 11px;
+        border-radius: var(--radius-pill);
+        background: color-mix(in srgb, var(--sf-ice) 60%, transparent);
         color: color-mix(in srgb, var(--sf-text) 86%, var(--sf-muted) 14%);
         font-weight: 500;
     }
 
-    /* ═══ Sections ═══ */
-    .lc-section {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+    /* ═══ Hero ═══ */
+    .ld-hero {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 3 / 2;
+        max-height: 600px;
+        border-radius: var(--radius-interactive);
+        overflow: hidden;
+        margin: 0;
+        background: color-mix(in srgb, var(--sf-frost) 60%, transparent);
     }
-    .lc-section--border {
-        padding-top: 18px;
-        border-top: 1px solid
-            color-mix(in srgb, var(--sf-line) 52%, transparent);
+    .ld-hero-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .ld-hero-attr {
+        position: absolute;
+        bottom: 7px;
+        right: 9px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    }
+    .ld-hero-attr a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .ld-hero-attr a:hover {
+        text-decoration: underline;
+    }
+    .ld-hero-sep {
+        opacity: 0.7;
+    }
+    .ld-hero-gm {
+        white-space: nowrap;
+    }
+    .ld-hero--placeholder {
+        aspect-ratio: 16 / 7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed var(--sf-line);
+        background: none;
+        color: var(--sf-muted);
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
     }
 
-    .lc-section-label {
+    /* ═══ Body grid ═══ */
+    .ld-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+    .ld-content {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        min-width: 0;
+    }
+    /* Mobile: lift the action card directly under the hero so the primary
+       CTA isn't buried below the schedule/pricing/reviews. */
+    .ld-aside {
+        order: -1;
+    }
+
+    @media (min-width: 1000px) {
+        .ld-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 48px;
+            align-items: start;
+        }
+        .ld-content {
+            grid-column: 1;
+            /* the copper thread — single warm through-line down the spine */
+            padding-left: 28px;
+            border-left: 1px solid
+                color-mix(in srgb, var(--sf-warm) 32%, transparent);
+        }
+        .ld-aside {
+            grid-column: 2;
+            order: 0;
+            position: sticky;
+            top: 24px;
+        }
+    }
+
+    /* ═══ Sections + labels (the threaded spine) ═══ */
+    .ld-sec {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .ld-label {
         font-family: var(--font-mono);
         font-size: 0.7rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.12em;
         color: var(--sf-muted);
-    }
-
-    /* ═══ Description ═══ */
-    .lc-desc {
-        font-size: 0.92rem;
-        line-height: 1.75;
-        color: var(--sf-text);
         margin: 0;
     }
-    .lc--page .lc-desc {
-        font-size: 1.02rem;
-        line-height: 1.8;
-        max-width: 62ch;
+    /* Copper tick where each label meets the thread (desktop spine only) */
+    @media (min-width: 1000px) {
+        .ld-content > .ld-sec > .ld-label::before,
+        .ld-content > .ld-sec > .ld-label-row .ld-label::before {
+            content: "";
+            position: absolute;
+            left: -28px;
+            top: 0.4em;
+            width: 9px;
+            height: 1px;
+            background: var(--sf-warm);
+        }
+        .ld-content > .ld-sec > .ld-label,
+        .ld-content > .ld-sec > .ld-label-row {
+            position: relative;
+        }
     }
-    .lc-expand {
-        background: none;
-        border: none;
-        padding: 0;
-        font-size: 0.78rem;
-        font-weight: 500;
-        color: color-mix(in srgb, var(--sf-text) 70%, var(--sf-muted) 30%);
-        cursor: pointer;
-        align-self: flex-start;
-        transition: color var(--dur-fast) ease;
-    }
-    .lc-expand:hover {
-        color: var(--sf-text);
-        text-decoration: none;
-    }
-
-    /* ═══ CTAs ═══ */
-    .lc-ctas {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 12px;
-        align-items: center;
-    }
-
-    .lc-cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 0;
-        border-radius: 0;
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        text-decoration: none;
-        transition:
-            color var(--dur-fast) ease,
-            opacity var(--dur-fast) ease;
-        white-space: nowrap;
-    }
-
-    .lc-cta {
-        color: color-mix(in srgb, var(--sf-text) 72%, var(--sf-muted) 28%);
-    }
-    .lc-cta:hover {
-        color: var(--sf-text);
-        opacity: 1;
-    }
-
-    .lc-cta-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--sf-accent);
-        position: relative;
-        top: -0.5px;
-    }
-    .lc-cta-icon--at {
-        font-size: 0.82rem;
-        font-weight: 700;
-        line-height: 1;
-    }
-    .lc-cta:hover .lc-cta-icon {
-        color: var(--sf-accent);
-    }
-    .lc-cta--secondary {
-        color: var(--sf-muted);
-    }
-    .lc-trust {
-        margin-top: -10px;
-        padding: 9px 12px;
-        border-radius: var(--radius-sm, 12px);
-        background: color-mix(in srgb, var(--sf-frost) 58%, transparent);
-        color: var(--sf-muted);
-        font-size: 0.78rem;
-        line-height: 1.55;
-    }
-
-    /* ═══ Reviews (muted, minimal) ═══ */
-    .lc-reviews-header {
+    .ld-label-row {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
         gap: 10px;
     }
-    .lc-reviews-link {
-        font-family: var(--font-mono);
-        font-size: 0.66rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: color-mix(in srgb, var(--sf-text) 68%, var(--sf-muted) 32%);
-        text-decoration: none;
-        transition: color var(--dur-fast) ease;
-    }
-    .lc-reviews-link:hover {
+
+    /* ═══ Lead / description ═══ */
+    .ld-lead {
+        font-size: 1.04rem;
+        line-height: 1.8;
         color: var(--sf-text);
-        text-decoration: none;
+        margin: 0;
+        max-width: 64ch;
     }
 
-    .lc-reviews-list {
+    /* ═══ Pricing ═══ */
+    .ld-price-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 28px;
+    }
+    .ld-price-item {
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        margin-top: 2px;
+        gap: 2px;
     }
-
-    .lc-review {
-        padding: 0;
-        background: transparent;
-        border-radius: 0;
-    }
-
-    .lc-review-top {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .lc-review-stars {
-        display: inline-flex;
-        gap: 1px;
-    }
-    .lc-review-star {
-        color: var(--sf-line);
-        font-size: 0.68rem;
-    }
-    .lc-review-star--on {
-        color: var(--sf-warm);
-    }
-    .lc-review-author {
+    .ld-price-value {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
         font-weight: 500;
+        line-height: 1;
+        color: var(--sf-dark);
+        letter-spacing: -0.01em;
+    }
+    .ld-price-unit {
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--sf-muted);
+    }
+    .ld-price-notes {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+    .ld-price-note {
         font-size: 0.8rem;
-        color: var(--sf-dark);
-    }
-    .lc-review-time {
-        font-size: 0.72rem;
-        color: var(--sf-muted);
-    }
-
-    .lc-review-text {
-        font-size: 0.78rem;
-        line-height: 1.6;
-        color: var(--sf-muted);
-        margin: 4px 0 0;
-        max-width: 62ch;
-    }
-
-    .lc-reviews-footer {
-        display: none;
-    }
-    .lc-reviews-attr {
-        display: none;
-    }
-
-    /* ═══ Pricing (collapsible reveal) ═══ */
-    .lc-pricing-reveal {
-        border-top: 1px solid color-mix(in srgb, var(--sf-line) 52%, transparent);
-        padding-top: 18px;
-    }
-    .lc-pricing-reveal > summary {
-        list-style: none;
-    }
-    .lc-pricing-reveal > summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .lc-pricing-summary {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        cursor: pointer;
-        user-select: none;
-        padding: 0;
-        transition: color var(--dur-fast) ease;
-    }
-    .lc-pricing-summary:hover {
-        color: var(--sf-text);
-    }
-
-    .lc-pricing-hint {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-left: auto;
-    }
-    .lc-pricing-hint-price {
-        font-size: 0.92rem;
-        font-weight: 700;
-        color: var(--sf-dark);
-    }
-    .lc-pricing-hint-unit {
-        font-family: var(--font-mono);
-        font-size: 0.62rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--sf-muted);
-    }
-
-    .lc-pricing-hint-estimated {
-        font-family: var(--font-mono);
-        font-size: 0.6rem;
-        font-weight: 600;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-        color: color-mix(in srgb, var(--sf-warm) 80%, var(--sf-muted) 20%);
-    }
-
-    .lc-pricing-chevron {
-        flex-shrink: 0;
-        width: 16px;
-        height: 16px;
-        position: relative;
-        transition: transform var(--dur-fast) ease;
-    }
-    .lc-pricing-chevron::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 7px;
-        height: 7px;
-        border-right: 1.5px solid var(--sf-muted);
-        border-bottom: 1.5px solid var(--sf-muted);
-        transform: translate(-50%, -65%) rotate(45deg);
-        transition: border-color var(--dur-fast) ease;
-    }
-    .lc-pricing-reveal[open] .lc-pricing-chevron {
-        transform: rotate(180deg);
-    }
-    .lc-pricing-summary:hover .lc-pricing-chevron::before {
-        border-color: var(--sf-text);
-    }
-
-    .lc-pricing-content {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-top: 14px;
-        padding-top: 14px;
-        border-top: 1px dashed var(--sf-frost);
-    }
-
-    .lc-price-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-    .lc-price-item {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-    }
-    .lc-price-value {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--sf-dark);
-    }
-    .lc-price-unit {
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--sf-muted);
-    }
-
-    .lc-price-notes {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .lc-price-note {
-        font-size: 0.76rem;
         color: var(--sf-muted);
         line-height: 1.55;
         max-width: 60ch;
     }
-
-    .lc-price-badge {
+    .ld-badge {
         display: inline-flex;
         align-items: center;
-        padding: 4px 9px;
-        border-radius: var(--radius-pill, 100px);
+        padding: 3px 10px;
+        border-radius: var(--radius-pill);
         background: color-mix(in srgb, var(--sf-frost) 90%, transparent);
         color: color-mix(in srgb, var(--sf-text) 78%, var(--sf-muted) 22%);
-        font-size: 0.66rem;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
         font-weight: 700;
         letter-spacing: 0.03em;
-    }
-
-    .lc-tier-group {
-        margin-bottom: 12px;
-    }
-    .lc-tier-label {
-        display: block;
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: var(--sf-muted);
-        margin-bottom: 4px;
-        font-weight: 600;
+    }
+    .ld-badge--warm {
+        background: var(--sf-warm-bg);
+        color: var(--sf-warm);
+        border: 1px solid var(--sf-warm);
     }
 
-    .lc-kv {
+    .ld-tiers {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .ld-tier-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .ld-tier-label {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--sf-accent);
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    .ld-kv {
         display: flex;
         justify-content: space-between;
-        gap: 10px;
+        gap: 12px;
         padding: 8px 0;
         border-bottom: 1px solid var(--sf-frost);
     }
-    .lc-kv:last-of-type {
+    .ld-kv:last-of-type {
         border-bottom: none;
     }
-    .lc-kv span {
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--sf-muted);
+    .ld-kv > span {
+        font-size: 0.9rem;
+        color: var(--sf-text);
     }
-    .lc-kv strong {
-        font-size: 0.92rem;
+    .ld-kv strong {
+        font-size: 0.95rem;
         font-weight: 700;
         color: var(--sf-dark);
         flex-shrink: 0;
     }
-
-    .lc-tier-note {
-        font-size: 0.78rem;
+    .ld-tier-note {
+        font-size: 0.8rem;
         color: var(--sf-text);
         font-style: italic;
         margin: 2px 0 4px;
-        padding: 0;
     }
-    .lc-tier-tags {
+    .ld-tier-tags {
         display: flex;
         flex-wrap: wrap;
         gap: 4px;
         margin: 2px 0 6px;
     }
-    .lc-tier-tag {
+    .ld-tier-tag {
         font-size: 0.72rem;
         padding: 2px 8px;
-        border-radius: var(--radius-pill, 100px);
+        border-radius: var(--radius-pill);
         background: var(--sf-ice);
         color: var(--sf-dark);
     }
-
-    .lc-pricing-discounts {
+    .ld-pricing-discounts {
         padding: 10px 14px;
         background: color-mix(in srgb, var(--sf-warm) 10%, transparent);
         border-radius: var(--radius-sm);
-        font-size: 0.82rem;
+        font-size: 0.84rem;
         line-height: 1.6;
         color: var(--sf-dark);
         white-space: pre-line;
+        margin: 0;
     }
-
-    .lc-pricing-notes {
+    .ld-pricing-notes {
         color: var(--sf-muted);
-        font-size: 0.78rem;
+        font-size: 0.8rem;
         line-height: 1.7;
         margin: 0;
     }
-
-    .lc-pricing-freshness {
+    .ld-pricing-foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 16px;
+    }
+    .ld-pricing-freshness {
         font-family: var(--font-mono);
         font-size: 0.64rem;
         font-weight: 600;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-        color: color-mix(in srgb, var(--sf-text) 60%, var(--sf-muted) 40%);
+        color: color-mix(in srgb, var(--sf-text) 58%, var(--sf-muted) 42%);
     }
-
-    .lc-pricing-link {
-        display: inline-flex;
-        align-items: center;
-        padding: 0;
+    .ld-pricing-link {
         font-family: var(--font-mono);
         font-size: 0.66rem;
         font-weight: 600;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-        color: color-mix(in srgb, var(--sf-text) 70%, var(--sf-muted) 30%);
+        color: var(--sf-accent);
         text-decoration: none;
         transition: color var(--dur-fast) ease;
     }
-    .lc-pricing-link:hover {
-        color: var(--sf-text);
+    .ld-pricing-link:hover {
+        color: var(--sf-accent-hover);
+        text-decoration: underline;
     }
 
-    /* ═══ Data freshness ═══ */
-    .lc-freshness {
+    /* ═══ Reviews ═══ */
+    .ld-reviews-link {
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--sf-accent);
+        text-decoration: none;
+        transition: color var(--dur-fast) ease;
+        white-space: nowrap;
+    }
+    .ld-reviews-link:hover {
+        color: var(--sf-accent-hover);
+    }
+    .ld-reviews-list {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .ld-review-top {
+        display: flex;
+        align-items: baseline;
         gap: 6px;
-        font-size: 0.72rem;
+        flex-wrap: wrap;
+    }
+    .ld-review-stars {
+        display: inline-flex;
+        gap: 1px;
+    }
+    .ld-review-star {
+        color: var(--sf-line);
+        font-size: 0.7rem;
+    }
+    .ld-review-star--on {
+        color: var(--sf-warm);
+    }
+    .ld-review-author {
+        font-weight: 600;
+        font-size: 0.82rem;
+        color: var(--sf-dark);
+    }
+    .ld-review-time {
+        font-size: 0.74rem;
         color: var(--sf-muted);
+    }
+    .ld-review-text {
+        font-size: 0.86rem;
+        line-height: 1.65;
+        color: var(--sf-text);
+        margin: 5px 0 0;
+        max-width: 64ch;
     }
 
     /* ═══ Claim ═══ */
-    .lc-claim {
-        padding: 0;
-        border-style: none !important;
-        background: transparent;
-        border-radius: 0;
-        border-width: 0;
-    }
-
-    .lc-claim-card {
-        display: flex;
+    .ld-claim {
+        flex-direction: row;
         align-items: flex-start;
         gap: 14px;
         padding: 16px 18px;
         background: color-mix(in srgb, var(--sf-frost) 60%, var(--sf-card) 40%);
         border: 1px solid color-mix(in srgb, var(--sf-line) 42%, transparent);
-        border-radius: 14px;
+        border-radius: var(--radius-lg);
     }
-
-    .lc-claim-icon {
+    .ld-claim-icon {
         flex-shrink: 0;
         display: flex;
         align-items: center;
@@ -1228,79 +1144,150 @@
         width: 36px;
         height: 36px;
         border-radius: 10px;
-        background: color-mix(in srgb, var(--sf-frost) 100%, transparent);
+        background: var(--sf-frost);
         color: var(--sf-muted);
         margin-top: 1px;
     }
-
-    .lc-claim-body {
+    .ld-claim-body {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
         min-width: 0;
     }
-
-    .lc-claim-text {
+    .ld-claim-text {
         color: var(--sf-text);
-        font-size: 0.84rem;
+        font-size: 0.86rem;
         line-height: 1.65;
         margin: 0;
         max-width: 52ch;
     }
-    .lc-claim-btn {
+    .ld-claim-btn {
         display: inline-flex;
         align-items: center;
         gap: 5px;
         width: fit-content;
-        padding: 0;
-        background: transparent;
-        color: color-mix(in srgb, var(--sf-text) 72%, var(--sf-muted) 28%);
+        color: var(--sf-accent);
         font-family: var(--font-mono);
         font-weight: 700;
         font-size: 0.68rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         text-decoration: none;
-        border: none;
-        border-radius: 0;
-        cursor: pointer;
-        transition:
-            color var(--dur-fast) ease,
-            gap var(--dur-fast) ease;
+        transition: gap var(--dur-fast) ease;
     }
-    .lc-claim-btn:hover {
+    .ld-claim-btn:hover {
+        color: var(--sf-accent-hover);
+        gap: 8px;
+    }
+
+    /* ═══ Action card ═══ */
+    .ld-act {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 22px;
+        background: var(--sf-card);
+        border: 1px solid var(--sf-line);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+    .ld-act-price {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 6px 8px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--sf-frost);
+    }
+    .ld-act-price-value {
+        font-family: var(--font-display);
+        font-size: 1.7rem;
+        font-weight: 500;
+        line-height: 1;
         color: var(--sf-dark);
-        gap: 7px;
+        letter-spacing: -0.01em;
     }
-    .lc-claim-btn:focus-visible {
-        outline: 2px solid color-mix(in srgb, var(--sf-accent, var(--sf-muted)) 50%, transparent);
-        outline-offset: 3px;
-        border-radius: 4px;
+    .ld-act-price-unit {
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--sf-muted);
     }
-    .lc-claim-btn:visited {
-        color: color-mix(in srgb, var(--sf-text) 72%, var(--sf-muted) 28%);
+
+    .ld-act-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .ld-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--sf-line);
+        background: transparent;
+        color: var(--sf-text);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        text-decoration: none;
+        white-space: nowrap;
+        transition:
+            border-color var(--dur-fast) ease,
+            color var(--dur-fast) ease,
+            background var(--dur-fast) ease;
+    }
+    .ld-btn:hover {
+        border-color: var(--sf-accent);
+        color: var(--sf-accent);
+    }
+    .ld-btn--primary {
+        background: var(--sf-accent);
+        border-color: var(--sf-accent);
+        color: #fff;
+    }
+    .ld-btn--primary:hover {
+        background: var(--sf-accent-hover);
+        border-color: var(--sf-accent-hover);
+        color: #fff;
+        box-shadow: var(--shadow-md);
+    }
+    .ld-btn-at {
+        font-size: 0.92rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .ld-trust {
+        font-size: 0.76rem;
+        line-height: 1.55;
+        color: var(--sf-muted);
+        margin: 0;
     }
 
     /* ═══ Footer ═══ */
-    .lc-footer {
+    .ld-foot {
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
         gap: 10px 16px;
-        padding-top: 12px;
+        padding-top: 16px;
         border-top: 1px solid var(--sf-frost);
     }
-
-    .lc-footer-meta {
+    .ld-foot-meta {
         display: inline-flex;
         align-items: baseline;
         gap: 8px;
-        min-width: 0;
         flex-wrap: wrap;
+        min-width: 0;
     }
-
-    .lc-footer-label {
+    .ld-foot-label {
         font-family: var(--font-mono);
         font-size: 0.62rem;
         font-weight: 700;
@@ -1308,8 +1295,11 @@
         letter-spacing: 0.06em;
         color: color-mix(in srgb, var(--sf-text) 56%, var(--sf-muted) 44%);
     }
-
-    .lc-report {
+    .ld-freshness {
+        font-size: 0.74rem;
+        color: var(--sf-muted);
+    }
+    .ld-report {
         font-family: var(--font-mono);
         font-size: 0.64rem;
         text-transform: uppercase;
@@ -1317,34 +1307,20 @@
         color: color-mix(in srgb, var(--sf-text) 62%, var(--sf-muted) 38%);
         text-decoration: none;
         margin-left: auto;
-        transition:
-            color var(--dur-fast) ease,
-            opacity var(--dur-fast) ease;
+        transition: color var(--dur-fast) ease;
     }
-    .lc-report:hover {
+    .ld-report:hover {
         color: var(--sf-text);
-        opacity: 1;
     }
 
     @media (max-width: 768px) {
-        .lc--page {
-            max-width: 100%;
+        .ld {
             gap: 22px;
         }
-
-        .lc-ctas {
-            gap: 6px 10px;
-        }
-
-        .lc-cta {
-            font-size: 0.68rem;
-        }
-
-        .lc-footer {
+        .ld-foot {
             align-items: flex-start;
         }
-
-        .lc-report {
+        .ld-report {
             margin-left: 0;
         }
     }

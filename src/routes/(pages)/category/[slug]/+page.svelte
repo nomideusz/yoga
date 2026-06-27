@@ -2,8 +2,6 @@
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
     import Pagination from "$lib/components/Pagination.svelte";
-    import ListingPreviewCard from "$lib/components/ListingPreviewCard.svelte";
-    import type { ListingCard } from "$lib/data";
     import { trackCategoryView } from "$lib/analytics/umami.js";
     import {
         getCityPath,
@@ -26,56 +24,6 @@
         const locale = i18n.locale;
         if (locale === 'pl') return plName;
         return data.cityTranslations?.[locale]?.[plName]?.name ?? plName;
-    }
-
-    // ── Listing preview state ──
-    let selectedListing = $state<ListingCard | null>(null);
-    let slideOverOpen = $state(false);
-
-    function resetSlideOver() {
-        selectedListing = null;
-        slideOverOpen = false;
-    }
-
-    function openSlideOver(schoolId: string) {
-        const card = data.listings.find((s: ListingCard) => s.id === schoolId);
-        if (!card) return;
-        selectedListing = card;
-        slideOverOpen = true;
-
-        const url = new URL(window.location.href);
-        url.searchParams.set("listing", schoolId);
-        if (history.state?.slideOver) {
-            history.replaceState({ slideOver: true }, "", url);
-        } else {
-            history.pushState({ slideOver: true }, "", url);
-        }
-    }
-
-    function closeSlideOver() {
-        if (history.state?.slideOver) {
-            history.back();
-            return;
-        }
-
-        resetSlideOver();
-        const url = new URL(window.location.href);
-        url.searchParams.delete("listing");
-        history.replaceState({}, "", url);
-    }
-
-    function handlePopState(e: PopStateEvent) {
-        if (slideOverOpen && !e.state?.slideOver) {
-            resetSlideOver();
-        }
-    }
-
-    // Restore slide-over from URL on page load
-    if (browser) {
-        const initListingId = new URL(window.location.href).searchParams.get("listing");
-        if (initListingId) {
-            queueMicrotask(() => openSlideOver(initListingId));
-        }
     }
 
     let slug = $derived(data.slug);
@@ -325,10 +273,6 @@
                         <a
                             href={getListingPath(school)}
                             class="school-card"
-                            onclick={(e) => {
-                                e.preventDefault();
-                                openSlideOver(school.id);
-                            }}
                         >
                             <span class="school-name">{school.name}</span>
                             {#if school.styles.length > 0}
@@ -347,12 +291,6 @@
         </section>
     {/if}
 </div>
-
-<svelte:window onpopstate={handlePopState} />
-
-{#if slideOverOpen && selectedListing}
-    <ListingPreviewCard listing={selectedListing} onclose={closeSlideOver} />
-{/if}
 
 <style>
     .sf-page-category {

@@ -994,9 +994,7 @@
         if (result.type === "city") {
             goto(getCityPath(result.city));
         } else if (result.type === "school") {
-            goto(
-                `${getCityPath(result.city)}?listing=${encodeURIComponent(result.id)}`,
-            );
+            goto(`/listing/${encodeURIComponent(result.id)}`);
         } else if (result.type === "style") {
             goto(getStylePath(result.style));
         } else if (result.type === "city+style") {

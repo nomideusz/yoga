@@ -32,7 +32,6 @@
         type SearchAction,
     } from "$lib/search";
     import Pagination from "$lib/components/Pagination.svelte";
-    import ListingPreviewCard from "$lib/components/ListingPreviewCard.svelte";
     import { styleDisplayName } from "$lib/styles-metadata";
     import Turtle from "$lib/components/icons/Turtle.svelte";
     import Kangaroo from "$lib/components/icons/Kangaroo.svelte";
@@ -65,59 +64,11 @@
         return data.cityTranslations?.[locale]?.[plName]?.nameLoc ?? data.cityTranslations?.[locale]?.[plName]?.name ?? plName;
     }
 
-    // ── Listing preview state ──
-    let selectedListing = $state<ListingCard | null>(null);
-    let slideOverOpen = $state(false);
-
-    function resetSlideOver() {
-        selectedListing = null;
-        slideOverOpen = false;
-    }
-
-    function openSlideOver(schoolId: string) {
-        const card = data.schools.find((school) => school.id === schoolId);
-        if (!card) return;
-
-        // Close search dropdown to prevent z-index conflict
-        showDropdown = false;
-
-        selectedListing = card;
-        slideOverOpen = true;
-
-        const url = new URL(window.location.href);
-        url.searchParams.set("listing", schoolId);
-        if (history.state?.slideOver) {
-            history.replaceState({ slideOver: true }, "", url);
-        } else {
-            history.pushState({ slideOver: true }, "", url);
-        }
-    }
-
-    function closeSlideOver() {
-        if (history.state?.slideOver) {
-            history.back();
-            return;
-        }
-
-        resetSlideOver();
-        const url = new URL(window.location.href);
-        url.searchParams.delete("listing");
-        history.replaceState({}, "", url);
-    }
-
-    function handlePopState(e: PopStateEvent) {
-        if (slideOverOpen && !e.state?.slideOver) {
-            resetSlideOver();
-        }
-    }
-
-    // ── Restore slide-over from URL on page load ──
-    if (browser) {
-        const initListingId = new URL(window.location.href).searchParams.get("listing");
-        if (initListingId) {
-            // Defer to after mount so DOM is ready
-            queueMicrotask(() => openSlideOver(initListingId));
-        }
+    // Clicking a school (map/search result) navigates to its listing page.
+    function goListing(schoolId: string) {
+        showDropdown = false; // close search dropdown
+        const card = data.schools.find((s: ListingCard) => s.id === schoolId);
+        goto(card ? getListingPath(card) : `/listing/${schoolId}`);
     }
 
     // ── Search context for resolver ──
@@ -695,7 +646,7 @@
             const schoolId = item.key
                 .replace(/^s[v]?-/, "")
                 .replace(/-\d+$/, "");
-            openSlideOver(schoolId);
+            goListing(schoolId);
         } else if (prefix === "d") {
             activeDistrict = item.text;
             activeFilterQuery = "";
@@ -807,7 +758,7 @@
                     return tokens.every((t) => haystack.includes(t));
                 });
                 if (matches.length === 1) {
-                    openSlideOver(matches[0].id);
+                    goListing(matches[0].id);
                 } else {
                     activeFilterQuery = action.query;
                 }
@@ -1621,8 +1572,6 @@
     };
 </script>
 
-<svelte:window onpopstate={handlePopState} />
-
 <svelte:head>
     <title
         >{t("meta_yoga_schools")}
@@ -1997,11 +1946,6 @@
                             school.distance > 4}
                         class:fade-2={school.distance != null &&
                             school.distance > 8}
-                        onclick={(e) => {
-                            if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
-                            e.preventDefault();
-                            openSlideOver(school.id);
-                        }}
                     >
                         <span class="school-name">{school.name}</span>
                         {#if school.styles.length > 0}
@@ -2075,10 +2019,6 @@
         </footer>
     {/if}
 </div>
-
-{#if slideOverOpen && selectedListing}
-    <ListingPreviewCard listing={selectedListing} onclose={closeSlideOver} />
-{/if}
 
 <style>
     /* ── City page layout ── */

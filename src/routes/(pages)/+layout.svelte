@@ -18,9 +18,6 @@
     const termsHref = $derived(localizeHref("/terms", i18n.locale, i18nRouting));
 
     const isLanding = $derived($page.url.pathname === "/");
-    const isCanonicalListingSheet = $derived(
-        $page.route?.id === "/(pages)/[city]/[listing]",
-    );
 
     let { children } = $props();
 
@@ -84,7 +81,6 @@
 </script>
 
 <!-- ── Header ── -->
-{#if !isCanonicalListingSheet}
     <header class="sf-header">
         {#if !isLanding}
             {#if backLabel}
@@ -158,16 +154,13 @@
             >
         </nav>
     </header>
-{/if}
 
 {@render children()}
 
-{#if !isCanonicalListingSheet}
-    <footer class="sf-site-footer">
-        <a href={homeHref} class="sf-footer-link">szkolyjogi.pl</a>
-        <a href={termsHref} class="sf-footer-link">{t("footer_terms")}</a>
-    </footer>
-{/if}
+<footer class="sf-site-footer">
+    <a href={homeHref} class="sf-footer-link">szkolyjogi.pl</a>
+    <a href={termsHref} class="sf-footer-link">{t("footer_terms")}</a>
+</footer>
 
 <style>
     /* ── Header ── */

@@ -265,156 +265,18 @@
     }).replace(/</g, "\\u003c")}</script>`}
 </svelte:head>
 
-<div class="sheet-route">
-    <section class="sheet-route__panel" aria-label={listing.name}>
-        <header class="sheet-route__header">
-            <a
-                href={listing.citySlug ? `/${listing.citySlug}` : "/"}
-                class="sheet-route__back"
-            >
-                <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                >
-                    <line x1="19" y1="12" x2="5" y2="12" />
-                    <polyline points="12 19 5 12 12 5" />
-                </svg>
-                <span>{listing.city}</span>
-            </a>
-
-            <div class="sheet-route__meta">
-                <span class="sheet-route__label">{t("label_city")}</span>
-            </div>
-        </header>
-
-        <div class="sheet-route__content">
-            <ListingContent
-                {listing}
-                {reviews}
-                {preferredLangs}
-                layout="page"
-            />
-        </div>
-    </section>
-</div>
+<section class="sf-page-shell ld-shell" aria-label={listing.name}>
+    <ListingContent
+        {listing}
+        {reviews}
+        {preferredLangs}
+    />
+</section>
 
 <style>
-    .sheet-route {
-        display: block;
-        position: relative;
-        min-height: calc(100vh - 84px);
-        padding: 12px;
-    }
-
-    .sheet-route__panel {
-        position: relative;
-        width: min(720px, calc(100vw - 24px));
-        min-height: calc(100vh - 24px - 84px);
-        margin: 0 auto;
-        background: var(--sf-card);
-        border: 1px solid color-mix(in srgb, var(--sf-line) 82%, white 18%);
-        border-radius: 24px;
-        box-shadow: 0 4px 32px rgba(31, 48, 77, 0.08);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .sheet-route__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 14px 20px;
-        border-bottom: 1px solid var(--sf-line);
-        background: color-mix(in srgb, var(--sf-card) 92%, white 8%);
-        backdrop-filter: blur(14px);
-        flex-shrink: 0;
-    }
-
-    .sheet-route__back {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: color-mix(in srgb, var(--sf-text) 72%, var(--sf-muted) 28%);
-        text-decoration: none;
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        transition:
-            color var(--dur-fast) ease,
-            opacity var(--dur-fast) ease;
-    }
-
-    .sheet-route__back:hover {
-        color: var(--sf-text);
-        opacity: 1;
-    }
-
-    .sheet-route__meta {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-left: auto;
-        min-width: 0;
-    }
-
-    .sheet-route__label {
-        font-family: var(--font-mono);
-        font-size: 0.66rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: color-mix(in srgb, var(--sf-text) 68%, var(--sf-muted) 32%);
-        white-space: nowrap;
-    }
-
-    .sheet-route__content {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        overscroll-behavior: contain;
-    }
-
-    @media (max-width: 768px) {
-        .sheet-route {
-            padding: 0;
-            min-height: calc(100vh - 60px);
-        }
-
-        .sheet-route__panel {
-            width: 100%;
-            min-height: calc(100vh - 60px);
-            border-radius: 16px 16px 0 0;
-            border-left: none;
-            border-right: none;
-            border-bottom: none;
-            box-shadow: none;
-        }
-
-        .sheet-route__header {
-            flex-wrap: wrap;
-            align-items: center;
-            padding: 14px 16px;
-        }
-
-        .sheet-route__meta {
-            margin-left: 0;
-            width: 100%;
-            justify-content: flex-start;
-        }
-
-        .sheet-route__content {
-            padding: 16px;
-        }
+    /* Pull the title up tight under the header — the shared shell's
+       clamp(32px,5vh,56px) top padding is too much for this page. */
+    .ld-shell {
+        padding-top: 8px;
     }
 </style>
