@@ -109,6 +109,8 @@ function buildCard(
     healthStatus: string | null;
     lastPriceCheck: string | null;
     scheduleUrl: string | null;
+    websiteUrl: string | null;
+    phone: string | null;
   },
   styleNames: string[],
 ): ListingCard {
@@ -132,6 +134,8 @@ function buildCard(
     healthStatus: row.healthStatus,
     lastPriceCheck: row.lastPriceCheck,
     scheduleUrl: row.scheduleUrl,
+    website: row.websiteUrl || null,
+    phone: row.phone || null,
   };
 }
 
@@ -357,6 +361,8 @@ export async function getListingsByStyle(
         healthStatus: schools.healthStatus,
         lastPriceCheck: schools.lastPriceCheck,
         scheduleUrl: schools.scheduleUrl,
+        websiteUrl: schools.websiteUrl,
+        phone: schools.phone,
       })
       .from(schools)
       .where(
@@ -408,6 +414,8 @@ export async function getListingsByCity(city: string): Promise<ListingCard[]> {
       healthStatus: schools.healthStatus,
       lastPriceCheck: schools.lastPriceCheck,
       scheduleUrl: schools.scheduleUrl,
+      websiteUrl: schools.websiteUrl,
+      phone: schools.phone,
     })
     .from(schools)
     .where(

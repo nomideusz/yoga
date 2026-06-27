@@ -112,4 +112,6 @@ export interface ListingCard {
   healthStatus: string | null;
   lastPriceCheck: string | null;
   scheduleUrl: string | null;
+  website: string | null;
+  phone: string | null;
 }

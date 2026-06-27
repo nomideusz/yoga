@@ -86,6 +86,8 @@
 
   "listing_email": "E-mail",
   "listing_website": "Website",
+  "preview_details": "View details →",
+  "preview_call": "Call",
   "listing_pricing": "Pricing",
   "listing_price_per_month": "PLN / month",
   "listing_price_estimated": "estimated",

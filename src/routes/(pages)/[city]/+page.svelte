@@ -8,7 +8,6 @@
     import { haversineKm } from "$lib/search/geo";
     import { getListingAbsoluteUrl, getListingPath, getCitySlugPath } from "$lib/paths";
     import { searchSchools } from "$lib/search.remote";
-    import { listing, listingReviews } from "$lib/listing.remote";
     import { autocomplete as placesAutocomplete } from "$lib/autocomplete.remote";
     import { walkingDistances as computeWalkingDistances } from "$lib/distances.remote";
     import {
@@ -33,8 +32,7 @@
         type SearchAction,
     } from "$lib/search";
     import Pagination from "$lib/components/Pagination.svelte";
-    import SlideOver from "$lib/components/SlideOver.svelte";
-    import ListingContent from "$lib/components/ListingContent.svelte";
+    import ListingPreviewCard from "$lib/components/ListingPreviewCard.svelte";
     import { styleDisplayName } from "$lib/styles-metadata";
     import Turtle from "$lib/components/icons/Turtle.svelte";
     import Kangaroo from "$lib/components/icons/Kangaroo.svelte";
@@ -67,43 +65,24 @@
         return data.cityTranslations?.[locale]?.[plName]?.nameLoc ?? data.cityTranslations?.[locale]?.[plName]?.name ?? plName;
     }
 
-    // ── Slide-over state ──
-    let selectedSchoolId = $state<string | null>(null);
-    let slideOverData = $state<{ listing: any; reviews: any[] } | null>(null);
+    // ── Listing preview state ──
+    let selectedListing = $state<ListingCard | null>(null);
     let slideOverOpen = $state(false);
-    let slideOverLoading = $state(false);
 
     function resetSlideOver() {
-        selectedSchoolId = null;
-        slideOverData = null;
+        selectedListing = null;
         slideOverOpen = false;
-        slideOverLoading = false;
     }
 
-    async function openSlideOver(schoolId: string) {
-        const listingCard = data.schools.find(
-            (school) => school.id === schoolId,
-        );
+    function openSlideOver(schoolId: string) {
+        const card = data.schools.find((school) => school.id === schoolId);
+        if (!card) return;
 
         // Close search dropdown to prevent z-index conflict
         showDropdown = false;
 
-        selectedSchoolId = schoolId;
+        selectedListing = card;
         slideOverOpen = true;
-        slideOverLoading = true;
-        slideOverData = null;
-
-        try {
-            const [listingData, reviews] = await Promise.all([
-                listing(schoolId),
-                listingReviews(schoolId),
-            ]);
-            slideOverData = { listing: listingData, reviews };
-        } catch {
-            // Keep slide-over open with error state
-        } finally {
-            slideOverLoading = false;
-        }
 
         const url = new URL(window.location.href);
         url.searchParams.set("listing", schoolId);
@@ -2097,51 +2076,9 @@
     {/if}
 </div>
 
-<SlideOver bind:open={slideOverOpen} onclose={closeSlideOver}>
-    {#if slideOverLoading}
-        <div class="so-skeleton">
-            <div class="so-skel-photo"></div>
-            <div class="so-skel-title"></div>
-            <div class="so-skel-meta"></div>
-            <div class="so-skel-tags">
-                <div class="so-skel-tag"></div>
-                <div class="so-skel-tag"></div>
-            </div>
-            <div class="so-skel-block"></div>
-            <div class="so-skel-block so-skel-block--short"></div>
-            <div class="so-skel-divider"></div>
-            <div class="so-skel-row"></div>
-            <div class="so-skel-row so-skel-row--short"></div>
-        </div>
-    {:else if slideOverData}
-        {@const trans = i18n.locale === 'en' ? slideOverData.listing.translations?.en
-                      : i18n.locale === 'uk' ? slideOverData.listing.translations?.uk
-                      : null}
-        {@const translatedListing = trans ? {
-            ...slideOverData.listing,
-            description: trans.description || slideOverData.listing.description,
-            editorialSummary: trans.editorialSummary || slideOverData.listing.editorialSummary,
-            pricingNotes: trans.pricingNotes || slideOverData.listing.pricingNotes,
-        } : slideOverData.listing}
-        <ListingContent
-            listing={translatedListing}
-            reviews={slideOverData.reviews}
-            layout="panel"
-        />
-    {:else}
-        <div class="so-error">
-            <p class="so-error-text">{t("listing_load_error")}</p>
-            <button
-                class="so-error-retry"
-                onclick={() => {
-                    if (selectedSchoolId) openSlideOver(selectedSchoolId);
-                }}
-            >
-                {t("retry")}
-            </button>
-        </div>
-    {/if}
-</SlideOver>
+{#if slideOverOpen && selectedListing}
+    <ListingPreviewCard listing={selectedListing} onclose={closeSlideOver} />
+{/if}
 
 <style>
     /* ── City page layout ── */
@@ -2682,109 +2619,6 @@
         }
     }
 
-    /* ── Skeleton loading (slide-over) ── */
-    .so-skeleton {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        padding: 4px 0;
-    }
-    .so-skel-photo {
-        width: 100%;
-        aspect-ratio: 3 / 2;
-        background: var(--sf-frost);
-        border-radius: var(--radius-sm, 12px);
-        animation: shimmer 1.2s ease-in-out infinite alternate;
-    }
-    .so-skel-title {
-        height: 22px;
-        width: 60%;
-        background: var(--sf-frost);
-        border-radius: 6px;
-        animation: shimmer 1.2s ease-in-out infinite alternate;
-    }
-    .so-skel-meta {
-        height: 14px;
-        width: 80%;
-        background: var(--sf-frost);
-        border-radius: 4px;
-        animation: shimmer 1.2s ease-in-out 0.1s infinite alternate;
-    }
-    .so-skel-tags {
-        display: flex;
-        gap: 6px;
-    }
-    .so-skel-tag {
-        height: 24px;
-        width: 64px;
-        background: var(--sf-frost);
-        border-radius: 100px;
-        animation: shimmer 1.2s ease-in-out 0.2s infinite alternate;
-    }
-    .so-skel-block {
-        height: 60px;
-        width: 100%;
-        background: var(--sf-frost);
-        border-radius: 8px;
-        animation: shimmer 1.2s ease-in-out 0.15s infinite alternate;
-    }
-    .so-skel-block--short {
-        width: 75%;
-        height: 40px;
-    }
-    .so-skel-divider {
-        height: 1px;
-        background: var(--sf-line);
-        margin: 4px 0;
-    }
-    .so-skel-row {
-        height: 16px;
-        width: 90%;
-        background: var(--sf-frost);
-        border-radius: 4px;
-        animation: shimmer 1.2s ease-in-out 0.25s infinite alternate;
-    }
-    .so-skel-row--short {
-        width: 50%;
-    }
-    @keyframes shimmer {
-        from { opacity: 0.5; }
-        to { opacity: 1; }
-    }
-
-    /* ── Error state (slide-over) ── */
-    .so-error {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 14px;
-        padding: 48px 20px;
-        text-align: center;
-    }
-    .so-error-text {
-        font-size: 0.88rem;
-        color: var(--sf-muted);
-        margin: 0;
-    }
-    .so-error-retry {
-        background: none;
-        border: 1px solid var(--sf-line);
-        color: var(--sf-accent);
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-weight: 600;
-        padding: 8px 20px;
-        border-radius: 30px;
-        cursor: pointer;
-        min-height: 44px;
-        min-width: 44px;
-        transition: border-color var(--dur-fast) ease;
-    }
-    .so-error-retry:hover {
-        border-color: var(--sf-accent);
-    }
 
     /* ── Reduced motion ── */
     /* ── FAQ ── */
