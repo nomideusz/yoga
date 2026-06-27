@@ -735,8 +735,8 @@
     .ld-hero {
         position: relative;
         width: 100%;
-        aspect-ratio: 4 / 3;
-        max-height: 600px;
+        aspect-ratio: 1 / 1;
+        max-height: 720px;
         border-radius: var(--radius-interactive);
         overflow: hidden;
         margin: 0;
@@ -746,6 +746,8 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        /* Bias the crop upward so faces/heads stay in frame */
+        object-position: center 25%;
         display: block;
     }
     .ld-hero-attr {
