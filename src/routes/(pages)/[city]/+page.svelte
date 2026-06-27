@@ -5,7 +5,7 @@
     import type { PageData } from "./$types";
     import type { ListingCard } from "$lib/data";
     import { normalizePolish } from "$lib/utils/street";
-    import { haversine } from "$lib/utils/haversine";
+    import { haversineKm } from "$lib/search/geo";
     import { getListingAbsoluteUrl, getListingPath, getCitySlugPath } from "$lib/paths";
     import { searchSchools } from "$lib/search.remote";
     import { listing, listingReviews } from "$lib/listing.remote";
@@ -958,7 +958,7 @@
             if (s.latitude != null && s.longitude != null) {
                 map.set(
                     s.id,
-                    haversine(
+                    haversineKm(
                         referencePoint.lat,
                         referencePoint.lng,
                         s.latitude,
@@ -1048,7 +1048,7 @@
     async function applyGeolocation(lat: number, lng: number) {
         // Check if user is far from this city — redirect to nearest city instead
         if (cityCenter) {
-            const dist = haversine(lat, lng, cityCenter.lat, cityCenter.lng);
+            const dist = haversineKm(lat, lng, cityCenter.lat, cityCenter.lng);
             if (dist > 30) {
                 // User is far away — find the nearest city with schools and redirect
                 let nearestCity = "";
@@ -1057,7 +1057,7 @@
                 for (const [slug, geo] of data.lookups.cityGeo ?? []) {
                     const count = data.lookups.citySchoolCount?.get(slug) ?? 0;
                     if (count === 0) continue;
-                    const d = haversine(lat, lng, geo.lat, geo.lng);
+                    const d = haversineKm(lat, lng, geo.lat, geo.lng);
                     if (d < minDist) {
                         minDist = d;
                         nearestCity = geo.name;
@@ -1203,7 +1203,7 @@
             if (result?.latitude != null && result?.longitude != null) {
                 // Check if the place is far from this city — redirect to nearest city
                 if (cityCenter) {
-                    const dist = haversine(
+                    const dist = haversineKm(
                         result.latitude,
                         result.longitude,
                         cityCenter.lat,
@@ -1217,7 +1217,7 @@
                             const count =
                                 data.lookups.citySchoolCount?.get(slug) ?? 0;
                             if (count === 0) continue;
-                            const d = haversine(
+                            const d = haversineKm(
                                 result.latitude,
                                 result.longitude,
                                 geo.lat,
@@ -1358,7 +1358,7 @@
                             s.latitude != null &&
                             s.longitude != null
                         ) {
-                            const km = haversine(
+                            const km = haversineKm(
                                 lat,
                                 lng,
                                 s.latitude,

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import type { AutocompleteEntry } from "$lib/server/db/queries/types";
-    import { haversine } from "$lib/utils/haversine";
+    import { haversineKm } from "$lib/search/geo";
     import { normalizePolish } from "$lib/utils/street";
     import { autocomplete as placesAutocomplete } from "$lib/autocomplete.remote";
     import { searchSchools, searchIndex } from "$lib/search.remote";
@@ -700,7 +700,7 @@
                     for (const [city, coords] of Object.entries(
                         data.cityCoords,
                     )) {
-                        const d = haversine(
+                        const d = haversineKm(
                             geo.latitude,
                             geo.longitude,
                             coords.lat,
@@ -839,7 +839,7 @@
                 let nearest = "";
                 let minDist = Infinity;
                 for (const [city, coords] of Object.entries(data.cityCoords)) {
-                    const d = haversine(
+                    const d = haversineKm(
                         result.latitude,
                         result.longitude,
                         coords.lat,
@@ -1017,7 +1017,7 @@
                 let nearest = "";
                 let minDist = Infinity;
                 for (const [city, coords] of Object.entries(data.cityCoords)) {
-                    const d = haversine(
+                    const d = haversineKm(
                         result.latitude,
                         result.longitude,
                         coords.lat,
@@ -1321,7 +1321,7 @@
         let nearest = "";
         let minDist = Infinity;
         for (const [city, coords] of Object.entries(data.cityCoords)) {
-            const d = haversine(userLat, userLng, coords.lat, coords.lng);
+            const d = haversineKm(userLat, userLng, coords.lat, coords.lng);
             if (d < minDist) {
                 minDist = d;
                 nearest = city;
