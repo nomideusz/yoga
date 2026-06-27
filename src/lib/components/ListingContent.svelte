@@ -16,9 +16,7 @@
         createMemoryAdapter,
     } from "@nomideusz/svelte-calendar";
     import ScheduleSection from "$lib/components/listing/ScheduleSection.svelte";
-    import { getListingPath, getCityPath } from "$lib/paths";
-    import { localizeHref } from "@nomideusz/svelte-i18n";
-    import { i18nRouting } from "$lib/i18n-routing";
+    import { getListingPath } from "$lib/paths";
     import Globe from "lucide-svelte/icons/globe";
     import MapPin from "lucide-svelte/icons/map-pin";
     import Phone from "lucide-svelte/icons/phone";
@@ -50,10 +48,6 @@
         );
         return days > 60;
     });
-
-    // ── Breadcrumb (usable nav: Joga → city → here) ───────
-    let homeHref = $derived(localizeHref("/", i18n.locale, i18nRouting));
-    let cityHref = $derived(getCityPath(listing.city, listing.citySlug));
 
     // ── Actions (one always-prominent primary) ────────────
     let hasWebsite = $derived(!!listing.websiteUrl);
@@ -180,11 +174,6 @@
 <article class="ld">
     <!-- ═══ IDENTITY (name leads, photo follows) ═══ -->
     <header class="ld-id">
-        <nav class="ld-crumbs" aria-label="breadcrumb">
-            <a href={homeHref} class="ld-crumb">Joga</a>
-            <span class="ld-crumb-sep" aria-hidden="true">·</span>
-            <a href={cityHref} class="ld-crumb">{listing.city}</a>
-        </nav>
         <h1 class="ld-name">{listing.name}</h1>
 
         <div class="ld-facts">
@@ -578,7 +567,7 @@
                             href={listing.websiteUrl}
                             target="_blank"
                             rel="noopener noreferrer nofollow"
-                            class="ld-btn ld-btn--primary"
+                            class="ld-btn"
                         >
                             <Globe size={15} />
                             <span>{t("listing_website")}</span>
@@ -668,31 +657,6 @@
         flex-direction: column;
         gap: 10px;
     }
-    .ld-crumbs {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 7px;
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
-    }
-    .ld-crumb {
-        color: var(--sf-accent);
-        text-decoration: none;
-        transition: color var(--dur-fast) ease;
-    }
-    .ld-crumb:hover {
-        color: var(--sf-accent-hover);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-    }
-    .ld-crumb-sep {
-        color: var(--sf-muted);
-        user-select: none;
-    }
     .ld-name {
         font-family: var(--font-display);
         font-size: clamp(2rem, 4.5vw, 3.1rem);
@@ -771,7 +735,7 @@
     .ld-hero {
         position: relative;
         width: 100%;
-        aspect-ratio: 3 / 2;
+        aspect-ratio: 4 / 3;
         max-height: 600px;
         border-radius: var(--radius-interactive);
         overflow: hidden;
