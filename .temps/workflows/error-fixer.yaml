@@ -1,0 +1,11 @@
+name: error-fixer
+description: Automatically fixes production errors
+enabled: true
+deliverable: pull_request
+provider: claude_cli
+on:
+  error:
+    new_issue: true
+    regression: true
+prompt: |
+  Investigate and fix the reported production error.
