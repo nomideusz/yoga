@@ -38,6 +38,7 @@
 		"@nomideusz/svelte-calendar": "file:packages/svelte-calendar",
 		"@nomideusz/svelte-i18n": "file:packages/svelte-i18n",
 		"@nomideusz/svelte-search": "file:packages/svelte-search",
+		"@sentry/sveltekit": "^10.62.0",
 		"dotenv": "^17.3.1",
 		"drizzle-orm": "^0.45.1",
 		"lucide-svelte": "^1.0.1",
