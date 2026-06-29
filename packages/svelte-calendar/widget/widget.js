@@ -1,6 +1,5096 @@
-(function(){"use strict";const Wn=Symbol("$state"),zr=Symbol("legacy props"),qs=Symbol(""),On=new class extends Error{name="StaleReactionError";message="The reaction that called `getAbortSignal()` was re-run or destroyed"},Us=!!globalThis.document?.contentType&&globalThis.document.contentType.includes("xml"),ar=3,sr=8,Vr=!1;var Ea=Array.isArray,Xs=Array.prototype.indexOf,qn=Array.prototype.includes,pr=Array.from,Da=Object.defineProperty,Dn=Object.getOwnPropertyDescriptor,Gs=Object.getOwnPropertyDescriptors,Ks=Object.prototype,Js=Array.prototype,Ta=Object.getPrototypeOf,xa=Object.isExtensible;function or(n){return typeof n=="function"}const Un=()=>{};function Qs(n){for(var t=0;t<n.length;t++)n[t]()}function ka(){var n,t,r=new Promise((a,s)=>{n=a,t=s});return{promise:r,resolve:n,reject:t}}function Sa(n){return n===this.v}function Zs(n,t){return n!=n?t==t:n!==t||n!==null&&typeof n=="object"||typeof n=="function"}function Ca(n){return!Zs(n,this.v)}function Ra(n){throw new Error("https://svelte.dev/e/lifecycle_outside_component")}function $s(){throw new Error("https://svelte.dev/e/async_derived_orphan")}function eo(n,t,r){throw new Error("https://svelte.dev/e/each_key_duplicate")}function to(n){throw new Error("https://svelte.dev/e/effect_in_teardown")}function no(){throw new Error("https://svelte.dev/e/effect_in_unowned_derived")}function ro(n){throw new Error("https://svelte.dev/e/effect_orphan")}function ao(){throw new Error("https://svelte.dev/e/effect_update_depth_exceeded")}function so(){throw new Error("https://svelte.dev/e/hydration_failed")}function oo(n){throw new Error("https://svelte.dev/e/props_invalid_value")}function io(){throw new Error("https://svelte.dev/e/state_descriptors_fixed")}function lo(){throw new Error("https://svelte.dev/e/state_prototype_fixed")}function co(){throw new Error("https://svelte.dev/e/state_unsafe_mutation")}function uo(){throw new Error("https://svelte.dev/e/svelte_boundary_reset_onerror")}let vo=!1;const fo=1,ho=2,Ma=4,go=8,_o=16,mo=1,po=4,wo=8,yo=16,bo=1,Eo=2,Br="[",Wr="[!",Na="[?",qr="]",Xn={},Ot=Symbol(),Aa="http://www.w3.org/1999/xhtml";let Ht=null;function Gn(n){Ht=n}function Do(n){return Ia().get(n)}function To(n,t){return Ia().set(n,t),t}function _n(n,t=!1,r){Ht={p:Ht,i:!1,c:null,e:null,s:n,x:null,l:null}}function mn(n){var t=Ht,r=t.e;if(r!==null){t.e=null;for(var a of r)fs(a)}return t.i=!0,Ht=t.p,{}}function Fa(){return!0}function Ia(n){return Ht===null&&Ra(),Ht.c??=new Map(xo(Ht)||void 0)}function xo(n){let t=n.p;for(;t!==null;){const r=t.c;if(r!==null)return r;t=t.p}return null}let Ln=[];function Oa(){var n=Ln;Ln=[],Qs(n)}function pn(n){if(Ln.length===0&&!cr){var t=Ln;queueMicrotask(()=>{t===Ln&&Oa()})}Ln.push(n)}function ko(){for(;Ln.length>0;)Oa()}function wr(n){console.warn("https://svelte.dev/e/hydration_mismatch")}function So(){console.warn("https://svelte.dev/e/svelte_boundary_reset_noop")}let Ze=!1;function sn(n){Ze=n}let $e;function Pt(n){if(n===null)throw wr(),Xn;return $e=n}function ir(){return Pt(dn($e))}function d(n){if(Ze){if(dn($e)!==null)throw wr(),Xn;$e=n}}function yr(n=1){if(Ze){for(var t=n,r=$e;t--;)r=dn(r);$e=r}}function lr(n=!0){for(var t=0,r=$e;;){if(r.nodeType===sr){var a=r.data;if(a===qr){if(t===0)return r;t-=1}else(a===Br||a===Wr||a[0]==="["&&!isNaN(Number(a.slice(1))))&&(t+=1)}var s=dn(r);n&&r.remove(),r=s}}function Ur(n){if(!n||n.nodeType!==sr)throw wr(),Xn;return n.data}function jt(n){if(typeof n!="object"||n===null||Wn in n)return n;const t=Ta(n);if(t!==Ks&&t!==Js)return n;var r=new Map,a=Ea(n),s=Re(0),o=yn,i=u=>{if(yn===o)return u();var l=et,c=yn;tn(null),os(o);var v=u();return tn(l),os(c),v};return a&&r.set("length",Re(n.length)),new Proxy(n,{defineProperty(u,l,c){(!("value"in c)||c.configurable===!1||c.enumerable===!1||c.writable===!1)&&io();var v=r.get(l);return v===void 0?i(()=>{var E=Re(c.value);return r.set(l,E),E}):P(v,c.value,!0),!0},deleteProperty(u,l){var c=r.get(l);if(c===void 0){if(l in u){const v=i(()=>Re(Ot));r.set(l,v),vn(s)}}else P(c,Ot),vn(s);return!0},get(u,l,c){if(l===Wn)return n;var v=r.get(l),E=l in u;if(v===void 0&&(!E||Dn(u,l)?.writable)&&(v=i(()=>{var B=jt(E?u[l]:Ot),L=Re(B);return L}),r.set(l,v)),v!==void 0){var T=e(v);return T===Ot?void 0:T}return Reflect.get(u,l,c)},getOwnPropertyDescriptor(u,l){var c=Reflect.getOwnPropertyDescriptor(u,l);if(c&&"value"in c){var v=r.get(l);v&&(c.value=e(v))}else if(c===void 0){var E=r.get(l),T=E?.v;if(E!==void 0&&T!==Ot)return{enumerable:!0,configurable:!0,value:T,writable:!0}}return c},has(u,l){if(l===Wn)return!0;var c=r.get(l),v=c!==void 0&&c.v!==Ot||Reflect.has(u,l);if(c!==void 0||tt!==null&&(!v||Dn(u,l)?.writable)){c===void 0&&(c=i(()=>{var T=v?jt(u[l]):Ot,B=Re(T);return B}),r.set(l,c));var E=e(c);if(E===Ot)return!1}return v},set(u,l,c,v){var E=r.get(l),T=l in u;if(a&&l==="length")for(var B=c;B<E.v;B+=1){var L=r.get(B+"");L!==void 0?P(L,Ot):B in u&&(L=i(()=>Re(Ot)),r.set(B+"",L))}if(E===void 0)(!T||Dn(u,l)?.writable)&&(E=i(()=>Re(void 0)),P(E,jt(c)),r.set(l,E));else{T=E.v!==Ot;var q=i(()=>jt(c));P(E,q)}var R=Reflect.getOwnPropertyDescriptor(u,l);if(R?.set&&R.set.call(v,c),!T){if(a&&typeof l=="string"){var G=r.get("length"),Z=Number(l);Number.isInteger(Z)&&Z>=G.v&&P(G,Z+1)}vn(s)}return!0},ownKeys(u){e(s);var l=Reflect.ownKeys(u).filter(E=>{var T=r.get(E);return T===void 0||T.v!==Ot});for(var[c,v]of r)v.v!==Ot&&!(c in u)&&l.push(c);return l},setPrototypeOf(){lo()}})}var La,Ha,Pa,ja;function Xr(){if(La===void 0){La=window,Ha=/Firefox/.test(navigator.userAgent);var n=Element.prototype,t=Node.prototype,r=Text.prototype;Pa=Dn(t,"firstChild").get,ja=Dn(t,"nextSibling").get,xa(n)&&(n.__click=void 0,n.__className=void 0,n.__attributes=null,n.__style=void 0,n.__e=void 0),xa(r)&&(r.__t=void 0)}}function qt(n=""){return document.createTextNode(n)}function Hn(n){return Pa.call(n)}function dn(n){return ja.call(n)}function f(n,t){if(!Ze)return Hn(n);var r=Hn($e);if(r===null)r=$e.appendChild(qt());else if(t&&r.nodeType!==ar){var a=qt();return r?.before(a),Pt(a),a}return t&&br(r),Pt(r),r}function lt(n,t=!1){if(!Ze){var r=Hn(n);return r instanceof Comment&&r.data===""?dn(r):r}if(t){if($e?.nodeType!==ar){var a=qt();return $e?.before(a),Pt(a),a}br($e)}return $e}function x(n,t=1,r=!1){let a=Ze?$e:n;for(var s;t--;)s=a,a=dn(a);if(!Ze)return a;if(r){if(a?.nodeType!==ar){var o=qt();return a===null?s?.after(o):a.before(o),Pt(o),o}br(a)}return Pt(a),a}function Ya(n){n.textContent=""}function za(){return!1}function Co(n,t,r){return document.createElementNS(Aa,n,void 0)}function br(n){if(n.nodeValue.length<65536)return;let t=n.nextSibling;for(;t!==null&&t.nodeType===ar;)t.remove(),n.nodeValue+=t.nodeValue,t=n.nextSibling}function Va(n){var t=tt;if(t===null)return et.f|=8388608,n;if((t.f&32768)===0&&(t.f&4)===0)throw n;Tn(n,t)}function Tn(n,t){for(;t!==null;){if((t.f&128)!==0){if((t.f&32768)===0)throw n;try{t.b.error(n);return}catch(r){n=r}}t=t.parent}throw n}const Ro=-7169;function At(n,t){n.f=n.f&Ro|t}function Gr(n){(n.f&512)!==0||n.deps===null?At(n,1024):At(n,4096)}function Ba(n){if(n!==null)for(const t of n)(t.f&2)===0||(t.f&65536)===0||(t.f^=65536,Ba(t.deps))}function Wa(n,t,r){(n.f&2048)!==0?t.add(n):(n.f&4096)!==0&&r.add(n),Ba(n.deps),At(n,1024)}const Er=new Set;let Et=null,on=null,Ut=[],Dr=null,cr=!1,Kn=null,Mo=1;class xn{id=Mo++;current=new Map;previous=new Map;#e=new Set;#t=new Set;#n=0;#i=0;#r=null;#a=new Set;#s=new Set;#o=new Map;is_fork=!1;#l=!1;#d(){return this.is_fork||this.#i>0}skip_effect(t){this.#o.has(t)||this.#o.set(t,{d:[],m:[]})}unskip_effect(t){var r=this.#o.get(t);if(r){this.#o.delete(t);for(var a of r.d)At(a,2048),un(a);for(a of r.m)At(a,4096),un(a)}}process(t){Ut=[],this.apply();var r=Kn=[],a=[];for(const s of t)this.#c(s,r,a);if(Kn=null,this.#d()){this.#u(a),this.#u(r);for(const[s,o]of this.#o)Ja(s,o)}else{Et=null;for(const s of this.#e)s(this);this.#e.clear(),this.#n===0&&this.#v(),Xa(a),Xa(r),this.#a.clear(),this.#s.clear(),this.#r?.resolve()}on=null}#c(t,r,a){t.f^=1024;for(var s=t.first;s!==null;){var o=s.f,i=(o&96)!==0,u=i&&(o&1024)!==0,l=(o&8192)!==0,c=u||this.#o.has(s);if(!c&&s.fn!==null){i?l||(s.f^=1024):(o&4)!==0?r.push(s):(o&16777224)!==0&&l?a.push(s):dr(s)&&(Qn(s),(o&16)!==0&&(this.#s.add(s),l&&At(s,2048)));var v=s.first;if(v!==null){s=v;continue}}for(;s!==null;){var E=s.next;if(E!==null){s=E;break}s=s.parent}}}#u(t){for(var r=0;r<t.length;r+=1)Wa(t[r],this.#a,this.#s)}capture(t,r){r!==Ot&&!this.previous.has(t)&&this.previous.set(t,r),(t.f&8388608)===0&&(this.current.set(t,t.v),on?.set(t,t.v))}activate(){Et=this,this.apply()}deactivate(){Et===this&&(Et=null,on=null)}flush(){if(Ut.length>0)Et=this,Ua();else if(this.#n===0&&!this.is_fork){for(const t of this.#e)t(this);this.#e.clear(),this.#v(),this.#r?.resolve()}this.deactivate()}discard(){for(const t of this.#t)t(this);this.#t.clear()}#v(){if(Er.size>1){this.previous.clear();var t=Et,r=on,a=!0;for(const o of Er){if(o===this){a=!1;continue}const i=[];for(const[l,c]of this.current){if(o.current.has(l))if(a&&c!==o.current.get(l))o.current.set(l,c);else continue;i.push(l)}if(i.length===0)continue;const u=[...o.current.keys()].filter(l=>!this.current.has(l));if(u.length>0){var s=Ut;Ut=[];const l=new Set,c=new Map;for(const v of i)Ga(v,u,l,c);if(Ut.length>0){Et=o,o.apply();for(const v of Ut)o.#c(v,[],[]);o.deactivate()}Ut=s}}Et=t,on=r}this.#o.clear(),Er.delete(this)}increment(t){this.#n+=1,t&&(this.#i+=1)}decrement(t){this.#n-=1,t&&(this.#i-=1),!this.#l&&(this.#l=!0,pn(()=>{this.#l=!1,this.#d()?Ut.length>0&&this.flush():this.revive()}))}revive(){for(const t of this.#a)this.#s.delete(t),At(t,2048),un(t);for(const t of this.#s)At(t,4096),un(t);this.flush()}oncommit(t){this.#e.add(t)}ondiscard(t){this.#t.add(t)}settled(){return(this.#r??=ka()).promise}static ensure(){if(Et===null){const t=Et=new xn;Er.add(Et),cr||pn(()=>{Et===t&&t.flush()})}return Et}apply(){}}function qa(n){var t=cr;cr=!0;try{for(var r;;){if(ko(),Ut.length===0&&(Et?.flush(),Ut.length===0))return Dr=null,r;Ua()}}finally{cr=t}}function Ua(){var n=null;try{for(var t=0;Ut.length>0;){var r=xn.ensure();if(t++>1e3){var a,s;No()}r.process(Ut),kn.clear()}}finally{Ut=[],Dr=null,Kn=null}}function No(){try{ao()}catch(n){Tn(n,Dr)}}let wn=null;function Xa(n){var t=n.length;if(t!==0){for(var r=0;r<t;){var a=n[r++];if((a.f&24576)===0&&dr(a)&&(wn=new Set,Qn(a),a.deps===null&&a.first===null&&a.nodes===null&&a.teardown===null&&a.ac===null&&_s(a),wn?.size>0)){kn.clear();for(const s of wn){if((s.f&24576)!==0)continue;const o=[s];let i=s.parent;for(;i!==null;)wn.has(i)&&(wn.delete(i),o.push(i)),i=i.parent;for(let u=o.length-1;u>=0;u--){const l=o[u];(l.f&24576)===0&&Qn(l)}}wn.clear()}}wn=null}}function Ga(n,t,r,a){if(!r.has(n)&&(r.add(n),n.reactions!==null))for(const s of n.reactions){const o=s.f;(o&2)!==0?Ga(s,t,r,a):(o&4194320)!==0&&(o&2048)===0&&Ka(s,t,a)&&(At(s,2048),un(s))}}function Ka(n,t,r){const a=r.get(n);if(a!==void 0)return a;if(n.deps!==null)for(const s of n.deps){if(qn.call(t,s))return!0;if((s.f&2)!==0&&Ka(s,t,r))return r.set(s,!0),!0}return r.set(n,!1),!1}function un(n){var t=Dr=n,r=t.b;if(r?.is_pending&&(n.f&16777228)!==0&&(n.f&32768)===0){r.defer_effect(n);return}for(;t.parent!==null;){t=t.parent;var a=t.f;if(Kn!==null&&t===tt&&(n.f&8)===0)return;if((a&96)!==0){if((a&1024)===0)return;t.f^=1024}}Ut.push(t)}function Ja(n,t){if(!((n.f&32)!==0&&(n.f&1024)!==0)){(n.f&2048)!==0?t.d.push(n):(n.f&4096)!==0&&t.m.push(n),At(n,1024);for(var r=n.first;r!==null;)Ja(r,t),r=r.next}}function Ao(n){let t=0,r=Sn(0),a;return()=>{$r()&&(e(r),hs(()=>(t===0&&(a=Rn(()=>n(()=>vn(r)))),t+=1,()=>{pn(()=>{t-=1,t===0&&(a?.(),a=void 0,vn(r))})})))}}var Fo=589824;function Io(n,t,r,a){new Oo(n,t,r,a)}class Oo{parent;is_pending=!1;transform_error;#e;#t=Ze?$e:null;#n;#i;#r;#a=null;#s=null;#o=null;#l=null;#d=0;#c=0;#u=!1;#v=new Set;#h=new Set;#f=null;#w=Ao(()=>(this.#f=Sn(this.#d),()=>{this.#f=null}));constructor(t,r,a,s){this.#e=t,this.#n=r,this.#i=o=>{var i=tt;i.b=this,i.f|=128,a(o)},this.parent=tt.b,this.transform_error=s??this.parent?.transform_error??(o=>o),this.#r=vr(()=>{if(Ze){const o=this.#t;ir();const i=o.data===Wr;if(o.data.startsWith(Na)){const l=JSON.parse(o.data.slice(Na.length));this.#b(l)}else i?this.#E():this.#y()}else this.#m()},Fo),Ze&&(this.#e=$e)}#y(){try{this.#a=an(()=>this.#i(this.#e))}catch(t){this.error(t)}}#b(t){const r=this.#n.failed;r&&(this.#o=an(()=>{r(this.#e,()=>t,()=>()=>{})}))}#E(){const t=this.#n.pending;t&&(this.is_pending=!0,this.#s=an(()=>t(this.#e)),pn(()=>{var r=this.#l=document.createDocumentFragment(),a=qt();r.append(a),this.#a=this.#_(()=>(xn.ensure(),an(()=>this.#i(a)))),this.#c===0&&(this.#e.before(r),this.#l=null,jn(this.#s,()=>{this.#s=null}),this.#g())}))}#m(){try{if(this.is_pending=this.has_pending_snippet(),this.#c=0,this.#d=0,this.#a=an(()=>{this.#i(this.#e)}),this.#c>0){var t=this.#l=document.createDocumentFragment();na(this.#a,t);const r=this.#n.pending;this.#s=an(()=>r(this.#e))}else this.#g()}catch(r){this.error(r)}}#g(){this.is_pending=!1;for(const t of this.#v)At(t,2048),un(t);for(const t of this.#h)At(t,4096),un(t);this.#v.clear(),this.#h.clear()}defer_effect(t){Wa(t,this.#v,this.#h)}is_rendered(){return!this.is_pending&&(!this.parent||this.parent.is_rendered())}has_pending_snippet(){return!!this.#n.pending}#_(t){var r=tt,a=et,s=Ht;fn(this.#r),tn(this.#r),Gn(this.#r.ctx);try{return t()}catch(o){return Va(o),null}finally{fn(r),tn(a),Gn(s)}}#p(t){if(!this.has_pending_snippet()){this.parent&&this.parent.#p(t);return}this.#c+=t,this.#c===0&&(this.#g(),this.#s&&jn(this.#s,()=>{this.#s=null}),this.#l&&(this.#e.before(this.#l),this.#l=null))}update_pending_count(t){this.#p(t),this.#d+=t,!(!this.#f||this.#u)&&(this.#u=!0,pn(()=>{this.#u=!1,this.#f&&Jn(this.#f,this.#d)}))}get_effect_pending(){return this.#w(),e(this.#f)}error(t){var r=this.#n.onerror;let a=this.#n.failed;if(!r&&!a)throw t;this.#a&&(Kt(this.#a),this.#a=null),this.#s&&(Kt(this.#s),this.#s=null),this.#o&&(Kt(this.#o),this.#o=null),Ze&&(Pt(this.#t),yr(),Pt(lr()));var s=!1,o=!1;const i=()=>{if(s){So();return}s=!0,o&&uo(),this.#o!==null&&jn(this.#o,()=>{this.#o=null}),this.#_(()=>{xn.ensure(),this.#m()})},u=l=>{try{o=!0,r?.(l,i),o=!1}catch(c){Tn(c,this.#r&&this.#r.parent)}a&&(this.#o=this.#_(()=>{xn.ensure();try{return an(()=>{var c=tt;c.b=this,c.f|=128,a(this.#e,()=>l,()=>i)})}catch(c){return Tn(c,this.#r.parent),null}}))};pn(()=>{var l;try{l=this.transform_error(t)}catch(c){Tn(c,this.#r&&this.#r.parent);return}l!==null&&typeof l=="object"&&typeof l.then=="function"?l.then(u,c=>Tn(c,this.#r&&this.#r.parent)):u(l)})}}function Lo(n,t,r,a){const s=Tr;var o=n.filter(E=>!E.settled);if(r.length===0&&o.length===0){a(t.map(s));return}var i=tt,u=Ho(),l=o.length===1?o[0].promise:o.length>1?Promise.all(o.map(E=>E.promise)):null;function c(E){u();try{a(E)}catch(T){(i.f&16384)===0&&Tn(T,i)}Kr()}if(r.length===0){l.then(()=>c(t.map(s)));return}function v(){u(),Promise.all(r.map(E=>jo(E))).then(E=>c([...t.map(s),...E])).catch(E=>Tn(E,i))}l?l.then(v):v()}function Ho(){var n=tt,t=et,r=Ht,a=Et;return function(o=!0){fn(n),tn(t),Gn(r),o&&a?.activate()}}function Kr(n=!0){fn(null),tn(null),Gn(null),n&&Et?.deactivate()}function Po(){var n=tt.b,t=Et,r=n.is_rendered();return n.update_pending_count(1),t.increment(r),()=>{n.update_pending_count(-1),t.decrement(r)}}function Tr(n){var t=2050,r=et!==null&&(et.f&2)!==0?et:null;return tt!==null&&(tt.f|=524288),{ctx:Ht,deps:null,effects:null,equals:Sa,f:t,fn:n,reactions:null,rv:0,v:Ot,wv:0,parent:r??tt,ac:null}}function jo(n,t,r){tt===null&&$s();var s=void 0,o=Sn(Ot),i=!et,u=new Map;return Jo(()=>{var l=ka();s=l.promise;try{Promise.resolve(n()).then(l.resolve,l.reject).finally(Kr)}catch(T){l.reject(T),Kr()}var c=Et;if(i){var v=Po();u.get(c)?.reject(On),u.delete(c),u.set(c,l)}const E=(T,B=void 0)=>{if(c.activate(),B)B!==On&&(o.f|=8388608,Jn(o,B));else{(o.f&8388608)!==0&&(o.f^=8388608),Jn(o,T);for(const[L,q]of u){if(u.delete(L),L===c)break;q.reject(On)}}v&&v()};l.promise.then(E,T=>E(null,T||"unknown"))}),vs(()=>{for(const l of u.values())l.reject(On)}),new Promise(l=>{function c(v){function E(){v===s?l(o):c(s)}v.then(E,E)}c(s)})}function m(n){const t=Tr(n);return as(t),t}function Qa(n){const t=Tr(n);return t.equals=Ca,t}function Yo(n){var t=n.effects;if(t!==null){n.effects=null;for(var r=0;r<t.length;r+=1)Kt(t[r])}}function zo(n){for(var t=n.parent;t!==null;){if((t.f&2)===0)return(t.f&16384)===0?t:null;t=t.parent}return null}function Jr(n){var t,r=tt;fn(zo(n));try{n.f&=-65537,Yo(n),t=cs(n)}finally{fn(r)}return t}function Za(n){var t=Jr(n);if(!n.equals(t)&&(n.wv=is(),(!Et?.is_fork||n.deps===null)&&(n.v=t,n.deps===null))){At(n,1024);return}Cn||(on!==null?($r()||Et?.is_fork)&&on.set(n,t):Gr(n))}function Vo(n){if(n.effects!==null)for(const t of n.effects)(t.teardown||t.ac)&&(t.teardown?.(),t.ac?.abort(On),t.teardown=Un,t.ac=null,ur(t,0),ea(t))}function $a(n){if(n.effects!==null)for(const t of n.effects)t.teardown&&Qn(t)}let Qr=new Set;const kn=new Map;let es=!1;function Sn(n,t){var r={f:0,v:n,reactions:null,equals:Sa,rv:0,wv:0};return r}function Re(n,t){const r=Sn(n);return as(r),r}function ts(n,t=!1,r=!0){const a=Sn(n);return t||(a.equals=Ca),a}function P(n,t,r=!1){et!==null&&(!ln||(et.f&131072)!==0)&&Fa()&&(et.f&4325394)!==0&&(nn===null||!qn.call(nn,n))&&co();let a=r?jt(t):t;return Jn(n,a)}function Jn(n,t){if(!n.equals(t)){var r=n.v;Cn?kn.set(n,t):kn.set(n,r),n.v=t;var a=xn.ensure();if(a.capture(n,r),(n.f&2)!==0){const s=n;(n.f&2048)!==0&&Jr(s),Gr(s)}n.wv=is(),ns(n,2048),tt!==null&&(tt.f&1024)!==0&&(tt.f&96)===0&&(rn===null?Wo([n]):rn.push(n)),!a.is_fork&&Qr.size>0&&!es&&Bo()}return t}function Bo(){es=!1;for(const n of Qr)(n.f&1024)!==0&&At(n,4096),dr(n)&&Qn(n);Qr.clear()}function vn(n){P(n,n.v+1)}function ns(n,t){var r=n.reactions;if(r!==null)for(var a=r.length,s=0;s<a;s++){var o=r[s],i=o.f,u=(i&2048)===0;if(u&&At(o,t),(i&2)!==0){var l=o;on?.delete(l),(i&65536)===0&&(i&512&&(o.f|=65536),ns(l,4096))}else u&&((i&16)!==0&&wn!==null&&wn.add(o),un(o))}}function Zr(n){var t=et,r=tt;tn(null),fn(null);try{return n()}finally{tn(t),fn(r)}}let xr=!1,Cn=!1;function rs(n){Cn=n}let et=null,ln=!1;function tn(n){et=n}let tt=null;function fn(n){tt=n}let nn=null;function as(n){et!==null&&(nn===null?nn=[n]:nn.push(n))}let Xt=null,Zt=0,rn=null;function Wo(n){rn=n}let ss=1,Pn=0,yn=Pn;function os(n){yn=n}function is(){return++ss}function dr(n){var t=n.f;if((t&2048)!==0)return!0;if(t&2&&(n.f&=-65537),(t&4096)!==0){for(var r=n.deps,a=r.length,s=0;s<a;s++){var o=r[s];if(dr(o)&&Za(o),o.wv>n.wv)return!0}(t&512)!==0&&on===null&&At(n,1024)}return!1}function ls(n,t,r=!0){var a=n.reactions;if(a!==null&&!(nn!==null&&qn.call(nn,n)))for(var s=0;s<a.length;s++){var o=a[s];(o.f&2)!==0?ls(o,t,!1):t===o&&(r?At(o,2048):(o.f&1024)!==0&&At(o,4096),un(o))}}function cs(n){var t=Xt,r=Zt,a=rn,s=et,o=nn,i=Ht,u=ln,l=yn,c=n.f;Xt=null,Zt=0,rn=null,et=(c&96)===0?n:null,nn=null,Gn(n.ctx),ln=!1,yn=++Pn,n.ac!==null&&(Zr(()=>{n.ac.abort(On)}),n.ac=null);try{n.f|=2097152;var v=n.fn,E=v();n.f|=32768;var T=n.deps,B=Et?.is_fork;if(Xt!==null){var L;if(B||ur(n,Zt),T!==null&&Zt>0)for(T.length=Zt+Xt.length,L=0;L<Xt.length;L++)T[Zt+L]=Xt[L];else n.deps=T=Xt;if($r()&&(n.f&512)!==0)for(L=Zt;L<T.length;L++)(T[L].reactions??=[]).push(n)}else!B&&T!==null&&Zt<T.length&&(ur(n,Zt),T.length=Zt);if(Fa()&&rn!==null&&!ln&&T!==null&&(n.f&6146)===0)for(L=0;L<rn.length;L++)ls(rn[L],n);if(s!==null&&s!==n){if(Pn++,s.deps!==null)for(let q=0;q<r;q+=1)s.deps[q].rv=Pn;if(t!==null)for(const q of t)q.rv=Pn;rn!==null&&(a===null?a=rn:a.push(...rn))}return(n.f&8388608)!==0&&(n.f^=8388608),E}catch(q){return Va(q)}finally{n.f^=2097152,Xt=t,Zt=r,rn=a,et=s,nn=o,Gn(i),ln=u,yn=l}}function qo(n,t){let r=t.reactions;if(r!==null){var a=Xs.call(r,n);if(a!==-1){var s=r.length-1;s===0?r=t.reactions=null:(r[a]=r[s],r.pop())}}if(r===null&&(t.f&2)!==0&&(Xt===null||!qn.call(Xt,t))){var o=t;(o.f&512)!==0&&(o.f^=512,o.f&=-65537),Gr(o),Vo(o),ur(o,0)}}function ur(n,t){var r=n.deps;if(r!==null)for(var a=t;a<r.length;a++)qo(n,r[a])}function Qn(n){var t=n.f;if((t&16384)===0){At(n,1024);var r=tt,a=xr;tt=n,xr=!0;try{(t&16777232)!==0?Qo(n):ea(n),gs(n);var s=cs(n);n.teardown=typeof s=="function"?s:null,n.wv=ss;var o;Vr&&vo&&(n.f&2048)!==0&&n.deps}finally{xr=a,tt=r}}}async function Zn(){await Promise.resolve(),qa()}function e(n){var t=n.f,r=(t&2)!==0;if(et!==null&&!ln){var a=tt!==null&&(tt.f&16384)!==0;if(!a&&(nn===null||!qn.call(nn,n))){var s=et.deps;if((et.f&2097152)!==0)n.rv<Pn&&(n.rv=Pn,Xt===null&&s!==null&&s[Zt]===n?Zt++:Xt===null?Xt=[n]:Xt.push(n));else{(et.deps??=[]).push(n);var o=n.reactions;o===null?n.reactions=[et]:qn.call(o,et)||o.push(et)}}}if(Cn&&kn.has(n))return kn.get(n);if(r){var i=n;if(Cn){var u=i.v;return((i.f&1024)===0&&i.reactions!==null||us(i))&&(u=Jr(i)),kn.set(i,u),u}var l=(i.f&512)===0&&!ln&&et!==null&&(xr||(et.f&512)!==0),c=(i.f&32768)===0;dr(i)&&(l&&(i.f|=512),Za(i)),l&&!c&&($a(i),ds(i))}if(on?.has(n))return on.get(n);if((n.f&8388608)!==0)throw n.v;return n.v}function ds(n){if(n.f|=512,n.deps!==null)for(const t of n.deps)(t.reactions??=[]).push(n),(t.f&2)!==0&&(t.f&512)===0&&($a(t),ds(t))}function us(n){if(n.v===Ot)return!0;if(n.deps===null)return!1;for(const t of n.deps)if(kn.has(t)||(t.f&2)!==0&&us(t))return!0;return!1}function Rn(n){var t=ln;try{return ln=!0,n()}finally{ln=t}}function Uo(n){tt===null&&(et===null&&ro(),no()),Cn&&to()}function Xo(n,t){var r=t.last;r===null?t.last=t.first=n:(r.next=n,n.prev=r,t.last=n)}function bn(n,t){var r=tt;r!==null&&(r.f&8192)!==0&&(n|=8192);var a={ctx:Ht,deps:null,nodes:null,f:n|2048|512,first:null,fn:t,last:null,next:null,parent:r,b:r&&r.b,prev:null,teardown:null,wv:0,ac:null},s=a;if((n&4)!==0)Kn!==null?Kn.push(a):un(a);else if(t!==null){try{Qn(a)}catch(i){throw Kt(a),i}s.deps===null&&s.teardown===null&&s.nodes===null&&s.first===s.last&&(s.f&524288)===0&&(s=s.first,(n&16)!==0&&(n&65536)!==0&&s!==null&&(s.f|=65536))}if(s!==null&&(s.parent=r,r!==null&&Xo(s,r),et!==null&&(et.f&2)!==0&&(n&64)===0)){var o=et;(o.effects??=[]).push(s)}return a}function $r(){return et!==null&&!ln}function vs(n){const t=bn(8,null);return At(t,1024),t.teardown=n,t}function Gt(n){Uo();var t=tt.f,r=!et&&(t&32)!==0&&(t&32768)===0;if(r){var a=Ht;(a.e??=[]).push(n)}else return fs(n)}function fs(n){return bn(1048580,n)}function Go(n){xn.ensure();const t=bn(524352,n);return(r={})=>new Promise(a=>{r.outro?jn(t,()=>{Kt(t),a(void 0)}):(Kt(t),a(void 0))})}function Ko(n){return bn(4,n)}function Jo(n){return bn(4718592,n)}function hs(n,t=0){return bn(8|t,n)}function S(n,t=[],r=[],a=[]){Lo(a,t,r,s=>{bn(8,()=>n(...s.map(e)))})}function vr(n,t=0){var r=bn(16|t,n);return r}function an(n){return bn(524320,n)}function gs(n){var t=n.teardown;if(t!==null){const r=Cn,a=et;rs(!0),tn(null);try{t.call(null)}finally{rs(r),tn(a)}}}function ea(n,t=!1){var r=n.first;for(n.first=n.last=null;r!==null;){const s=r.ac;s!==null&&Zr(()=>{s.abort(On)});var a=r.next;(r.f&64)!==0?r.parent=null:Kt(r,t),r=a}}function Qo(n){for(var t=n.first;t!==null;){var r=t.next;(t.f&32)===0&&Kt(t),t=r}}function Kt(n,t=!0){var r=!1;(t||(n.f&262144)!==0)&&n.nodes!==null&&n.nodes.end!==null&&(Zo(n.nodes.start,n.nodes.end),r=!0),ea(n,t&&!r),ur(n,0),At(n,16384);var a=n.nodes&&n.nodes.t;if(a!==null)for(const o of a)o.stop();gs(n);var s=n.parent;s!==null&&s.first!==null&&_s(n),n.next=n.prev=n.teardown=n.ctx=n.deps=n.fn=n.nodes=n.ac=null}function Zo(n,t){for(;n!==null;){var r=n===t?null:dn(n);n.remove(),n=r}}function _s(n){var t=n.parent,r=n.prev,a=n.next;r!==null&&(r.next=a),a!==null&&(a.prev=r),t!==null&&(t.first===n&&(t.first=a),t.last===n&&(t.last=r))}function jn(n,t,r=!0){var a=[];ms(n,a,!0);var s=()=>{r&&Kt(n),t&&t()},o=a.length;if(o>0){var i=()=>--o||s();for(var u of a)u.out(i)}else s()}function ms(n,t,r){if((n.f&8192)===0){n.f^=8192;var a=n.nodes&&n.nodes.t;if(a!==null)for(const u of a)(u.is_global||r)&&t.push(u);for(var s=n.first;s!==null;){var o=s.next,i=(s.f&65536)!==0||(s.f&32)!==0&&(n.f&16)!==0;ms(s,t,i?r:!1),s=o}}}function ta(n){ps(n,!0)}function ps(n,t){if((n.f&8192)!==0){n.f^=8192;for(var r=n.first;r!==null;){var a=r.next,s=(r.f&65536)!==0||(r.f&32)!==0;ps(r,s?t:!1),r=a}var o=n.nodes&&n.nodes.t;if(o!==null)for(const i of o)(i.is_global||t)&&i.in()}}function na(n,t){if(n.nodes)for(var r=n.nodes.start,a=n.nodes.end;r!==null;){var s=r===a?null:dn(r);t.append(r),r=s}}const fr=Symbol("events"),ws=new Set,ra=new Set;function $o(n,t,r,a={}){function s(o){if(a.capture||aa.call(t,o),!o.cancelBubble)return Zr(()=>r?.call(this,o))}return n.startsWith("pointer")||n.startsWith("touch")||n==="wheel"?pn(()=>{t.addEventListener(n,s,a)}):t.addEventListener(n,s,a),s}function Yt(n,t,r,a,s){var o={capture:a,passive:s},i=$o(n,t,r,o);(t===document.body||t===window||t===document||t instanceof HTMLMediaElement)&&vs(()=>{t.removeEventListener(n,i,o)})}function ae(n,t,r){(t[fr]??={})[n]=r}function Yn(n){for(var t=0;t<n.length;t++)ws.add(n[t]);for(var r of ra)r(n)}let ys=null;function aa(n){var t=this,r=t.ownerDocument,a=n.type,s=n.composedPath?.()||[],o=s[0]||n.target;ys=n;var i=0,u=ys===n&&n[fr];if(u){var l=s.indexOf(u);if(l!==-1&&(t===document||t===window)){n[fr]=t;return}var c=s.indexOf(t);if(c===-1)return;l<=c&&(i=l)}if(o=s[i]||n.target,o!==t){Da(n,"currentTarget",{configurable:!0,get(){return o||r}});var v=et,E=tt;tn(null),fn(null);try{for(var T,B=[];o!==null;){var L=o.assignedSlot||o.parentNode||o.host||null;try{var q=o[fr]?.[a];q!=null&&(!o.disabled||n.target===o)&&q.call(o,n)}catch(R){T?B.push(R):T=R}if(n.cancelBubble||L===t||L===null)break;o=L}if(T){for(let R of B)queueMicrotask(()=>{throw R});throw T}}finally{n[fr]=t,delete n.currentTarget,tn(v),fn(E)}}}const ei=globalThis?.window?.trustedTypes&&globalThis.window.trustedTypes.createPolicy("svelte-trusted-html",{createHTML:n=>n});function ti(n){return ei?.createHTML(n)??n}function ni(n){var t=Co("template");return t.innerHTML=ti(n.replaceAll("<!>","<!---->")),t.content}function Mn(n,t){var r=tt;r.nodes===null&&(r.nodes={start:n,end:t,a:null,t:null})}function D(n,t){var r=(t&bo)!==0,a=(t&Eo)!==0,s,o=!n.startsWith("<!>");return()=>{if(Ze)return Mn($e,null),$e;s===void 0&&(s=ni(o?n:"<!>"+n),r||(s=Hn(s)));var i=a||Ha?document.importNode(s,!0):s.cloneNode(!0);if(r){var u=Hn(i),l=i.lastChild;Mn(u,l)}else Mn(i,i);return i}}function bs(n=""){if(!Ze){var t=qt(n+"");return Mn(t,t),t}var r=$e;return r.nodeType!==ar?(r.before(r=qt()),Pt(r)):br(r),Mn(r,r),r}function Dt(){if(Ze)return Mn($e,null),$e;var n=document.createDocumentFragment(),t=document.createComment(""),r=qt();return n.append(t,r),Mn(t,r),n}function _(n,t){if(Ze){var r=tt;((r.f&32768)===0||r.nodes.end===null)&&(r.nodes.end=$e),ir();return}n!==null&&n.before(t)}const ri=["touchstart","touchmove"];function ai(n){return ri.includes(n)}function C(n,t){var r=t==null?"":typeof t=="object"?`${t}`:t;r!==(n.__t??=n.nodeValue)&&(n.__t=r,n.nodeValue=`${r}`)}function Es(n,t){return Ds(n,t)}function si(n,t){Xr(),t.intro=t.intro??!1;const r=t.target,a=Ze,s=$e;try{for(var o=Hn(r);o&&(o.nodeType!==sr||o.data!==Br);)o=dn(o);if(!o)throw Xn;sn(!0),Pt(o);const i=Ds(n,{...t,anchor:o});return sn(!1),i}catch(i){if(i instanceof Error&&i.message.split(`
-`).some(u=>u.startsWith("https://svelte.dev/e/")))throw i;return i!==Xn&&console.warn("Failed to hydrate: ",i),t.recover===!1&&so(),Xr(),Ya(r),sn(!1),Es(n,t)}finally{sn(a),Pt(s)}}const kr=new Map;function Ds(n,{target:t,anchor:r,props:a={},events:s,context:o,intro:i=!0,transformError:u}){Xr();var l=void 0,c=Go(()=>{var v=r??t.appendChild(qt());Io(v,{pending:()=>{}},B=>{_n({});var L=Ht;if(o&&(L.c=o),s&&(a.$$events=s),Ze&&Mn(B,null),l=n(B,a)||{},Ze&&(tt.nodes.end=$e,$e===null||$e.nodeType!==sr||$e.data!==qr))throw wr(),Xn;mn()},u);var E=new Set,T=B=>{for(var L=0;L<B.length;L++){var q=B[L];if(!E.has(q)){E.add(q);var R=ai(q);for(const se of[t,document]){var G=kr.get(se);G===void 0&&(G=new Map,kr.set(se,G));var Z=G.get(q);Z===void 0?(se.addEventListener(q,aa,{passive:R}),G.set(q,1)):G.set(q,Z+1)}}}};return T(pr(ws)),ra.add(T),()=>{for(var B of E)for(const R of[t,document]){var L=kr.get(R),q=L.get(B);--q==0?(R.removeEventListener(B,aa),L.delete(B),L.size===0&&kr.delete(R)):L.set(B,q)}ra.delete(T),v!==r&&v.parentNode?.removeChild(v)}});return sa.set(l,c),l}let sa=new WeakMap;function oi(n,t){const r=sa.get(n);return r?(sa.delete(n),r(t)):Promise.resolve()}function ii(n){return class extends li{constructor(t){super({component:n,...t})}}}class li{#e;#t;constructor(t){var r=new Map,a=(o,i)=>{var u=ts(i,!1,!1);return r.set(o,u),u};const s=new Proxy({...t.props||{},$$events:{}},{get(o,i){return e(r.get(i)??a(i,Reflect.get(o,i)))},has(o,i){return i===zr?!0:(e(r.get(i)??a(i,Reflect.get(o,i))),Reflect.has(o,i))},set(o,i,u){return P(r.get(i)??a(i,u),u),Reflect.set(o,i,u)}});this.#t=(t.hydrate?si:Es)(t.component,{target:t.target,anchor:t.anchor,props:s,context:t.context,intro:t.intro??!1,recover:t.recover,transformError:t.transformError}),(!t?.props?.$$host||t.sync===!1)&&qa(),this.#e=s.$$events;for(const o of Object.keys(this.#t))o==="$set"||o==="$destroy"||o==="$on"||Da(this,o,{get(){return this.#t[o]},set(i){this.#t[o]=i},enumerable:!0});this.#t.$set=o=>{Object.assign(s,o)},this.#t.$destroy=()=>{oi(this.#t)}}$set(t){this.#t.$set(t)}$on(t,r){this.#e[t]=this.#e[t]||[];const a=(...s)=>r.call(this,...s);return this.#e[t].push(a),()=>{this.#e[t]=this.#e[t].filter(s=>s!==a)}}$destroy(){this.#t.$destroy()}}const ci="5";typeof window<"u"&&((window.__svelte??={}).v??=new Set).add(ci);class oa{anchor;#e=new Map;#t=new Map;#n=new Map;#i=new Set;#r=!0;constructor(t,r=!0){this.anchor=t,this.#r=r}#a=t=>{if(this.#e.has(t)){var r=this.#e.get(t),a=this.#t.get(r);if(a)ta(a),this.#i.delete(r);else{var s=this.#n.get(r);s&&(s.effect.f&8192)===0&&(this.#t.set(r,s.effect),this.#n.delete(r),s.fragment.lastChild.remove(),this.anchor.before(s.fragment),a=s.effect)}for(const[o,i]of this.#e){if(this.#e.delete(o),o===t)break;const u=this.#n.get(i);u&&(Kt(u.effect),this.#n.delete(i))}for(const[o,i]of this.#t){if(o===r||this.#i.has(o)||(i.f&8192)!==0)continue;const u=()=>{if(Array.from(this.#e.values()).includes(o)){var c=document.createDocumentFragment();na(i,c),c.append(qt()),this.#n.set(o,{effect:i,fragment:c})}else Kt(i);this.#i.delete(o),this.#t.delete(o)};this.#r||!a?(this.#i.add(o),jn(i,u,!1)):u()}}};#s=t=>{this.#e.delete(t);const r=Array.from(this.#e.values());for(const[a,s]of this.#n)r.includes(a)||(Kt(s.effect),this.#n.delete(a))};ensure(t,r){var a=Et,s=za();if(r&&!this.#t.has(t)&&!this.#n.has(t))if(s){var o=document.createDocumentFragment(),i=qt();o.append(i),this.#n.set(t,{effect:an(()=>r(i)),fragment:o})}else this.#t.set(t,an(()=>r(this.anchor)));if(this.#e.set(a,t),s){for(const[u,l]of this.#t)u===t?a.unskip_effect(l):a.skip_effect(l);for(const[u,l]of this.#n)u===t?a.unskip_effect(l.effect):a.skip_effect(l.effect);a.oncommit(this.#a),a.ondiscard(this.#s)}else Ze&&(this.anchor=$e),this.#a(a)}}function $n(n,t,...r){var a=new oa(n);vr(()=>{const s=t()??null;a.ensure(s,s&&(o=>s(o,...r)))},65536)}function hr(n){Ht===null&&Ra(),Gt(()=>{const t=Rn(n);if(typeof t=="function")return t})}function W(n,t,r=!1){var a;Ze&&(a=$e,ir());var s=new oa(n),o=r?65536:0;function i(u,l){if(Ze){var c=Ur(a);if(u!==parseInt(c.substring(1))){var v=lr();Pt(v),s.anchor=v,sn(!1),s.ensure(u,l),sn(!0);return}}s.ensure(u,l)}vr(()=>{var u=!1;t((l,c=0)=>{u=!0,i(c,l)}),u||i(-1,null)},o)}function Jt(n,t){return t}function di(n,t,r){for(var a=[],s=t.length,o,i=t.length,u=0;u<s;u++){let E=t[u];jn(E,()=>{if(o){if(o.pending.delete(E),o.done.add(E),o.pending.size===0){var T=n.outrogroups;ia(n,pr(o.done)),T.delete(o),T.size===0&&(n.outrogroups=null)}}else i-=1},!1)}if(i===0){var l=a.length===0&&r!==null;if(l){var c=r,v=c.parentNode;Ya(v),v.append(c),n.items.clear()}ia(n,t,!l)}else o={pending:new Set(t),done:new Set},(n.outrogroups??=new Set).add(o)}function ia(n,t,r=!0){var a;if(n.pending.size>0){a=new Set;for(const i of n.pending.values())for(const u of i)a.add(n.items.get(u).e)}for(var s=0;s<t.length;s++){var o=t[s];if(a?.has(o)){o.f|=33554432;const i=document.createDocumentFragment();na(o,i)}else Kt(t[s],r)}}var Ts;function Le(n,t,r,a,s,o=null){var i=n,u=new Map,l=(t&Ma)!==0;if(l){var c=n;i=Ze?Pt(Hn(c)):c.appendChild(qt())}Ze&&ir();var v=null,E=Qa(()=>{var se=r();return Ea(se)?se:se==null?[]:pr(se)}),T,B=new Map,L=!0;function q(se){(Z.effect.f&16384)===0&&(Z.pending.delete(se),Z.fallback=v,ui(Z,T,i,t,a),v!==null&&(T.length===0?(v.f&33554432)===0?ta(v):(v.f^=33554432,_r(v,null,i)):jn(v,()=>{v=null})))}function R(se){Z.pending.delete(se)}var G=vr(()=>{T=e(E);var se=T.length;let De=!1;if(Ze){var Ke=Ur(i)===Wr;Ke!==(se===0)&&(i=lr(),Pt(i),sn(!1),De=!0)}for(var ce=new Set,de=Et,nt=za(),Je=0;Je<se;Je+=1){Ze&&$e.nodeType===sr&&$e.data===qr&&(i=$e,De=!0,sn(!1));var ne=T[Je],$=a(ne,Je),qe=L?null:u.get($);qe?(qe.v&&Jn(qe.v,ne),qe.i&&Jn(qe.i,Je),nt&&de.unskip_effect(qe.e)):(qe=vi(u,L?i:Ts??=qt(),ne,$,Je,s,t,r),L||(qe.e.f|=33554432),u.set($,qe)),ce.add($)}if(se===0&&o&&!v&&(L?v=an(()=>o(i)):(v=an(()=>o(Ts??=qt())),v.f|=33554432)),se>ce.size&&eo(),Ze&&se>0&&Pt(lr()),!L)if(B.set(de,ce),nt){for(const[ut,vt]of u)ce.has(ut)||de.skip_effect(vt.e);de.oncommit(q),de.ondiscard(R)}else q(de);De&&sn(!0),e(E)}),Z={effect:G,items:u,pending:B,outrogroups:null,fallback:v};L=!1,Ze&&(i=$e)}function gr(n){for(;n!==null&&(n.f&32)===0;)n=n.next;return n}function ui(n,t,r,a,s){var o=(a&go)!==0,i=t.length,u=n.items,l=gr(n.effect.first),c,v=null,E,T=[],B=[],L,q,R,G;if(o)for(G=0;G<i;G+=1)L=t[G],q=s(L,G),R=u.get(q).e,(R.f&33554432)===0&&(R.nodes?.a?.measure(),(E??=new Set).add(R));for(G=0;G<i;G+=1){if(L=t[G],q=s(L,G),R=u.get(q).e,n.outrogroups!==null)for(const ne of n.outrogroups)ne.pending.delete(R),ne.done.delete(R);if((R.f&33554432)!==0)if(R.f^=33554432,R===l)_r(R,null,r);else{var Z=v?v.next:l;R===n.effect.last&&(n.effect.last=R.prev),R.prev&&(R.prev.next=R.next),R.next&&(R.next.prev=R.prev),Nn(n,v,R),Nn(n,R,Z),_r(R,Z,r),v=R,T=[],B=[],l=gr(v.next);continue}if((R.f&8192)!==0&&(ta(R),o&&(R.nodes?.a?.unfix(),(E??=new Set).delete(R))),R!==l){if(c!==void 0&&c.has(R)){if(T.length<B.length){var se=B[0],De;v=se.prev;var Ke=T[0],ce=T[T.length-1];for(De=0;De<T.length;De+=1)_r(T[De],se,r);for(De=0;De<B.length;De+=1)c.delete(B[De]);Nn(n,Ke.prev,ce.next),Nn(n,v,Ke),Nn(n,ce,se),l=se,v=ce,G-=1,T=[],B=[]}else c.delete(R),_r(R,l,r),Nn(n,R.prev,R.next),Nn(n,R,v===null?n.effect.first:v.next),Nn(n,v,R),v=R;continue}for(T=[],B=[];l!==null&&l!==R;)(c??=new Set).add(l),B.push(l),l=gr(l.next);if(l===null)continue}(R.f&33554432)===0&&T.push(R),v=R,l=gr(R.next)}if(n.outrogroups!==null){for(const ne of n.outrogroups)ne.pending.size===0&&(ia(n,pr(ne.done)),n.outrogroups?.delete(ne));n.outrogroups.size===0&&(n.outrogroups=null)}if(l!==null||c!==void 0){var de=[];if(c!==void 0)for(R of c)(R.f&8192)===0&&de.push(R);for(;l!==null;)(l.f&8192)===0&&l!==n.fallback&&de.push(l),l=gr(l.next);var nt=de.length;if(nt>0){var Je=(a&Ma)!==0&&i===0?r:null;if(o){for(G=0;G<nt;G+=1)de[G].nodes?.a?.measure();for(G=0;G<nt;G+=1)de[G].nodes?.a?.fix()}di(n,de,Je)}}o&&pn(()=>{if(E!==void 0)for(R of E)R.nodes?.a?.apply()})}function vi(n,t,r,a,s,o,i,u){var l=(i&fo)!==0?(i&_o)===0?ts(r,!1,!1):Sn(r):null,c=(i&ho)!==0?Sn(s):null;return{v:l,i:c,e:an(()=>(o(t,l??r,c??s,u),()=>{n.delete(a)}))}}function _r(n,t,r){if(n.nodes)for(var a=n.nodes.start,s=n.nodes.end,o=t&&(t.f&33554432)===0?t.nodes.start:r;a!==null;){var i=dn(a);if(o.before(a),a===s)return;a=i}}function Nn(n,t,r){t===null?n.effect.first=r:t.next=r,r===null?n.effect.last=t:r.prev=t}function fi(n,t,r){var a;Ze&&(a=$e,ir());var s=new oa(n);vr(()=>{var o=t()??null;if(Ze){var i=Ur(a),u=i===Br,l=o!==null;if(u!==l){var c=lr();Pt(c),s.anchor=c,sn(!1),s.ensure(o,o&&(v=>r(v,o))),sn(!0);return}}s.ensure(o,o&&(v=>r(v,o)))},65536)}const xs=[...` 	
-\r\f \v\uFEFF`];function hi(n,t,r){var a=n==null?"":""+n;if(r){for(var s of Object.keys(r))if(r[s])a=a?a+" "+s:s;else if(a.length)for(var o=s.length,i=0;(i=a.indexOf(s,i))>=0;){var u=i+o;(i===0||xs.includes(a[i-1]))&&(u===a.length||xs.includes(a[u]))?a=(i===0?"":a.substring(0,i))+a.substring(u+1):i=u}}return a===""?null:a}function ks(n,t=!1){var r=t?" !important;":";",a="";for(var s of Object.keys(n)){var o=n[s];o!=null&&o!==""&&(a+=" "+s+": "+o+r)}return a}function la(n){return n[0]!=="-"||n[1]!=="-"?n.toLowerCase():n}function gi(n,t){if(t){var r="",a,s;if(Array.isArray(t)?(a=t[0],s=t[1]):a=t,n){n=String(n).replaceAll(/\s*\/\*.*?\*\/\s*/g,"").trim();var o=!1,i=0,u=!1,l=[];a&&l.push(...Object.keys(a).map(la)),s&&l.push(...Object.keys(s).map(la));var c=0,v=-1;const q=n.length;for(var E=0;E<q;E++){var T=n[E];if(u?T==="/"&&n[E-1]==="*"&&(u=!1):o?o===T&&(o=!1):T==="/"&&n[E+1]==="*"?u=!0:T==='"'||T==="'"?o=T:T==="("?i++:T===")"&&i--,!u&&o===!1&&i===0){if(T===":"&&v===-1)v=E;else if(T===";"||E===q-1){if(v!==-1){var B=la(n.substring(c,v).trim());if(!l.includes(B)){T!==";"&&E++;var L=n.substring(c,E).trim();r+=" "+L+";"}}c=E+1,v=-1}}}}return a&&(r+=ks(a)),s&&(r+=ks(s,!0)),r=r.trim(),r===""?null:r}return n==null?null:String(n)}function xe(n,t,r,a,s,o){var i=n.__className;if(Ze||i!==r||i===void 0){var u=hi(r,a,o);(!Ze||u!==n.getAttribute("class"))&&(u==null?n.removeAttribute("class"):n.className=u),n.__className=r}else if(o&&s!==o)for(var l in o){var c=!!o[l];(s==null||c!==!!s[l])&&n.classList.toggle(l,c)}return o}function ca(n,t={},r,a){for(var s in r){var o=r[s];t[s]!==o&&(r[s]==null?n.style.removeProperty(s):n.style.setProperty(s,o,a))}}function je(n,t,r,a){var s=n.__style;if(Ze||s!==t){var o=gi(t,a);(!Ze||o!==n.getAttribute("style"))&&(o==null?n.removeAttribute("style"):n.style.cssText=o),n.__style=t}else a&&(Array.isArray(a)?(ca(n,r?.[0],a[0]),ca(n,r?.[1],a[1],"important")):ca(n,r,a));return a}const _i=Symbol("is custom element"),mi=Symbol("is html"),pi=Us?"link":"LINK";function _e(n,t,r,a){var s=wi(n);Ze&&(s[t]=n.getAttribute(t),t==="src"||t==="srcset"||t==="href"&&n.nodeName===pi)||s[t]!==(s[t]=r)&&(t==="loading"&&(n[qs]=r),r==null?n.removeAttribute(t):typeof r!="string"&&yi(n).includes(t)?n[t]=r:n.setAttribute(t,r))}function wi(n){return n.__attributes??={[_i]:n.nodeName.includes("-"),[mi]:n.namespaceURI===Aa}}var Ss=new Map;function yi(n){var t=n.getAttribute("is")||n.nodeName,r=Ss.get(t);if(r)return r;Ss.set(t,r=[]);for(var a,s=n,o=Element.prototype;o!==s;){a=Gs(s);for(var i in a)a[i].set&&r.push(i);s=Ta(s)}return r}function Cs(n,t){return n===t||n?.[Wn]===t}function Sr(n={},t,r,a){return Ko(()=>{var s,o;return hs(()=>{s=o,o=[],Rn(()=>{n!==r(...o)&&(t(n,...o),s&&Cs(r(...s),n)&&t(null,...s))})}),()=>{pn(()=>{o&&Cs(r(...o),n)&&t(null,...o)})}}),n}let Cr=!1;function bi(n){var t=Cr;try{return Cr=!1,[n(),Cr]}finally{Cr=t}}const Ei={get(n,t){if(!n.exclude.includes(t))return n.props[t]},set(n,t){return!1},getOwnPropertyDescriptor(n,t){if(!n.exclude.includes(t)&&t in n.props)return{enumerable:!0,configurable:!0,value:n.props[t]}},has(n,t){return n.exclude.includes(t)?!1:t in n.props},ownKeys(n){return Reflect.ownKeys(n.props).filter(t=>!n.exclude.includes(t))}};function da(n,t,r){return new Proxy({props:n,exclude:t},Ei)}const Di={get(n,t){let r=n.props.length;for(;r--;){let a=n.props[r];if(or(a)&&(a=a()),typeof a=="object"&&a!==null&&t in a)return a[t]}},set(n,t,r){let a=n.props.length;for(;a--;){let s=n.props[a];or(s)&&(s=s());const o=Dn(s,t);if(o&&o.set)return o.set(r),!0}return!1},getOwnPropertyDescriptor(n,t){let r=n.props.length;for(;r--;){let a=n.props[r];if(or(a)&&(a=a()),typeof a=="object"&&a!==null&&t in a){const s=Dn(a,t);return s&&!s.configurable&&(s.configurable=!0),s}}},has(n,t){if(t===Wn||t===zr)return!1;for(let r of n.props)if(or(r)&&(r=r()),r!=null&&t in r)return!0;return!1},ownKeys(n){const t=[];for(let r of n.props)if(or(r)&&(r=r()),!!r){for(const a in r)t.includes(a)||t.push(a);for(const a of Object.getOwnPropertySymbols(r))t.includes(a)||t.push(a)}return t}};function zn(...n){return new Proxy({props:n},Di)}function we(n,t,r,a){var s=(r&wo)!==0,o=(r&yo)!==0,i=a,u=!0,l=()=>(u&&(u=!1,i=o?Rn(a):a),i),c;if(s){var v=Wn in n||zr in n;c=Dn(n,t)?.set??(v&&t in n?Z=>n[t]=Z:void 0)}var E,T=!1;s?[E,T]=bi(()=>n[t]):E=n[t],E===void 0&&a!==void 0&&(E=l(),c&&(oo(),c(E)));var B;if(B=()=>{var Z=n[t];return Z===void 0?l():(u=!0,Z)},(r&po)===0)return B;if(c){var L=n.$$legacy;return(function(Z,se){return arguments.length>0?((!se||L||T)&&c(se?B():Z),Z):B()})}var q=!1,R=((r&mo)!==0?Tr:Qa)(()=>(q=!1,B()));s&&e(R);var G=tt;return(function(Z,se){if(arguments.length>0){const De=se?e(R):s?jt(Z):Z;return P(R,De),q=!0,i!==void 0&&(i=De),Z}return Cn&&q||(G.f&16384)!==0?R.v:e(R)})}class Ti extends Map{#e=new Map;#t=Re(0);#n=Re(0);#i=yn||-1;constructor(t){if(super(),t){for(var[r,a]of t)super.set(r,a);this.#n.v=super.size}}#r(t){return yn===this.#i?Re(t):Sn(t)}has(t){var r=this.#e,a=r.get(t);if(a===void 0)if(super.has(t))a=this.#r(0),r.set(t,a);else return e(this.#t),!1;return e(a),!0}forEach(t,r){this.#a(),super.forEach(t,r)}get(t){var r=this.#e,a=r.get(t);if(a===void 0)if(super.has(t))a=this.#r(0),r.set(t,a);else{e(this.#t);return}return e(a),super.get(t)}set(t,r){var a=this.#e,s=a.get(t),o=super.get(t),i=super.set(t,r),u=this.#t;if(s===void 0)s=this.#r(0),a.set(t,s),P(this.#n,super.size),vn(u);else if(o!==r){vn(s);var l=u.reactions===null?null:new Set(u.reactions),c=l===null||!s.reactions?.every(v=>l.has(v));c&&vn(u)}return i}delete(t){var r=this.#e,a=r.get(t),s=super.delete(t);return a!==void 0&&(r.delete(t),P(a,-1)),s&&(P(this.#n,super.size),vn(this.#t)),s}clear(){if(super.size!==0){super.clear();var t=this.#e;P(this.#n,0);for(var r of t.values())P(r,-1);vn(this.#t),t.clear()}}#a(){e(this.#t);var t=this.#e;if(this.#n.v!==t.size){for(var r of super.keys())if(!t.has(r)){var a=this.#r(0);t.set(r,a)}}for([,a]of this.#e)e(a)}keys(){return e(this.#t),super.keys()}values(){return this.#a(),super.values()}entries(){return this.#a(),super.entries()}[Symbol.iterator](){return this.entries()}get size(){return e(this.#n),super.size}}const Rs=Symbol.for("constructDateFrom");function Ms(n,t){return typeof n=="function"?n(t):n&&typeof n=="object"&&Rs in n?n[Rs](t):n instanceof Date?new n.constructor(t):new Date(t)}function Vn(n,t){return Ms(t||n,n)}function xi(n,t,r){const a=Vn(n,r?.in);return isNaN(t)?Ms(n,NaN):(t&&a.setDate(a.getDate()+t),a)}let ki={};function Si(){return ki}function Ci(n,t){const r=Si(),a=t?.weekStartsOn??t?.locale?.options?.weekStartsOn??r.weekStartsOn??r.locale?.options?.weekStartsOn??0,s=Vn(n,t?.in),o=s.getDay(),i=(o<a?7:0)+o-a;return s.setDate(s.getDate()-i),s.setHours(0,0,0,0),s}function Ri(n,t){const r=Vn(n,t?.in);return r.setHours(0,0,0,0),r}function Mi(n,t){return Vn(n,t?.in).getDate()}function Ns(n,t){return Vn(n,t?.in).getHours()}function As(n,t){return Vn(n,t?.in).getMinutes()}function Fs(n){return Vn(n).getSeconds()}const Ye=864e5,hn=36e5;Array.from({length:24},(n,t)=>t);function Ct(n){return Ri(n).getTime()}function er(n,t=!0){return Ci(n,{weekStartsOn:t?1:0}).getTime()}function ua(n,t){return xi(n,t).getTime()}function va(n){return n<10?"0"+n:""+n}function Ni(n){const t=new Date(n);return Ns(t)+As(t)/60+Fs(t)/3600}function Ai(n){const t=new Date(n);return va(Ns(t))+":"+va(As(t))}function Fi(n){return":"+va(Fs(new Date(n)))}function Ii(n){return Mi(new Date(n))}function Bt(n){return Ct(n.start.getTime())!==Ct(n.end.getTime()-1)}function zt(n){if(n.allDay)return!0;if(n.end.getTime()-n.start.getTime()<Ye)return!1;const r=n.start;return r.getHours()===0&&r.getMinutes()===0&&r.getSeconds()===0}function Rr(n,t){const r=Ct(t),a=r+Ye,s=n.start.getTime(),o=n.end.getTime();if(s>=a||o<=r)return null;const i=Ct(s),u=Ct(o-1),l=Math.floor((u-i)/Ye)+1,c=Math.floor((r-i)/Ye)+1;return{ev:n,start:new Date(Math.max(s,r)),end:new Date(Math.min(o,a)),isStart:r===i,isEnd:r===u,dayIndex:c,totalDays:l,allDay:zt(n)}}function Oi(n){let t=new Ti,r=Re(!1),a=Re(null);const s=m(()=>[...t.values()]);function o(l,c,v){return l.start<v&&l.end>c}function i(l){t.delete(l)}function u(l){t.set(l.id,l)}return{get events(){return e(s)},get loading(){return e(r)},get error(){return e(a)},async load(l){P(r,!0),P(a,null);try{const c=await n.fetchEvents(l);for(const v of c)u(v)}catch(c){P(a,c instanceof Error?c.message:String(c),!0)}finally{P(r,!1)}},forRange(l,c){return e(s).filter(v=>o(v,l,c))},forDay(l){const c=new Date(Ct(l.getTime())),v=new Date(c.getTime()+Ye);return e(s).filter(E=>o(E,c,v))},byId(l){return t.get(l)},async add(l){if(!n.createEvent)throw new Error("Adapter is read-only: createEvent not implemented");P(r,!0),P(a,null);try{const c=await n.createEvent(l);return u(c),c}catch(c){throw P(a,c instanceof Error?c.message:String(c),!0),c}finally{P(r,!1)}},async update(l,c){if(!n.updateEvent)throw new Error("Adapter is read-only: updateEvent not implemented");P(r,!0),P(a,null);try{const v=await n.updateEvent(l,c);u(v)}catch(v){throw P(a,v instanceof Error?v.message:String(v),!0),v}finally{P(r,!1)}},async remove(l){if(!n.deleteEvent)throw new Error("Adapter is read-only: deleteEvent not implemented");P(r,!0),P(a,null);try{await n.deleteEvent(l),i(l)}catch(c){throw P(a,c instanceof Error?c.message:String(c),!0),c}finally{P(r,!1)}},async move(l,c,v){const E=t.get(l);E&&u({...E,start:c,end:v});try{await this.update(l,{start:c,end:v})}catch(T){throw E&&u(E),T}}}}function Li(n){return n.startsWith("day")?"day":"week"}function Hi(n,t,r,a=7){if(t==="day"){const o=new Date(n);o.setHours(0,0,0,0);const i=new Date(o.getTime()+Ye);return{start:o,end:i}}if(a===7){const o=er(n.getTime(),r);return{start:new Date(o),end:new Date(ua(o,7))}}const s=new Date(n);return s.setHours(0,0,0,0),{start:s,end:new Date(s.getTime()+a*Ye)}}function Pi(n={}){let t=Re(jt(n.view??"week-planner")),r=Re(jt(n.initialDate??new Date)),a=Re(jt(n.mondayStart??!0)),s=Re(jt(n.dayCount??7));const o=n.timezone,i=n.modeForView,u=m(()=>i?.(e(t))??Li(e(t))),l=m(()=>Hi(e(r),e(u),e(a),e(s)));return{get view(){return e(t)},get focusDate(){return e(r)},get range(){return e(l)},get mode(){return e(u)},get mondayStart(){return e(a)},get timezone(){return o},get dayCount(){return e(s)},setView(c){P(t,c,!0)},setMondayStart(c){P(a,c,!0)},setFocusDate(c){P(r,c,!0)},setDayCount(c){P(s,c,!0)},next(){const c=e(u)==="day"?1:e(s);P(r,new Date(ua(e(r).getTime(),c)),!0)},prev(){const c=e(u)==="day"?-1:-e(s);P(r,new Date(ua(e(r).getTime(),c)),!0)},goToday(){P(r,new Date,!0)}}}function ji(){let n=Re(null),t=Re(null),r=Re(jt(new Set));return{get selectedId(){return e(n)},get hoveredId(){return e(t)},get selectedIds(){return e(r)},select(a){P(n,a,!0),P(r,new Set([a]),!0)},deselect(){P(n,null),P(r,new Set,!0)},toggle(a){const s=new Set(e(r));s.has(a)?s.delete(a):s.add(a),P(r,s,!0),P(n,s.size===1?[...s][0]:null,!0)},clear(){P(n,null),P(t,null),P(r,new Set,!0)},hover(a){P(t,a,!0)},isSelected(a){return e(r).has(a)}}}function Yi(){let n=Re("none"),t=Re(null);const r=m(()=>e(n)!=="none");function a(){P(n,"none"),P(t,null)}return{get mode(){return e(n)},get payload(){return e(t)},get active(){return e(r)},beginCreate(s,o,i=0){P(n,"create"),P(t,{eventId:null,start:s,end:o,dayIndex:i},!0)},beginMove(s,o,i){P(n,"move"),P(t,{eventId:s,start:o,end:i,dayIndex:0},!0)},beginResize(s,o,i,u){P(n,o==="start"?"resize-start":"resize-end",!0),P(t,{eventId:s,start:i,end:u,dayIndex:0},!0)},updatePointer(s,o,i){e(t)&&P(t,{...e(t),start:s,end:o,...i!==void 0?{dayIndex:i}:{}},!0)},commit(){const s=e(t);return a(),s},cancel(){a()}}}let zi={...{today:"Today",yesterday:"Yesterday",tomorrow:"Tomorrow",day:"Day",week:"Week",planner:"Planner",agenda:"Agenda",now:"now",free:"free",allDay:"All day",done:"Done",upNext:"Up next",until:"until",noEvents:"No events",nothingScheduled:"Nothing scheduled",nothingScheduledYet:"Nothing scheduled yet",nothingWasScheduled:"Nothing was scheduled",allDoneForToday:"All done for today",goToToday:"Go to today",previousDay:"Previous day",nextDay:"Next day",previousWeek:"Previous week",nextWeek:"Next week",calendar:"Calendar",viewMode:"View mode",dayNavigation:"Day navigation",weekNavigation:"Week navigation",dayPlanner:"Day planner",scrollableDayPlanner:"Scrollable day planner",todaysLineup:"Today's lineup",weekAhead:"Week ahead",multiWeekGrid:"Multi-week calendar grid",currentTime:"Current time",createEvent:"Create event",happeningNow:"happening now",past:"past",completed:"completed",inProgress:"in progress",nMore:n=>`+${n} more`,nEvents:n=>`${n} event${n===1?"":"s"}`,nCompleted:n=>`${n} completed`,dayNOfTotal:(n,t)=>`day ${n} of ${t}`,percentComplete:n=>`${n}% complete`}};function An(){return zi}let Mr="en-US";const fa=new Map;function Is(n){const t=n??Mr;if(fa.has(t))return fa.get(t);const r=new Intl.DateTimeFormat(t,{hour:"numeric"}).resolvedOptions(),a=r.hourCycle==="h23"||r.hourCycle==="h24";return fa.set(t,a),a}function Os(n,t){return Is(t)?String(n):n===0?"12a":n===12?"12p":n<12?n+"a":n-12+"p"}function Nr(n,t){return new Date(n).toLocaleDateString(t??Mr,{weekday:"short"})}function Vi(n,t){return new Date(n).toLocaleDateString(t??Mr,{weekday:"long"})}function ha(n,t){return new Date(n).toLocaleDateString(t??Mr,{month:"long"})}function En(n,t){if(Is(t)){const i=n.getHours(),u=n.getMinutes();return`${i}:${String(u).padStart(2,"0")}`}const r=n.getHours(),a=n.getMinutes(),s=r>=12?"p":"a";return`${r===0?12:r>12?r-12:r}:${String(a).padStart(2,"0")}${s}`}function Bi(n,t){const r=Math.round((t.getTime()-n.getTime())/6e4);if(r<60)return`${r}m`;const a=Math.floor(r/60),s=r%60;return s>0?`${a}h ${s}m`:`${a}h`}const Ar="",Ls={auto:Ar,neutral:`
+(function() {
+  "use strict";
+  const DERIVED = 1 << 1;
+  const EFFECT = 1 << 2;
+  const RENDER_EFFECT = 1 << 3;
+  const MANAGED_EFFECT = 1 << 24;
+  const BLOCK_EFFECT = 1 << 4;
+  const BRANCH_EFFECT = 1 << 5;
+  const ROOT_EFFECT = 1 << 6;
+  const BOUNDARY_EFFECT = 1 << 7;
+  const CONNECTED = 1 << 9;
+  const CLEAN = 1 << 10;
+  const DIRTY = 1 << 11;
+  const MAYBE_DIRTY = 1 << 12;
+  const INERT = 1 << 13;
+  const DESTROYED = 1 << 14;
+  const REACTION_RAN = 1 << 15;
+  const EFFECT_TRANSPARENT = 1 << 16;
+  const EAGER_EFFECT = 1 << 17;
+  const HEAD_EFFECT = 1 << 18;
+  const EFFECT_PRESERVED = 1 << 19;
+  const USER_EFFECT = 1 << 20;
+  const EFFECT_OFFSCREEN = 1 << 25;
+  const WAS_MARKED = 1 << 16;
+  const REACTION_IS_UPDATING = 1 << 21;
+  const ASYNC = 1 << 22;
+  const ERROR_VALUE = 1 << 23;
+  const STATE_SYMBOL = /* @__PURE__ */ Symbol("$state");
+  const LEGACY_PROPS = /* @__PURE__ */ Symbol("legacy props");
+  const LOADING_ATTR_SYMBOL = /* @__PURE__ */ Symbol("");
+  const STALE_REACTION = new class StaleReactionError extends Error {
+    name = "StaleReactionError";
+    message = "The reaction that called `getAbortSignal()` was re-run or destroyed";
+  }();
+  const IS_XHTML = (
+    // We gotta write it like this because after downleveling the pure comment may end up in the wrong location
+    !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml")
+  );
+  const TEXT_NODE = 3;
+  const COMMENT_NODE = 8;
+  const DEV = false;
+  var is_array = Array.isArray;
+  var index_of = Array.prototype.indexOf;
+  var includes = Array.prototype.includes;
+  var array_from = Array.from;
+  var define_property = Object.defineProperty;
+  var get_descriptor = Object.getOwnPropertyDescriptor;
+  var get_descriptors = Object.getOwnPropertyDescriptors;
+  var object_prototype = Object.prototype;
+  var array_prototype = Array.prototype;
+  var get_prototype_of = Object.getPrototypeOf;
+  var is_extensible = Object.isExtensible;
+  function is_function(thing) {
+    return typeof thing === "function";
+  }
+  const noop = () => {
+  };
+  function run_all(arr) {
+    for (var i = 0; i < arr.length; i++) {
+      arr[i]();
+    }
+  }
+  function deferred() {
+    var resolve;
+    var reject;
+    var promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  }
+  function equals(value) {
+    return value === this.v;
+  }
+  function safe_not_equal(a, b) {
+    return a != a ? b == b : a !== b || a !== null && typeof a === "object" || typeof a === "function";
+  }
+  function safe_equals(value) {
+    return !safe_not_equal(value, this.v);
+  }
+  function lifecycle_outside_component(name) {
+    {
+      throw new Error(`https://svelte.dev/e/lifecycle_outside_component`);
+    }
+  }
+  function async_derived_orphan() {
+    {
+      throw new Error(`https://svelte.dev/e/async_derived_orphan`);
+    }
+  }
+  function each_key_duplicate(a, b, value) {
+    {
+      throw new Error(`https://svelte.dev/e/each_key_duplicate`);
+    }
+  }
+  function effect_in_teardown(rune) {
+    {
+      throw new Error(`https://svelte.dev/e/effect_in_teardown`);
+    }
+  }
+  function effect_in_unowned_derived() {
+    {
+      throw new Error(`https://svelte.dev/e/effect_in_unowned_derived`);
+    }
+  }
+  function effect_orphan(rune) {
+    {
+      throw new Error(`https://svelte.dev/e/effect_orphan`);
+    }
+  }
+  function effect_update_depth_exceeded() {
+    {
+      throw new Error(`https://svelte.dev/e/effect_update_depth_exceeded`);
+    }
+  }
+  function hydration_failed() {
+    {
+      throw new Error(`https://svelte.dev/e/hydration_failed`);
+    }
+  }
+  function props_invalid_value(key) {
+    {
+      throw new Error(`https://svelte.dev/e/props_invalid_value`);
+    }
+  }
+  function state_descriptors_fixed() {
+    {
+      throw new Error(`https://svelte.dev/e/state_descriptors_fixed`);
+    }
+  }
+  function state_prototype_fixed() {
+    {
+      throw new Error(`https://svelte.dev/e/state_prototype_fixed`);
+    }
+  }
+  function state_unsafe_mutation() {
+    {
+      throw new Error(`https://svelte.dev/e/state_unsafe_mutation`);
+    }
+  }
+  function svelte_boundary_reset_onerror() {
+    {
+      throw new Error(`https://svelte.dev/e/svelte_boundary_reset_onerror`);
+    }
+  }
+  let tracing_mode_flag = false;
+  const EACH_ITEM_REACTIVE = 1;
+  const EACH_INDEX_REACTIVE = 1 << 1;
+  const EACH_IS_CONTROLLED = 1 << 2;
+  const EACH_IS_ANIMATED = 1 << 3;
+  const EACH_ITEM_IMMUTABLE = 1 << 4;
+  const PROPS_IS_IMMUTABLE = 1;
+  const PROPS_IS_UPDATED = 1 << 2;
+  const PROPS_IS_BINDABLE = 1 << 3;
+  const PROPS_IS_LAZY_INITIAL = 1 << 4;
+  const TEMPLATE_FRAGMENT = 1;
+  const TEMPLATE_USE_IMPORT_NODE = 1 << 1;
+  const HYDRATION_START = "[";
+  const HYDRATION_START_ELSE = "[!";
+  const HYDRATION_START_FAILED = "[?";
+  const HYDRATION_END = "]";
+  const HYDRATION_ERROR = {};
+  const UNINITIALIZED = /* @__PURE__ */ Symbol();
+  const NAMESPACE_HTML = "http://www.w3.org/1999/xhtml";
+  let component_context = null;
+  function set_component_context(context) {
+    component_context = context;
+  }
+  function getContext(key) {
+    const context_map = get_or_init_context_map();
+    const result = (
+      /** @type {T} */
+      context_map.get(key)
+    );
+    return result;
+  }
+  function setContext(key, context) {
+    const context_map = get_or_init_context_map();
+    context_map.set(key, context);
+    return context;
+  }
+  function push(props, runes = false, fn) {
+    component_context = {
+      p: component_context,
+      i: false,
+      c: null,
+      e: null,
+      s: props,
+      x: null,
+      l: null
+    };
+  }
+  function pop(component2) {
+    var context = (
+      /** @type {ComponentContext} */
+      component_context
+    );
+    var effects = context.e;
+    if (effects !== null) {
+      context.e = null;
+      for (var fn of effects) {
+        create_user_effect(fn);
+      }
+    }
+    context.i = true;
+    component_context = context.p;
+    return (
+      /** @type {T} */
+      {}
+    );
+  }
+  function is_runes() {
+    return true;
+  }
+  function get_or_init_context_map(name) {
+    if (component_context === null) {
+      lifecycle_outside_component();
+    }
+    return component_context.c ??= new Map(get_parent_context(component_context) || void 0);
+  }
+  function get_parent_context(component_context2) {
+    let parent = component_context2.p;
+    while (parent !== null) {
+      const context_map = parent.c;
+      if (context_map !== null) {
+        return context_map;
+      }
+      parent = parent.p;
+    }
+    return null;
+  }
+  let micro_tasks = [];
+  function run_micro_tasks() {
+    var tasks = micro_tasks;
+    micro_tasks = [];
+    run_all(tasks);
+  }
+  function queue_micro_task(fn) {
+    if (micro_tasks.length === 0 && !is_flushing_sync) {
+      var tasks = micro_tasks;
+      queueMicrotask(() => {
+        if (tasks === micro_tasks) run_micro_tasks();
+      });
+    }
+    micro_tasks.push(fn);
+  }
+  function flush_tasks() {
+    while (micro_tasks.length > 0) {
+      run_micro_tasks();
+    }
+  }
+  function hydration_mismatch(location) {
+    {
+      console.warn(`https://svelte.dev/e/hydration_mismatch`);
+    }
+  }
+  function svelte_boundary_reset_noop() {
+    {
+      console.warn(`https://svelte.dev/e/svelte_boundary_reset_noop`);
+    }
+  }
+  let hydrating = false;
+  function set_hydrating(value) {
+    hydrating = value;
+  }
+  let hydrate_node;
+  function set_hydrate_node(node) {
+    if (node === null) {
+      hydration_mismatch();
+      throw HYDRATION_ERROR;
+    }
+    return hydrate_node = node;
+  }
+  function hydrate_next() {
+    return set_hydrate_node(/* @__PURE__ */ get_next_sibling(hydrate_node));
+  }
+  function reset(node) {
+    if (!hydrating) return;
+    if (/* @__PURE__ */ get_next_sibling(hydrate_node) !== null) {
+      hydration_mismatch();
+      throw HYDRATION_ERROR;
+    }
+    hydrate_node = node;
+  }
+  function next(count = 1) {
+    if (hydrating) {
+      var i = count;
+      var node = hydrate_node;
+      while (i--) {
+        node = /** @type {TemplateNode} */
+        /* @__PURE__ */ get_next_sibling(node);
+      }
+      hydrate_node = node;
+    }
+  }
+  function skip_nodes(remove = true) {
+    var depth = 0;
+    var node = hydrate_node;
+    while (true) {
+      if (node.nodeType === COMMENT_NODE) {
+        var data = (
+          /** @type {Comment} */
+          node.data
+        );
+        if (data === HYDRATION_END) {
+          if (depth === 0) return node;
+          depth -= 1;
+        } else if (data === HYDRATION_START || data === HYDRATION_START_ELSE || // "[1", "[2", etc. for if blocks
+        data[0] === "[" && !isNaN(Number(data.slice(1)))) {
+          depth += 1;
+        }
+      }
+      var next2 = (
+        /** @type {TemplateNode} */
+        /* @__PURE__ */ get_next_sibling(node)
+      );
+      if (remove) node.remove();
+      node = next2;
+    }
+  }
+  function read_hydration_instruction(node) {
+    if (!node || node.nodeType !== COMMENT_NODE) {
+      hydration_mismatch();
+      throw HYDRATION_ERROR;
+    }
+    return (
+      /** @type {Comment} */
+      node.data
+    );
+  }
+  function proxy(value) {
+    if (typeof value !== "object" || value === null || STATE_SYMBOL in value) {
+      return value;
+    }
+    const prototype = get_prototype_of(value);
+    if (prototype !== object_prototype && prototype !== array_prototype) {
+      return value;
+    }
+    var sources = /* @__PURE__ */ new Map();
+    var is_proxied_array = is_array(value);
+    var version = /* @__PURE__ */ state(0);
+    var parent_version = update_version;
+    var with_parent = (fn) => {
+      if (update_version === parent_version) {
+        return fn();
+      }
+      var reaction = active_reaction;
+      var version2 = update_version;
+      set_active_reaction(null);
+      set_update_version(parent_version);
+      var result = fn();
+      set_active_reaction(reaction);
+      set_update_version(version2);
+      return result;
+    };
+    if (is_proxied_array) {
+      sources.set("length", /* @__PURE__ */ state(
+        /** @type {any[]} */
+        value.length
+      ));
+    }
+    return new Proxy(
+      /** @type {any} */
+      value,
+      {
+        defineProperty(_, prop2, descriptor) {
+          if (!("value" in descriptor) || descriptor.configurable === false || descriptor.enumerable === false || descriptor.writable === false) {
+            state_descriptors_fixed();
+          }
+          var s = sources.get(prop2);
+          if (s === void 0) {
+            with_parent(() => {
+              var s2 = /* @__PURE__ */ state(descriptor.value);
+              sources.set(prop2, s2);
+              return s2;
+            });
+          } else {
+            set(s, descriptor.value, true);
+          }
+          return true;
+        },
+        deleteProperty(target, prop2) {
+          var s = sources.get(prop2);
+          if (s === void 0) {
+            if (prop2 in target) {
+              const s2 = with_parent(() => /* @__PURE__ */ state(UNINITIALIZED));
+              sources.set(prop2, s2);
+              increment(version);
+            }
+          } else {
+            set(s, UNINITIALIZED);
+            increment(version);
+          }
+          return true;
+        },
+        get(target, prop2, receiver) {
+          if (prop2 === STATE_SYMBOL) {
+            return value;
+          }
+          var s = sources.get(prop2);
+          var exists = prop2 in target;
+          if (s === void 0 && (!exists || get_descriptor(target, prop2)?.writable)) {
+            s = with_parent(() => {
+              var p = proxy(exists ? target[prop2] : UNINITIALIZED);
+              var s2 = /* @__PURE__ */ state(p);
+              return s2;
+            });
+            sources.set(prop2, s);
+          }
+          if (s !== void 0) {
+            var v = get(s);
+            return v === UNINITIALIZED ? void 0 : v;
+          }
+          return Reflect.get(target, prop2, receiver);
+        },
+        getOwnPropertyDescriptor(target, prop2) {
+          var descriptor = Reflect.getOwnPropertyDescriptor(target, prop2);
+          if (descriptor && "value" in descriptor) {
+            var s = sources.get(prop2);
+            if (s) descriptor.value = get(s);
+          } else if (descriptor === void 0) {
+            var source2 = sources.get(prop2);
+            var value2 = source2?.v;
+            if (source2 !== void 0 && value2 !== UNINITIALIZED) {
+              return {
+                enumerable: true,
+                configurable: true,
+                value: value2,
+                writable: true
+              };
+            }
+          }
+          return descriptor;
+        },
+        has(target, prop2) {
+          if (prop2 === STATE_SYMBOL) {
+            return true;
+          }
+          var s = sources.get(prop2);
+          var has = s !== void 0 && s.v !== UNINITIALIZED || Reflect.has(target, prop2);
+          if (s !== void 0 || active_effect !== null && (!has || get_descriptor(target, prop2)?.writable)) {
+            if (s === void 0) {
+              s = with_parent(() => {
+                var p = has ? proxy(target[prop2]) : UNINITIALIZED;
+                var s2 = /* @__PURE__ */ state(p);
+                return s2;
+              });
+              sources.set(prop2, s);
+            }
+            var value2 = get(s);
+            if (value2 === UNINITIALIZED) {
+              return false;
+            }
+          }
+          return has;
+        },
+        set(target, prop2, value2, receiver) {
+          var s = sources.get(prop2);
+          var has = prop2 in target;
+          if (is_proxied_array && prop2 === "length") {
+            for (var i = value2; i < /** @type {Source<number>} */
+            s.v; i += 1) {
+              var other_s = sources.get(i + "");
+              if (other_s !== void 0) {
+                set(other_s, UNINITIALIZED);
+              } else if (i in target) {
+                other_s = with_parent(() => /* @__PURE__ */ state(UNINITIALIZED));
+                sources.set(i + "", other_s);
+              }
+            }
+          }
+          if (s === void 0) {
+            if (!has || get_descriptor(target, prop2)?.writable) {
+              s = with_parent(() => /* @__PURE__ */ state(void 0));
+              set(s, proxy(value2));
+              sources.set(prop2, s);
+            }
+          } else {
+            has = s.v !== UNINITIALIZED;
+            var p = with_parent(() => proxy(value2));
+            set(s, p);
+          }
+          var descriptor = Reflect.getOwnPropertyDescriptor(target, prop2);
+          if (descriptor?.set) {
+            descriptor.set.call(receiver, value2);
+          }
+          if (!has) {
+            if (is_proxied_array && typeof prop2 === "string") {
+              var ls = (
+                /** @type {Source<number>} */
+                sources.get("length")
+              );
+              var n = Number(prop2);
+              if (Number.isInteger(n) && n >= ls.v) {
+                set(ls, n + 1);
+              }
+            }
+            increment(version);
+          }
+          return true;
+        },
+        ownKeys(target) {
+          get(version);
+          var own_keys = Reflect.ownKeys(target).filter((key2) => {
+            var source3 = sources.get(key2);
+            return source3 === void 0 || source3.v !== UNINITIALIZED;
+          });
+          for (var [key, source2] of sources) {
+            if (source2.v !== UNINITIALIZED && !(key in target)) {
+              own_keys.push(key);
+            }
+          }
+          return own_keys;
+        },
+        setPrototypeOf() {
+          state_prototype_fixed();
+        }
+      }
+    );
+  }
+  var $window;
+  var is_firefox;
+  var first_child_getter;
+  var next_sibling_getter;
+  function init_operations() {
+    if ($window !== void 0) {
+      return;
+    }
+    $window = window;
+    is_firefox = /Firefox/.test(navigator.userAgent);
+    var element_prototype = Element.prototype;
+    var node_prototype = Node.prototype;
+    var text_prototype = Text.prototype;
+    first_child_getter = get_descriptor(node_prototype, "firstChild").get;
+    next_sibling_getter = get_descriptor(node_prototype, "nextSibling").get;
+    if (is_extensible(element_prototype)) {
+      element_prototype.__click = void 0;
+      element_prototype.__className = void 0;
+      element_prototype.__attributes = null;
+      element_prototype.__style = void 0;
+      element_prototype.__e = void 0;
+    }
+    if (is_extensible(text_prototype)) {
+      text_prototype.__t = void 0;
+    }
+  }
+  function create_text(value = "") {
+    return document.createTextNode(value);
+  }
+  // @__NO_SIDE_EFFECTS__
+  function get_first_child(node) {
+    return (
+      /** @type {TemplateNode | null} */
+      first_child_getter.call(node)
+    );
+  }
+  // @__NO_SIDE_EFFECTS__
+  function get_next_sibling(node) {
+    return (
+      /** @type {TemplateNode | null} */
+      next_sibling_getter.call(node)
+    );
+  }
+  function child(node, is_text) {
+    if (!hydrating) {
+      return /* @__PURE__ */ get_first_child(node);
+    }
+    var child2 = /* @__PURE__ */ get_first_child(hydrate_node);
+    if (child2 === null) {
+      child2 = hydrate_node.appendChild(create_text());
+    } else if (is_text && child2.nodeType !== TEXT_NODE) {
+      var text2 = create_text();
+      child2?.before(text2);
+      set_hydrate_node(text2);
+      return text2;
+    }
+    if (is_text) {
+      merge_text_nodes(
+        /** @type {Text} */
+        child2
+      );
+    }
+    set_hydrate_node(child2);
+    return child2;
+  }
+  function first_child(node, is_text = false) {
+    if (!hydrating) {
+      var first = /* @__PURE__ */ get_first_child(node);
+      if (first instanceof Comment && first.data === "") return /* @__PURE__ */ get_next_sibling(first);
+      return first;
+    }
+    if (is_text) {
+      if (hydrate_node?.nodeType !== TEXT_NODE) {
+        var text2 = create_text();
+        hydrate_node?.before(text2);
+        set_hydrate_node(text2);
+        return text2;
+      }
+      merge_text_nodes(
+        /** @type {Text} */
+        hydrate_node
+      );
+    }
+    return hydrate_node;
+  }
+  function sibling(node, count = 1, is_text = false) {
+    let next_sibling = hydrating ? hydrate_node : node;
+    var last_sibling;
+    while (count--) {
+      last_sibling = next_sibling;
+      next_sibling = /** @type {TemplateNode} */
+      /* @__PURE__ */ get_next_sibling(next_sibling);
+    }
+    if (!hydrating) {
+      return next_sibling;
+    }
+    if (is_text) {
+      if (next_sibling?.nodeType !== TEXT_NODE) {
+        var text2 = create_text();
+        if (next_sibling === null) {
+          last_sibling?.after(text2);
+        } else {
+          next_sibling.before(text2);
+        }
+        set_hydrate_node(text2);
+        return text2;
+      }
+      merge_text_nodes(
+        /** @type {Text} */
+        next_sibling
+      );
+    }
+    set_hydrate_node(next_sibling);
+    return next_sibling;
+  }
+  function clear_text_content(node) {
+    node.textContent = "";
+  }
+  function should_defer_append() {
+    return false;
+  }
+  function create_element(tag, namespace, is) {
+    let options = void 0;
+    return (
+      /** @type {T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : Element} */
+      document.createElementNS(NAMESPACE_HTML, tag, options)
+    );
+  }
+  function merge_text_nodes(text2) {
+    if (
+      /** @type {string} */
+      text2.nodeValue.length < 65536
+    ) {
+      return;
+    }
+    let next2 = text2.nextSibling;
+    while (next2 !== null && next2.nodeType === TEXT_NODE) {
+      next2.remove();
+      text2.nodeValue += /** @type {string} */
+      next2.nodeValue;
+      next2 = text2.nextSibling;
+    }
+  }
+  function handle_error(error) {
+    var effect2 = active_effect;
+    if (effect2 === null) {
+      active_reaction.f |= ERROR_VALUE;
+      return error;
+    }
+    if ((effect2.f & REACTION_RAN) === 0 && (effect2.f & EFFECT) === 0) {
+      throw error;
+    }
+    invoke_error_boundary(error, effect2);
+  }
+  function invoke_error_boundary(error, effect2) {
+    while (effect2 !== null) {
+      if ((effect2.f & BOUNDARY_EFFECT) !== 0) {
+        if ((effect2.f & REACTION_RAN) === 0) {
+          throw error;
+        }
+        try {
+          effect2.b.error(error);
+          return;
+        } catch (e) {
+          error = e;
+        }
+      }
+      effect2 = effect2.parent;
+    }
+    throw error;
+  }
+  const STATUS_MASK = -7169;
+  function set_signal_status(signal, status) {
+    signal.f = signal.f & STATUS_MASK | status;
+  }
+  function update_derived_status(derived2) {
+    if ((derived2.f & CONNECTED) !== 0 || derived2.deps === null) {
+      set_signal_status(derived2, CLEAN);
+    } else {
+      set_signal_status(derived2, MAYBE_DIRTY);
+    }
+  }
+  function clear_marked(deps) {
+    if (deps === null) return;
+    for (const dep of deps) {
+      if ((dep.f & DERIVED) === 0 || (dep.f & WAS_MARKED) === 0) {
+        continue;
+      }
+      dep.f ^= WAS_MARKED;
+      clear_marked(
+        /** @type {Derived} */
+        dep.deps
+      );
+    }
+  }
+  function defer_effect(effect2, dirty_effects, maybe_dirty_effects) {
+    if ((effect2.f & DIRTY) !== 0) {
+      dirty_effects.add(effect2);
+    } else if ((effect2.f & MAYBE_DIRTY) !== 0) {
+      maybe_dirty_effects.add(effect2);
+    }
+    clear_marked(effect2.deps);
+    set_signal_status(effect2, CLEAN);
+  }
+  const batches = /* @__PURE__ */ new Set();
+  let current_batch = null;
+  let batch_values = null;
+  let queued_root_effects = [];
+  let last_scheduled_effect = null;
+  let is_flushing_sync = false;
+  let collected_effects = null;
+  let uid$1 = 1;
+  class Batch {
+    // for debugging. TODO remove once async is stable
+    id = uid$1++;
+    /**
+     * The current values of any sources that are updated in this batch
+     * They keys of this map are identical to `this.#previous`
+     * @type {Map<Source, any>}
+     */
+    current = /* @__PURE__ */ new Map();
+    /**
+     * The values of any sources that are updated in this batch _before_ those updates took place.
+     * They keys of this map are identical to `this.#current`
+     * @type {Map<Source, any>}
+     */
+    previous = /* @__PURE__ */ new Map();
+    /**
+     * When the batch is committed (and the DOM is updated), we need to remove old branches
+     * and append new ones by calling the functions added inside (if/each/key/etc) blocks
+     * @type {Set<(batch: Batch) => void>}
+     */
+    #commit_callbacks = /* @__PURE__ */ new Set();
+    /**
+     * If a fork is discarded, we need to destroy any effects that are no longer needed
+     * @type {Set<(batch: Batch) => void>}
+     */
+    #discard_callbacks = /* @__PURE__ */ new Set();
+    /**
+     * The number of async effects that are currently in flight
+     */
+    #pending = 0;
+    /**
+     * The number of async effects that are currently in flight, _not_ inside a pending boundary
+     */
+    #blocking_pending = 0;
+    /**
+     * A deferred that resolves when the batch is committed, used with `settled()`
+     * TODO replace with Promise.withResolvers once supported widely enough
+     * @type {{ promise: Promise<void>, resolve: (value?: any) => void, reject: (reason: unknown) => void } | null}
+     */
+    #deferred = null;
+    /**
+     * Deferred effects (which run after async work has completed) that are DIRTY
+     * @type {Set<Effect>}
+     */
+    #dirty_effects = /* @__PURE__ */ new Set();
+    /**
+     * Deferred effects that are MAYBE_DIRTY
+     * @type {Set<Effect>}
+     */
+    #maybe_dirty_effects = /* @__PURE__ */ new Set();
+    /**
+     * A map of branches that still exist, but will be destroyed when this batch
+     * is committed — we skip over these during `process`.
+     * The value contains child effects that were dirty/maybe_dirty before being reset,
+     * so they can be rescheduled if the branch survives.
+     * @type {Map<Effect, { d: Effect[], m: Effect[] }>}
+     */
+    #skipped_branches = /* @__PURE__ */ new Map();
+    is_fork = false;
+    #decrement_queued = false;
+    #is_deferred() {
+      return this.is_fork || this.#blocking_pending > 0;
+    }
+    /**
+     * Add an effect to the #skipped_branches map and reset its children
+     * @param {Effect} effect
+     */
+    skip_effect(effect2) {
+      if (!this.#skipped_branches.has(effect2)) {
+        this.#skipped_branches.set(effect2, { d: [], m: [] });
+      }
+    }
+    /**
+     * Remove an effect from the #skipped_branches map and reschedule
+     * any tracked dirty/maybe_dirty child effects
+     * @param {Effect} effect
+     */
+    unskip_effect(effect2) {
+      var tracked = this.#skipped_branches.get(effect2);
+      if (tracked) {
+        this.#skipped_branches.delete(effect2);
+        for (var e of tracked.d) {
+          set_signal_status(e, DIRTY);
+          schedule_effect(e);
+        }
+        for (e of tracked.m) {
+          set_signal_status(e, MAYBE_DIRTY);
+          schedule_effect(e);
+        }
+      }
+    }
+    /**
+     *
+     * @param {Effect[]} root_effects
+     */
+    process(root_effects) {
+      queued_root_effects = [];
+      this.apply();
+      var effects = collected_effects = [];
+      var render_effects = [];
+      for (const root2 of root_effects) {
+        this.#traverse_effect_tree(root2, effects, render_effects);
+      }
+      collected_effects = null;
+      if (this.#is_deferred()) {
+        this.#defer_effects(render_effects);
+        this.#defer_effects(effects);
+        for (const [e, t] of this.#skipped_branches) {
+          reset_branch(e, t);
+        }
+      } else {
+        current_batch = null;
+        for (const fn of this.#commit_callbacks) fn(this);
+        this.#commit_callbacks.clear();
+        if (this.#pending === 0) {
+          this.#commit();
+        }
+        flush_queued_effects(render_effects);
+        flush_queued_effects(effects);
+        this.#dirty_effects.clear();
+        this.#maybe_dirty_effects.clear();
+        this.#deferred?.resolve();
+      }
+      batch_values = null;
+    }
+    /**
+     * Traverse the effect tree, executing effects or stashing
+     * them for later execution as appropriate
+     * @param {Effect} root
+     * @param {Effect[]} effects
+     * @param {Effect[]} render_effects
+     */
+    #traverse_effect_tree(root2, effects, render_effects) {
+      root2.f ^= CLEAN;
+      var effect2 = root2.first;
+      while (effect2 !== null) {
+        var flags2 = effect2.f;
+        var is_branch = (flags2 & (BRANCH_EFFECT | ROOT_EFFECT)) !== 0;
+        var is_skippable_branch = is_branch && (flags2 & CLEAN) !== 0;
+        var inert = (flags2 & INERT) !== 0;
+        var skip = is_skippable_branch || this.#skipped_branches.has(effect2);
+        if (!skip && effect2.fn !== null) {
+          if (is_branch) {
+            if (!inert) effect2.f ^= CLEAN;
+          } else if ((flags2 & EFFECT) !== 0) {
+            effects.push(effect2);
+          } else if ((flags2 & (RENDER_EFFECT | MANAGED_EFFECT)) !== 0 && inert) {
+            render_effects.push(effect2);
+          } else if (is_dirty(effect2)) {
+            update_effect(effect2);
+            if ((flags2 & BLOCK_EFFECT) !== 0) {
+              this.#maybe_dirty_effects.add(effect2);
+              if (inert) set_signal_status(effect2, DIRTY);
+            }
+          }
+          var child2 = effect2.first;
+          if (child2 !== null) {
+            effect2 = child2;
+            continue;
+          }
+        }
+        while (effect2 !== null) {
+          var next2 = effect2.next;
+          if (next2 !== null) {
+            effect2 = next2;
+            break;
+          }
+          effect2 = effect2.parent;
+        }
+      }
+    }
+    /**
+     * @param {Effect[]} effects
+     */
+    #defer_effects(effects) {
+      for (var i = 0; i < effects.length; i += 1) {
+        defer_effect(effects[i], this.#dirty_effects, this.#maybe_dirty_effects);
+      }
+    }
+    /**
+     * Associate a change to a given source with the current
+     * batch, noting its previous and current values
+     * @param {Source} source
+     * @param {any} value
+     */
+    capture(source2, value) {
+      if (value !== UNINITIALIZED && !this.previous.has(source2)) {
+        this.previous.set(source2, value);
+      }
+      if ((source2.f & ERROR_VALUE) === 0) {
+        this.current.set(source2, source2.v);
+        batch_values?.set(source2, source2.v);
+      }
+    }
+    activate() {
+      current_batch = this;
+      this.apply();
+    }
+    deactivate() {
+      if (current_batch !== this) return;
+      current_batch = null;
+      batch_values = null;
+    }
+    flush() {
+      if (queued_root_effects.length > 0) {
+        current_batch = this;
+        flush_effects();
+      } else if (this.#pending === 0 && !this.is_fork) {
+        for (const fn of this.#commit_callbacks) fn(this);
+        this.#commit_callbacks.clear();
+        this.#commit();
+        this.#deferred?.resolve();
+      }
+      this.deactivate();
+    }
+    discard() {
+      for (const fn of this.#discard_callbacks) fn(this);
+      this.#discard_callbacks.clear();
+    }
+    #commit() {
+      if (batches.size > 1) {
+        this.previous.clear();
+        var previous_batch = current_batch;
+        var previous_batch_values = batch_values;
+        var is_earlier = true;
+        for (const batch of batches) {
+          if (batch === this) {
+            is_earlier = false;
+            continue;
+          }
+          const sources = [];
+          for (const [source2, value] of this.current) {
+            if (batch.current.has(source2)) {
+              if (is_earlier && value !== batch.current.get(source2)) {
+                batch.current.set(source2, value);
+              } else {
+                continue;
+              }
+            }
+            sources.push(source2);
+          }
+          if (sources.length === 0) {
+            continue;
+          }
+          const others = [...batch.current.keys()].filter((s) => !this.current.has(s));
+          if (others.length > 0) {
+            var prev_queued_root_effects = queued_root_effects;
+            queued_root_effects = [];
+            const marked = /* @__PURE__ */ new Set();
+            const checked = /* @__PURE__ */ new Map();
+            for (const source2 of sources) {
+              mark_effects(source2, others, marked, checked);
+            }
+            if (queued_root_effects.length > 0) {
+              current_batch = batch;
+              batch.apply();
+              for (const root2 of queued_root_effects) {
+                batch.#traverse_effect_tree(root2, [], []);
+              }
+              batch.deactivate();
+            }
+            queued_root_effects = prev_queued_root_effects;
+          }
+        }
+        current_batch = previous_batch;
+        batch_values = previous_batch_values;
+      }
+      this.#skipped_branches.clear();
+      batches.delete(this);
+    }
+    /**
+     *
+     * @param {boolean} blocking
+     */
+    increment(blocking) {
+      this.#pending += 1;
+      if (blocking) this.#blocking_pending += 1;
+    }
+    /**
+     *
+     * @param {boolean} blocking
+     */
+    decrement(blocking) {
+      this.#pending -= 1;
+      if (blocking) this.#blocking_pending -= 1;
+      if (this.#decrement_queued) return;
+      this.#decrement_queued = true;
+      queue_micro_task(() => {
+        this.#decrement_queued = false;
+        if (!this.#is_deferred()) {
+          this.revive();
+        } else if (queued_root_effects.length > 0) {
+          this.flush();
+        }
+      });
+    }
+    revive() {
+      for (const e of this.#dirty_effects) {
+        this.#maybe_dirty_effects.delete(e);
+        set_signal_status(e, DIRTY);
+        schedule_effect(e);
+      }
+      for (const e of this.#maybe_dirty_effects) {
+        set_signal_status(e, MAYBE_DIRTY);
+        schedule_effect(e);
+      }
+      this.flush();
+    }
+    /** @param {(batch: Batch) => void} fn */
+    oncommit(fn) {
+      this.#commit_callbacks.add(fn);
+    }
+    /** @param {(batch: Batch) => void} fn */
+    ondiscard(fn) {
+      this.#discard_callbacks.add(fn);
+    }
+    settled() {
+      return (this.#deferred ??= deferred()).promise;
+    }
+    static ensure() {
+      if (current_batch === null) {
+        const batch = current_batch = new Batch();
+        batches.add(current_batch);
+        if (!is_flushing_sync) {
+          queue_micro_task(() => {
+            if (current_batch !== batch) {
+              return;
+            }
+            batch.flush();
+          });
+        }
+      }
+      return current_batch;
+    }
+    apply() {
+      return;
+    }
+  }
+  function flushSync(fn) {
+    var was_flushing_sync = is_flushing_sync;
+    is_flushing_sync = true;
+    try {
+      var result;
+      if (fn) ;
+      while (true) {
+        flush_tasks();
+        if (queued_root_effects.length === 0) {
+          current_batch?.flush();
+          if (queued_root_effects.length === 0) {
+            last_scheduled_effect = null;
+            return (
+              /** @type {T} */
+              result
+            );
+          }
+        }
+        flush_effects();
+      }
+    } finally {
+      is_flushing_sync = was_flushing_sync;
+    }
+  }
+  function flush_effects() {
+    var source_stacks = null;
+    try {
+      var flush_count = 0;
+      while (queued_root_effects.length > 0) {
+        var batch = Batch.ensure();
+        if (flush_count++ > 1e3) {
+          var updates, entry;
+          if (DEV) ;
+          infinite_loop_guard();
+        }
+        batch.process(queued_root_effects);
+        old_values.clear();
+        if (DEV) ;
+      }
+    } finally {
+      queued_root_effects = [];
+      last_scheduled_effect = null;
+      collected_effects = null;
+    }
+  }
+  function infinite_loop_guard() {
+    try {
+      effect_update_depth_exceeded();
+    } catch (error) {
+      invoke_error_boundary(error, last_scheduled_effect);
+    }
+  }
+  let eager_block_effects = null;
+  function flush_queued_effects(effects) {
+    var length = effects.length;
+    if (length === 0) return;
+    var i = 0;
+    while (i < length) {
+      var effect2 = effects[i++];
+      if ((effect2.f & (DESTROYED | INERT)) === 0 && is_dirty(effect2)) {
+        eager_block_effects = /* @__PURE__ */ new Set();
+        update_effect(effect2);
+        if (effect2.deps === null && effect2.first === null && effect2.nodes === null && effect2.teardown === null && effect2.ac === null) {
+          unlink_effect(effect2);
+        }
+        if (eager_block_effects?.size > 0) {
+          old_values.clear();
+          for (const e of eager_block_effects) {
+            if ((e.f & (DESTROYED | INERT)) !== 0) continue;
+            const ordered_effects = [e];
+            let ancestor = e.parent;
+            while (ancestor !== null) {
+              if (eager_block_effects.has(ancestor)) {
+                eager_block_effects.delete(ancestor);
+                ordered_effects.push(ancestor);
+              }
+              ancestor = ancestor.parent;
+            }
+            for (let j = ordered_effects.length - 1; j >= 0; j--) {
+              const e2 = ordered_effects[j];
+              if ((e2.f & (DESTROYED | INERT)) !== 0) continue;
+              update_effect(e2);
+            }
+          }
+          eager_block_effects.clear();
+        }
+      }
+    }
+    eager_block_effects = null;
+  }
+  function mark_effects(value, sources, marked, checked) {
+    if (marked.has(value)) return;
+    marked.add(value);
+    if (value.reactions !== null) {
+      for (const reaction of value.reactions) {
+        const flags2 = reaction.f;
+        if ((flags2 & DERIVED) !== 0) {
+          mark_effects(
+            /** @type {Derived} */
+            reaction,
+            sources,
+            marked,
+            checked
+          );
+        } else if ((flags2 & (ASYNC | BLOCK_EFFECT)) !== 0 && (flags2 & DIRTY) === 0 && depends_on(reaction, sources, checked)) {
+          set_signal_status(reaction, DIRTY);
+          schedule_effect(
+            /** @type {Effect} */
+            reaction
+          );
+        }
+      }
+    }
+  }
+  function depends_on(reaction, sources, checked) {
+    const depends = checked.get(reaction);
+    if (depends !== void 0) return depends;
+    if (reaction.deps !== null) {
+      for (const dep of reaction.deps) {
+        if (includes.call(sources, dep)) {
+          return true;
+        }
+        if ((dep.f & DERIVED) !== 0 && depends_on(
+          /** @type {Derived} */
+          dep,
+          sources,
+          checked
+        )) {
+          checked.set(
+            /** @type {Derived} */
+            dep,
+            true
+          );
+          return true;
+        }
+      }
+    }
+    checked.set(reaction, false);
+    return false;
+  }
+  function schedule_effect(signal) {
+    var effect2 = last_scheduled_effect = signal;
+    var boundary2 = effect2.b;
+    if (boundary2?.is_pending && (signal.f & (EFFECT | RENDER_EFFECT | MANAGED_EFFECT)) !== 0 && (signal.f & REACTION_RAN) === 0) {
+      boundary2.defer_effect(signal);
+      return;
+    }
+    while (effect2.parent !== null) {
+      effect2 = effect2.parent;
+      var flags2 = effect2.f;
+      if (collected_effects !== null && effect2 === active_effect) {
+        if ((signal.f & RENDER_EFFECT) === 0) {
+          return;
+        }
+      }
+      if ((flags2 & (ROOT_EFFECT | BRANCH_EFFECT)) !== 0) {
+        if ((flags2 & CLEAN) === 0) {
+          return;
+        }
+        effect2.f ^= CLEAN;
+      }
+    }
+    queued_root_effects.push(effect2);
+  }
+  function reset_branch(effect2, tracked) {
+    if ((effect2.f & BRANCH_EFFECT) !== 0 && (effect2.f & CLEAN) !== 0) {
+      return;
+    }
+    if ((effect2.f & DIRTY) !== 0) {
+      tracked.d.push(effect2);
+    } else if ((effect2.f & MAYBE_DIRTY) !== 0) {
+      tracked.m.push(effect2);
+    }
+    set_signal_status(effect2, CLEAN);
+    var e = effect2.first;
+    while (e !== null) {
+      reset_branch(e, tracked);
+      e = e.next;
+    }
+  }
+  function createSubscriber(start) {
+    let subscribers = 0;
+    let version = source(0);
+    let stop;
+    return () => {
+      if (effect_tracking()) {
+        get(version);
+        render_effect(() => {
+          if (subscribers === 0) {
+            stop = untrack(() => start(() => increment(version)));
+          }
+          subscribers += 1;
+          return () => {
+            queue_micro_task(() => {
+              subscribers -= 1;
+              if (subscribers === 0) {
+                stop?.();
+                stop = void 0;
+                increment(version);
+              }
+            });
+          };
+        });
+      }
+    };
+  }
+  var flags = EFFECT_TRANSPARENT | EFFECT_PRESERVED;
+  function boundary(node, props, children, transform_error) {
+    new Boundary(node, props, children, transform_error);
+  }
+  class Boundary {
+    /** @type {Boundary | null} */
+    parent;
+    is_pending = false;
+    /**
+     * API-level transformError transform function. Transforms errors before they reach the `failed` snippet.
+     * Inherited from parent boundary, or defaults to identity.
+     * @type {(error: unknown) => unknown}
+     */
+    transform_error;
+    /** @type {TemplateNode} */
+    #anchor;
+    /** @type {TemplateNode | null} */
+    #hydrate_open = hydrating ? hydrate_node : null;
+    /** @type {BoundaryProps} */
+    #props;
+    /** @type {((anchor: Node) => void)} */
+    #children;
+    /** @type {Effect} */
+    #effect;
+    /** @type {Effect | null} */
+    #main_effect = null;
+    /** @type {Effect | null} */
+    #pending_effect = null;
+    /** @type {Effect | null} */
+    #failed_effect = null;
+    /** @type {DocumentFragment | null} */
+    #offscreen_fragment = null;
+    #local_pending_count = 0;
+    #pending_count = 0;
+    #pending_count_update_queued = false;
+    /** @type {Set<Effect>} */
+    #dirty_effects = /* @__PURE__ */ new Set();
+    /** @type {Set<Effect>} */
+    #maybe_dirty_effects = /* @__PURE__ */ new Set();
+    /**
+     * A source containing the number of pending async deriveds/expressions.
+     * Only created if `$effect.pending()` is used inside the boundary,
+     * otherwise updating the source results in needless `Batch.ensure()`
+     * calls followed by no-op flushes
+     * @type {Source<number> | null}
+     */
+    #effect_pending = null;
+    #effect_pending_subscriber = createSubscriber(() => {
+      this.#effect_pending = source(this.#local_pending_count);
+      return () => {
+        this.#effect_pending = null;
+      };
+    });
+    /**
+     * @param {TemplateNode} node
+     * @param {BoundaryProps} props
+     * @param {((anchor: Node) => void)} children
+     * @param {((error: unknown) => unknown) | undefined} [transform_error]
+     */
+    constructor(node, props, children, transform_error) {
+      this.#anchor = node;
+      this.#props = props;
+      this.#children = (anchor) => {
+        var effect2 = (
+          /** @type {Effect} */
+          active_effect
+        );
+        effect2.b = this;
+        effect2.f |= BOUNDARY_EFFECT;
+        children(anchor);
+      };
+      this.parent = /** @type {Effect} */
+      active_effect.b;
+      this.transform_error = transform_error ?? this.parent?.transform_error ?? ((e) => e);
+      this.#effect = block(() => {
+        if (hydrating) {
+          const comment2 = (
+            /** @type {Comment} */
+            this.#hydrate_open
+          );
+          hydrate_next();
+          const server_rendered_pending = comment2.data === HYDRATION_START_ELSE;
+          const server_rendered_failed = comment2.data.startsWith(HYDRATION_START_FAILED);
+          if (server_rendered_failed) {
+            const serialized_error = JSON.parse(comment2.data.slice(HYDRATION_START_FAILED.length));
+            this.#hydrate_failed_content(serialized_error);
+          } else if (server_rendered_pending) {
+            this.#hydrate_pending_content();
+          } else {
+            this.#hydrate_resolved_content();
+          }
+        } else {
+          this.#render();
+        }
+      }, flags);
+      if (hydrating) {
+        this.#anchor = hydrate_node;
+      }
+    }
+    #hydrate_resolved_content() {
+      try {
+        this.#main_effect = branch(() => this.#children(this.#anchor));
+      } catch (error) {
+        this.error(error);
+      }
+    }
+    /**
+     * @param {unknown} error The deserialized error from the server's hydration comment
+     */
+    #hydrate_failed_content(error) {
+      const failed = this.#props.failed;
+      if (!failed) return;
+      this.#failed_effect = branch(() => {
+        failed(
+          this.#anchor,
+          () => error,
+          () => () => {
+          }
+        );
+      });
+    }
+    #hydrate_pending_content() {
+      const pending = this.#props.pending;
+      if (!pending) return;
+      this.is_pending = true;
+      this.#pending_effect = branch(() => pending(this.#anchor));
+      queue_micro_task(() => {
+        var fragment = this.#offscreen_fragment = document.createDocumentFragment();
+        var anchor = create_text();
+        fragment.append(anchor);
+        this.#main_effect = this.#run(() => {
+          Batch.ensure();
+          return branch(() => this.#children(anchor));
+        });
+        if (this.#pending_count === 0) {
+          this.#anchor.before(fragment);
+          this.#offscreen_fragment = null;
+          pause_effect(
+            /** @type {Effect} */
+            this.#pending_effect,
+            () => {
+              this.#pending_effect = null;
+            }
+          );
+          this.#resolve();
+        }
+      });
+    }
+    #render() {
+      try {
+        this.is_pending = this.has_pending_snippet();
+        this.#pending_count = 0;
+        this.#local_pending_count = 0;
+        this.#main_effect = branch(() => {
+          this.#children(this.#anchor);
+        });
+        if (this.#pending_count > 0) {
+          var fragment = this.#offscreen_fragment = document.createDocumentFragment();
+          move_effect(this.#main_effect, fragment);
+          const pending = (
+            /** @type {(anchor: Node) => void} */
+            this.#props.pending
+          );
+          this.#pending_effect = branch(() => pending(this.#anchor));
+        } else {
+          this.#resolve();
+        }
+      } catch (error) {
+        this.error(error);
+      }
+    }
+    #resolve() {
+      this.is_pending = false;
+      for (const e of this.#dirty_effects) {
+        set_signal_status(e, DIRTY);
+        schedule_effect(e);
+      }
+      for (const e of this.#maybe_dirty_effects) {
+        set_signal_status(e, MAYBE_DIRTY);
+        schedule_effect(e);
+      }
+      this.#dirty_effects.clear();
+      this.#maybe_dirty_effects.clear();
+    }
+    /**
+     * Defer an effect inside a pending boundary until the boundary resolves
+     * @param {Effect} effect
+     */
+    defer_effect(effect2) {
+      defer_effect(effect2, this.#dirty_effects, this.#maybe_dirty_effects);
+    }
+    /**
+     * Returns `false` if the effect exists inside a boundary whose pending snippet is shown
+     * @returns {boolean}
+     */
+    is_rendered() {
+      return !this.is_pending && (!this.parent || this.parent.is_rendered());
+    }
+    has_pending_snippet() {
+      return !!this.#props.pending;
+    }
+    /**
+     * @template T
+     * @param {() => T} fn
+     */
+    #run(fn) {
+      var previous_effect = active_effect;
+      var previous_reaction = active_reaction;
+      var previous_ctx = component_context;
+      set_active_effect(this.#effect);
+      set_active_reaction(this.#effect);
+      set_component_context(this.#effect.ctx);
+      try {
+        return fn();
+      } catch (e) {
+        handle_error(e);
+        return null;
+      } finally {
+        set_active_effect(previous_effect);
+        set_active_reaction(previous_reaction);
+        set_component_context(previous_ctx);
+      }
+    }
+    /**
+     * Updates the pending count associated with the currently visible pending snippet,
+     * if any, such that we can replace the snippet with content once work is done
+     * @param {1 | -1} d
+     */
+    #update_pending_count(d) {
+      if (!this.has_pending_snippet()) {
+        if (this.parent) {
+          this.parent.#update_pending_count(d);
+        }
+        return;
+      }
+      this.#pending_count += d;
+      if (this.#pending_count === 0) {
+        this.#resolve();
+        if (this.#pending_effect) {
+          pause_effect(this.#pending_effect, () => {
+            this.#pending_effect = null;
+          });
+        }
+        if (this.#offscreen_fragment) {
+          this.#anchor.before(this.#offscreen_fragment);
+          this.#offscreen_fragment = null;
+        }
+      }
+    }
+    /**
+     * Update the source that powers `$effect.pending()` inside this boundary,
+     * and controls when the current `pending` snippet (if any) is removed.
+     * Do not call from inside the class
+     * @param {1 | -1} d
+     */
+    update_pending_count(d) {
+      this.#update_pending_count(d);
+      this.#local_pending_count += d;
+      if (!this.#effect_pending || this.#pending_count_update_queued) return;
+      this.#pending_count_update_queued = true;
+      queue_micro_task(() => {
+        this.#pending_count_update_queued = false;
+        if (this.#effect_pending) {
+          internal_set(this.#effect_pending, this.#local_pending_count);
+        }
+      });
+    }
+    get_effect_pending() {
+      this.#effect_pending_subscriber();
+      return get(
+        /** @type {Source<number>} */
+        this.#effect_pending
+      );
+    }
+    /** @param {unknown} error */
+    error(error) {
+      var onerror = this.#props.onerror;
+      let failed = this.#props.failed;
+      if (!onerror && !failed) {
+        throw error;
+      }
+      if (this.#main_effect) {
+        destroy_effect(this.#main_effect);
+        this.#main_effect = null;
+      }
+      if (this.#pending_effect) {
+        destroy_effect(this.#pending_effect);
+        this.#pending_effect = null;
+      }
+      if (this.#failed_effect) {
+        destroy_effect(this.#failed_effect);
+        this.#failed_effect = null;
+      }
+      if (hydrating) {
+        set_hydrate_node(
+          /** @type {TemplateNode} */
+          this.#hydrate_open
+        );
+        next();
+        set_hydrate_node(skip_nodes());
+      }
+      var did_reset = false;
+      var calling_on_error = false;
+      const reset2 = () => {
+        if (did_reset) {
+          svelte_boundary_reset_noop();
+          return;
+        }
+        did_reset = true;
+        if (calling_on_error) {
+          svelte_boundary_reset_onerror();
+        }
+        if (this.#failed_effect !== null) {
+          pause_effect(this.#failed_effect, () => {
+            this.#failed_effect = null;
+          });
+        }
+        this.#run(() => {
+          Batch.ensure();
+          this.#render();
+        });
+      };
+      const handle_error_result = (transformed_error) => {
+        try {
+          calling_on_error = true;
+          onerror?.(transformed_error, reset2);
+          calling_on_error = false;
+        } catch (error2) {
+          invoke_error_boundary(error2, this.#effect && this.#effect.parent);
+        }
+        if (failed) {
+          this.#failed_effect = this.#run(() => {
+            Batch.ensure();
+            try {
+              return branch(() => {
+                var effect2 = (
+                  /** @type {Effect} */
+                  active_effect
+                );
+                effect2.b = this;
+                effect2.f |= BOUNDARY_EFFECT;
+                failed(
+                  this.#anchor,
+                  () => transformed_error,
+                  () => reset2
+                );
+              });
+            } catch (error2) {
+              invoke_error_boundary(
+                error2,
+                /** @type {Effect} */
+                this.#effect.parent
+              );
+              return null;
+            }
+          });
+        }
+      };
+      queue_micro_task(() => {
+        var result;
+        try {
+          result = this.transform_error(error);
+        } catch (e) {
+          invoke_error_boundary(e, this.#effect && this.#effect.parent);
+          return;
+        }
+        if (result !== null && typeof result === "object" && typeof /** @type {any} */
+        result.then === "function") {
+          result.then(
+            handle_error_result,
+            /** @param {unknown} e */
+            (e) => invoke_error_boundary(e, this.#effect && this.#effect.parent)
+          );
+        } else {
+          handle_error_result(result);
+        }
+      });
+    }
+  }
+  function flatten(blockers, sync, async, fn) {
+    const d = derived;
+    var pending = blockers.filter((b) => !b.settled);
+    if (async.length === 0 && pending.length === 0) {
+      fn(sync.map(d));
+      return;
+    }
+    var parent = (
+      /** @type {Effect} */
+      active_effect
+    );
+    var restore = capture();
+    var blocker_promise = pending.length === 1 ? pending[0].promise : pending.length > 1 ? Promise.all(pending.map((b) => b.promise)) : null;
+    function finish(values) {
+      restore();
+      try {
+        fn(values);
+      } catch (error) {
+        if ((parent.f & DESTROYED) === 0) {
+          invoke_error_boundary(error, parent);
+        }
+      }
+      unset_context();
+    }
+    if (async.length === 0) {
+      blocker_promise.then(() => finish(sync.map(d)));
+      return;
+    }
+    function run() {
+      restore();
+      Promise.all(async.map((expression) => /* @__PURE__ */ async_derived(expression))).then((result) => finish([...sync.map(d), ...result])).catch((error) => invoke_error_boundary(error, parent));
+    }
+    if (blocker_promise) {
+      blocker_promise.then(run);
+    } else {
+      run();
+    }
+  }
+  function capture() {
+    var previous_effect = active_effect;
+    var previous_reaction = active_reaction;
+    var previous_component_context = component_context;
+    var previous_batch = current_batch;
+    return function restore(activate_batch = true) {
+      set_active_effect(previous_effect);
+      set_active_reaction(previous_reaction);
+      set_component_context(previous_component_context);
+      if (activate_batch) previous_batch?.activate();
+    };
+  }
+  function unset_context(deactivate_batch = true) {
+    set_active_effect(null);
+    set_active_reaction(null);
+    set_component_context(null);
+    if (deactivate_batch) current_batch?.deactivate();
+  }
+  function increment_pending() {
+    var boundary2 = (
+      /** @type {Boundary} */
+      /** @type {Effect} */
+      active_effect.b
+    );
+    var batch = (
+      /** @type {Batch} */
+      current_batch
+    );
+    var blocking = boundary2.is_rendered();
+    boundary2.update_pending_count(1);
+    batch.increment(blocking);
+    return () => {
+      boundary2.update_pending_count(-1);
+      batch.decrement(blocking);
+    };
+  }
+  // @__NO_SIDE_EFFECTS__
+  function derived(fn) {
+    var flags2 = DERIVED | DIRTY;
+    var parent_derived = active_reaction !== null && (active_reaction.f & DERIVED) !== 0 ? (
+      /** @type {Derived} */
+      active_reaction
+    ) : null;
+    if (active_effect !== null) {
+      active_effect.f |= EFFECT_PRESERVED;
+    }
+    const signal = {
+      ctx: component_context,
+      deps: null,
+      effects: null,
+      equals,
+      f: flags2,
+      fn,
+      reactions: null,
+      rv: 0,
+      v: (
+        /** @type {V} */
+        UNINITIALIZED
+      ),
+      wv: 0,
+      parent: parent_derived ?? active_effect,
+      ac: null
+    };
+    return signal;
+  }
+  // @__NO_SIDE_EFFECTS__
+  function async_derived(fn, label, location) {
+    let parent = (
+      /** @type {Effect | null} */
+      active_effect
+    );
+    if (parent === null) {
+      async_derived_orphan();
+    }
+    var promise = (
+      /** @type {Promise<V>} */
+      /** @type {unknown} */
+      void 0
+    );
+    var signal = source(
+      /** @type {V} */
+      UNINITIALIZED
+    );
+    var should_suspend = !active_reaction;
+    var deferreds = /* @__PURE__ */ new Map();
+    async_effect(() => {
+      var d = deferred();
+      promise = d.promise;
+      try {
+        Promise.resolve(fn()).then(d.resolve, d.reject).finally(unset_context);
+      } catch (error) {
+        d.reject(error);
+        unset_context();
+      }
+      var batch = (
+        /** @type {Batch} */
+        current_batch
+      );
+      if (should_suspend) {
+        var decrement_pending = increment_pending();
+        deferreds.get(batch)?.reject(STALE_REACTION);
+        deferreds.delete(batch);
+        deferreds.set(batch, d);
+      }
+      const handler = (value, error = void 0) => {
+        batch.activate();
+        if (error) {
+          if (error !== STALE_REACTION) {
+            signal.f |= ERROR_VALUE;
+            internal_set(signal, error);
+          }
+        } else {
+          if ((signal.f & ERROR_VALUE) !== 0) {
+            signal.f ^= ERROR_VALUE;
+          }
+          internal_set(signal, value);
+          for (const [b, d2] of deferreds) {
+            deferreds.delete(b);
+            if (b === batch) break;
+            d2.reject(STALE_REACTION);
+          }
+        }
+        if (decrement_pending) {
+          decrement_pending();
+        }
+      };
+      d.promise.then(handler, (e) => handler(null, e || "unknown"));
+    });
+    teardown(() => {
+      for (const d of deferreds.values()) {
+        d.reject(STALE_REACTION);
+      }
+    });
+    return new Promise((fulfil) => {
+      function next2(p) {
+        function go() {
+          if (p === promise) {
+            fulfil(signal);
+          } else {
+            next2(promise);
+          }
+        }
+        p.then(go, go);
+      }
+      next2(promise);
+    });
+  }
+  // @__NO_SIDE_EFFECTS__
+  function user_derived(fn) {
+    const d = /* @__PURE__ */ derived(fn);
+    push_reaction_value(d);
+    return d;
+  }
+  // @__NO_SIDE_EFFECTS__
+  function derived_safe_equal(fn) {
+    const signal = /* @__PURE__ */ derived(fn);
+    signal.equals = safe_equals;
+    return signal;
+  }
+  function destroy_derived_effects(derived2) {
+    var effects = derived2.effects;
+    if (effects !== null) {
+      derived2.effects = null;
+      for (var i = 0; i < effects.length; i += 1) {
+        destroy_effect(
+          /** @type {Effect} */
+          effects[i]
+        );
+      }
+    }
+  }
+  function get_derived_parent_effect(derived2) {
+    var parent = derived2.parent;
+    while (parent !== null) {
+      if ((parent.f & DERIVED) === 0) {
+        return (parent.f & DESTROYED) === 0 ? (
+          /** @type {Effect} */
+          parent
+        ) : null;
+      }
+      parent = parent.parent;
+    }
+    return null;
+  }
+  function execute_derived(derived2) {
+    var value;
+    var prev_active_effect = active_effect;
+    set_active_effect(get_derived_parent_effect(derived2));
+    {
+      try {
+        derived2.f &= ~WAS_MARKED;
+        destroy_derived_effects(derived2);
+        value = update_reaction(derived2);
+      } finally {
+        set_active_effect(prev_active_effect);
+      }
+    }
+    return value;
+  }
+  function update_derived(derived2) {
+    var value = execute_derived(derived2);
+    if (!derived2.equals(value)) {
+      derived2.wv = increment_write_version();
+      if (!current_batch?.is_fork || derived2.deps === null) {
+        derived2.v = value;
+        if (derived2.deps === null) {
+          set_signal_status(derived2, CLEAN);
+          return;
+        }
+      }
+    }
+    if (is_destroying_effect) {
+      return;
+    }
+    if (batch_values !== null) {
+      if (effect_tracking() || current_batch?.is_fork) {
+        batch_values.set(derived2, value);
+      }
+    } else {
+      update_derived_status(derived2);
+    }
+  }
+  function freeze_derived_effects(derived2) {
+    if (derived2.effects === null) return;
+    for (const e of derived2.effects) {
+      if (e.teardown || e.ac) {
+        e.teardown?.();
+        e.ac?.abort(STALE_REACTION);
+        e.teardown = noop;
+        e.ac = null;
+        remove_reactions(e, 0);
+        destroy_effect_children(e);
+      }
+    }
+  }
+  function unfreeze_derived_effects(derived2) {
+    if (derived2.effects === null) return;
+    for (const e of derived2.effects) {
+      if (e.teardown) {
+        update_effect(e);
+      }
+    }
+  }
+  let eager_effects = /* @__PURE__ */ new Set();
+  const old_values = /* @__PURE__ */ new Map();
+  let eager_effects_deferred = false;
+  function source(v, stack) {
+    var signal = {
+      f: 0,
+      // TODO ideally we could skip this altogether, but it causes type errors
+      v,
+      reactions: null,
+      equals,
+      rv: 0,
+      wv: 0
+    };
+    return signal;
+  }
+  // @__NO_SIDE_EFFECTS__
+  function state(v, stack) {
+    const s = source(v);
+    push_reaction_value(s);
+    return s;
+  }
+  // @__NO_SIDE_EFFECTS__
+  function mutable_source(initial_value, immutable = false, trackable = true) {
+    const s = source(initial_value);
+    if (!immutable) {
+      s.equals = safe_equals;
+    }
+    return s;
+  }
+  function set(source2, value, should_proxy = false) {
+    if (active_reaction !== null && // since we are untracking the function inside `$inspect.with` we need to add this check
+    // to ensure we error if state is set inside an inspect effect
+    (!untracking || (active_reaction.f & EAGER_EFFECT) !== 0) && is_runes() && (active_reaction.f & (DERIVED | BLOCK_EFFECT | ASYNC | EAGER_EFFECT)) !== 0 && (current_sources === null || !includes.call(current_sources, source2))) {
+      state_unsafe_mutation();
+    }
+    let new_value = should_proxy ? proxy(value) : value;
+    return internal_set(source2, new_value);
+  }
+  function internal_set(source2, value) {
+    if (!source2.equals(value)) {
+      var old_value = source2.v;
+      if (is_destroying_effect) {
+        old_values.set(source2, value);
+      } else {
+        old_values.set(source2, old_value);
+      }
+      source2.v = value;
+      var batch = Batch.ensure();
+      batch.capture(source2, old_value);
+      if ((source2.f & DERIVED) !== 0) {
+        const derived2 = (
+          /** @type {Derived} */
+          source2
+        );
+        if ((source2.f & DIRTY) !== 0) {
+          execute_derived(derived2);
+        }
+        update_derived_status(derived2);
+      }
+      source2.wv = increment_write_version();
+      mark_reactions(source2, DIRTY);
+      if (active_effect !== null && (active_effect.f & CLEAN) !== 0 && (active_effect.f & (BRANCH_EFFECT | ROOT_EFFECT)) === 0) {
+        if (untracked_writes === null) {
+          set_untracked_writes([source2]);
+        } else {
+          untracked_writes.push(source2);
+        }
+      }
+      if (!batch.is_fork && eager_effects.size > 0 && !eager_effects_deferred) {
+        flush_eager_effects();
+      }
+    }
+    return value;
+  }
+  function flush_eager_effects() {
+    eager_effects_deferred = false;
+    for (const effect2 of eager_effects) {
+      if ((effect2.f & CLEAN) !== 0) {
+        set_signal_status(effect2, MAYBE_DIRTY);
+      }
+      if (is_dirty(effect2)) {
+        update_effect(effect2);
+      }
+    }
+    eager_effects.clear();
+  }
+  function increment(source2) {
+    set(source2, source2.v + 1);
+  }
+  function mark_reactions(signal, status) {
+    var reactions = signal.reactions;
+    if (reactions === null) return;
+    var length = reactions.length;
+    for (var i = 0; i < length; i++) {
+      var reaction = reactions[i];
+      var flags2 = reaction.f;
+      var not_dirty = (flags2 & DIRTY) === 0;
+      if (not_dirty) {
+        set_signal_status(reaction, status);
+      }
+      if ((flags2 & DERIVED) !== 0) {
+        var derived2 = (
+          /** @type {Derived} */
+          reaction
+        );
+        batch_values?.delete(derived2);
+        if ((flags2 & WAS_MARKED) === 0) {
+          if (flags2 & CONNECTED) {
+            reaction.f |= WAS_MARKED;
+          }
+          mark_reactions(derived2, MAYBE_DIRTY);
+        }
+      } else if (not_dirty) {
+        if ((flags2 & BLOCK_EFFECT) !== 0 && eager_block_effects !== null) {
+          eager_block_effects.add(
+            /** @type {Effect} */
+            reaction
+          );
+        }
+        schedule_effect(
+          /** @type {Effect} */
+          reaction
+        );
+      }
+    }
+  }
+  function without_reactive_context(fn) {
+    var previous_reaction = active_reaction;
+    var previous_effect = active_effect;
+    set_active_reaction(null);
+    set_active_effect(null);
+    try {
+      return fn();
+    } finally {
+      set_active_reaction(previous_reaction);
+      set_active_effect(previous_effect);
+    }
+  }
+  let is_updating_effect = false;
+  let is_destroying_effect = false;
+  function set_is_destroying_effect(value) {
+    is_destroying_effect = value;
+  }
+  let active_reaction = null;
+  let untracking = false;
+  function set_active_reaction(reaction) {
+    active_reaction = reaction;
+  }
+  let active_effect = null;
+  function set_active_effect(effect2) {
+    active_effect = effect2;
+  }
+  let current_sources = null;
+  function push_reaction_value(value) {
+    if (active_reaction !== null && true) {
+      if (current_sources === null) {
+        current_sources = [value];
+      } else {
+        current_sources.push(value);
+      }
+    }
+  }
+  let new_deps = null;
+  let skipped_deps = 0;
+  let untracked_writes = null;
+  function set_untracked_writes(value) {
+    untracked_writes = value;
+  }
+  let write_version = 1;
+  let read_version = 0;
+  let update_version = read_version;
+  function set_update_version(value) {
+    update_version = value;
+  }
+  function increment_write_version() {
+    return ++write_version;
+  }
+  function is_dirty(reaction) {
+    var flags2 = reaction.f;
+    if ((flags2 & DIRTY) !== 0) {
+      return true;
+    }
+    if (flags2 & DERIVED) {
+      reaction.f &= ~WAS_MARKED;
+    }
+    if ((flags2 & MAYBE_DIRTY) !== 0) {
+      var dependencies = (
+        /** @type {Value[]} */
+        reaction.deps
+      );
+      var length = dependencies.length;
+      for (var i = 0; i < length; i++) {
+        var dependency = dependencies[i];
+        if (is_dirty(
+          /** @type {Derived} */
+          dependency
+        )) {
+          update_derived(
+            /** @type {Derived} */
+            dependency
+          );
+        }
+        if (dependency.wv > reaction.wv) {
+          return true;
+        }
+      }
+      if ((flags2 & CONNECTED) !== 0 && // During time traveling we don't want to reset the status so that
+      // traversal of the graph in the other batches still happens
+      batch_values === null) {
+        set_signal_status(reaction, CLEAN);
+      }
+    }
+    return false;
+  }
+  function schedule_possible_effect_self_invalidation(signal, effect2, root2 = true) {
+    var reactions = signal.reactions;
+    if (reactions === null) return;
+    if (current_sources !== null && includes.call(current_sources, signal)) {
+      return;
+    }
+    for (var i = 0; i < reactions.length; i++) {
+      var reaction = reactions[i];
+      if ((reaction.f & DERIVED) !== 0) {
+        schedule_possible_effect_self_invalidation(
+          /** @type {Derived} */
+          reaction,
+          effect2,
+          false
+        );
+      } else if (effect2 === reaction) {
+        if (root2) {
+          set_signal_status(reaction, DIRTY);
+        } else if ((reaction.f & CLEAN) !== 0) {
+          set_signal_status(reaction, MAYBE_DIRTY);
+        }
+        schedule_effect(
+          /** @type {Effect} */
+          reaction
+        );
+      }
+    }
+  }
+  function update_reaction(reaction) {
+    var previous_deps = new_deps;
+    var previous_skipped_deps = skipped_deps;
+    var previous_untracked_writes = untracked_writes;
+    var previous_reaction = active_reaction;
+    var previous_sources = current_sources;
+    var previous_component_context = component_context;
+    var previous_untracking = untracking;
+    var previous_update_version = update_version;
+    var flags2 = reaction.f;
+    new_deps = /** @type {null | Value[]} */
+    null;
+    skipped_deps = 0;
+    untracked_writes = null;
+    active_reaction = (flags2 & (BRANCH_EFFECT | ROOT_EFFECT)) === 0 ? reaction : null;
+    current_sources = null;
+    set_component_context(reaction.ctx);
+    untracking = false;
+    update_version = ++read_version;
+    if (reaction.ac !== null) {
+      without_reactive_context(() => {
+        reaction.ac.abort(STALE_REACTION);
+      });
+      reaction.ac = null;
+    }
+    try {
+      reaction.f |= REACTION_IS_UPDATING;
+      var fn = (
+        /** @type {Function} */
+        reaction.fn
+      );
+      var result = fn();
+      reaction.f |= REACTION_RAN;
+      var deps = reaction.deps;
+      var is_fork = current_batch?.is_fork;
+      if (new_deps !== null) {
+        var i;
+        if (!is_fork) {
+          remove_reactions(reaction, skipped_deps);
+        }
+        if (deps !== null && skipped_deps > 0) {
+          deps.length = skipped_deps + new_deps.length;
+          for (i = 0; i < new_deps.length; i++) {
+            deps[skipped_deps + i] = new_deps[i];
+          }
+        } else {
+          reaction.deps = deps = new_deps;
+        }
+        if (effect_tracking() && (reaction.f & CONNECTED) !== 0) {
+          for (i = skipped_deps; i < deps.length; i++) {
+            (deps[i].reactions ??= []).push(reaction);
+          }
+        }
+      } else if (!is_fork && deps !== null && skipped_deps < deps.length) {
+        remove_reactions(reaction, skipped_deps);
+        deps.length = skipped_deps;
+      }
+      if (is_runes() && untracked_writes !== null && !untracking && deps !== null && (reaction.f & (DERIVED | MAYBE_DIRTY | DIRTY)) === 0) {
+        for (i = 0; i < /** @type {Source[]} */
+        untracked_writes.length; i++) {
+          schedule_possible_effect_self_invalidation(
+            untracked_writes[i],
+            /** @type {Effect} */
+            reaction
+          );
+        }
+      }
+      if (previous_reaction !== null && previous_reaction !== reaction) {
+        read_version++;
+        if (previous_reaction.deps !== null) {
+          for (let i2 = 0; i2 < previous_skipped_deps; i2 += 1) {
+            previous_reaction.deps[i2].rv = read_version;
+          }
+        }
+        if (previous_deps !== null) {
+          for (const dep of previous_deps) {
+            dep.rv = read_version;
+          }
+        }
+        if (untracked_writes !== null) {
+          if (previous_untracked_writes === null) {
+            previous_untracked_writes = untracked_writes;
+          } else {
+            previous_untracked_writes.push(.../** @type {Source[]} */
+            untracked_writes);
+          }
+        }
+      }
+      if ((reaction.f & ERROR_VALUE) !== 0) {
+        reaction.f ^= ERROR_VALUE;
+      }
+      return result;
+    } catch (error) {
+      return handle_error(error);
+    } finally {
+      reaction.f ^= REACTION_IS_UPDATING;
+      new_deps = previous_deps;
+      skipped_deps = previous_skipped_deps;
+      untracked_writes = previous_untracked_writes;
+      active_reaction = previous_reaction;
+      current_sources = previous_sources;
+      set_component_context(previous_component_context);
+      untracking = previous_untracking;
+      update_version = previous_update_version;
+    }
+  }
+  function remove_reaction(signal, dependency) {
+    let reactions = dependency.reactions;
+    if (reactions !== null) {
+      var index2 = index_of.call(reactions, signal);
+      if (index2 !== -1) {
+        var new_length = reactions.length - 1;
+        if (new_length === 0) {
+          reactions = dependency.reactions = null;
+        } else {
+          reactions[index2] = reactions[new_length];
+          reactions.pop();
+        }
+      }
+    }
+    if (reactions === null && (dependency.f & DERIVED) !== 0 && // Destroying a child effect while updating a parent effect can cause a dependency to appear
+    // to be unused, when in fact it is used by the currently-updating parent. Checking `new_deps`
+    // allows us to skip the expensive work of disconnecting and immediately reconnecting it
+    (new_deps === null || !includes.call(new_deps, dependency))) {
+      var derived2 = (
+        /** @type {Derived} */
+        dependency
+      );
+      if ((derived2.f & CONNECTED) !== 0) {
+        derived2.f ^= CONNECTED;
+        derived2.f &= ~WAS_MARKED;
+      }
+      update_derived_status(derived2);
+      freeze_derived_effects(derived2);
+      remove_reactions(derived2, 0);
+    }
+  }
+  function remove_reactions(signal, start_index) {
+    var dependencies = signal.deps;
+    if (dependencies === null) return;
+    for (var i = start_index; i < dependencies.length; i++) {
+      remove_reaction(signal, dependencies[i]);
+    }
+  }
+  function update_effect(effect2) {
+    var flags2 = effect2.f;
+    if ((flags2 & DESTROYED) !== 0) {
+      return;
+    }
+    set_signal_status(effect2, CLEAN);
+    var previous_effect = active_effect;
+    var was_updating_effect = is_updating_effect;
+    active_effect = effect2;
+    is_updating_effect = true;
+    try {
+      if ((flags2 & (BLOCK_EFFECT | MANAGED_EFFECT)) !== 0) {
+        destroy_block_effect_children(effect2);
+      } else {
+        destroy_effect_children(effect2);
+      }
+      execute_effect_teardown(effect2);
+      var teardown2 = update_reaction(effect2);
+      effect2.teardown = typeof teardown2 === "function" ? teardown2 : null;
+      effect2.wv = write_version;
+      var dep;
+      if (DEV && tracing_mode_flag && (effect2.f & DIRTY) !== 0 && effect2.deps !== null) ;
+    } finally {
+      is_updating_effect = was_updating_effect;
+      active_effect = previous_effect;
+    }
+  }
+  async function tick() {
+    await Promise.resolve();
+    flushSync();
+  }
+  function get(signal) {
+    var flags2 = signal.f;
+    var is_derived = (flags2 & DERIVED) !== 0;
+    if (active_reaction !== null && !untracking) {
+      var destroyed = active_effect !== null && (active_effect.f & DESTROYED) !== 0;
+      if (!destroyed && (current_sources === null || !includes.call(current_sources, signal))) {
+        var deps = active_reaction.deps;
+        if ((active_reaction.f & REACTION_IS_UPDATING) !== 0) {
+          if (signal.rv < read_version) {
+            signal.rv = read_version;
+            if (new_deps === null && deps !== null && deps[skipped_deps] === signal) {
+              skipped_deps++;
+            } else if (new_deps === null) {
+              new_deps = [signal];
+            } else {
+              new_deps.push(signal);
+            }
+          }
+        } else {
+          (active_reaction.deps ??= []).push(signal);
+          var reactions = signal.reactions;
+          if (reactions === null) {
+            signal.reactions = [active_reaction];
+          } else if (!includes.call(reactions, active_reaction)) {
+            reactions.push(active_reaction);
+          }
+        }
+      }
+    }
+    if (is_destroying_effect && old_values.has(signal)) {
+      return old_values.get(signal);
+    }
+    if (is_derived) {
+      var derived2 = (
+        /** @type {Derived} */
+        signal
+      );
+      if (is_destroying_effect) {
+        var value = derived2.v;
+        if ((derived2.f & CLEAN) === 0 && derived2.reactions !== null || depends_on_old_values(derived2)) {
+          value = execute_derived(derived2);
+        }
+        old_values.set(derived2, value);
+        return value;
+      }
+      var should_connect = (derived2.f & CONNECTED) === 0 && !untracking && active_reaction !== null && (is_updating_effect || (active_reaction.f & CONNECTED) !== 0);
+      var is_new = (derived2.f & REACTION_RAN) === 0;
+      if (is_dirty(derived2)) {
+        if (should_connect) {
+          derived2.f |= CONNECTED;
+        }
+        update_derived(derived2);
+      }
+      if (should_connect && !is_new) {
+        unfreeze_derived_effects(derived2);
+        reconnect(derived2);
+      }
+    }
+    if (batch_values?.has(signal)) {
+      return batch_values.get(signal);
+    }
+    if ((signal.f & ERROR_VALUE) !== 0) {
+      throw signal.v;
+    }
+    return signal.v;
+  }
+  function reconnect(derived2) {
+    derived2.f |= CONNECTED;
+    if (derived2.deps === null) return;
+    for (const dep of derived2.deps) {
+      (dep.reactions ??= []).push(derived2);
+      if ((dep.f & DERIVED) !== 0 && (dep.f & CONNECTED) === 0) {
+        unfreeze_derived_effects(
+          /** @type {Derived} */
+          dep
+        );
+        reconnect(
+          /** @type {Derived} */
+          dep
+        );
+      }
+    }
+  }
+  function depends_on_old_values(derived2) {
+    if (derived2.v === UNINITIALIZED) return true;
+    if (derived2.deps === null) return false;
+    for (const dep of derived2.deps) {
+      if (old_values.has(dep)) {
+        return true;
+      }
+      if ((dep.f & DERIVED) !== 0 && depends_on_old_values(
+        /** @type {Derived} */
+        dep
+      )) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function untrack(fn) {
+    var previous_untracking = untracking;
+    try {
+      untracking = true;
+      return fn();
+    } finally {
+      untracking = previous_untracking;
+    }
+  }
+  function validate_effect(rune) {
+    if (active_effect === null) {
+      if (active_reaction === null) {
+        effect_orphan();
+      }
+      effect_in_unowned_derived();
+    }
+    if (is_destroying_effect) {
+      effect_in_teardown();
+    }
+  }
+  function push_effect(effect2, parent_effect) {
+    var parent_last = parent_effect.last;
+    if (parent_last === null) {
+      parent_effect.last = parent_effect.first = effect2;
+    } else {
+      parent_last.next = effect2;
+      effect2.prev = parent_last;
+      parent_effect.last = effect2;
+    }
+  }
+  function create_effect(type, fn) {
+    var parent = active_effect;
+    if (parent !== null && (parent.f & INERT) !== 0) {
+      type |= INERT;
+    }
+    var effect2 = {
+      ctx: component_context,
+      deps: null,
+      nodes: null,
+      f: type | DIRTY | CONNECTED,
+      first: null,
+      fn,
+      last: null,
+      next: null,
+      parent,
+      b: parent && parent.b,
+      prev: null,
+      teardown: null,
+      wv: 0,
+      ac: null
+    };
+    var e = effect2;
+    if ((type & EFFECT) !== 0) {
+      if (collected_effects !== null) {
+        collected_effects.push(effect2);
+      } else {
+        schedule_effect(effect2);
+      }
+    } else if (fn !== null) {
+      try {
+        update_effect(effect2);
+      } catch (e2) {
+        destroy_effect(effect2);
+        throw e2;
+      }
+      if (e.deps === null && e.teardown === null && e.nodes === null && e.first === e.last && // either `null`, or a singular child
+      (e.f & EFFECT_PRESERVED) === 0) {
+        e = e.first;
+        if ((type & BLOCK_EFFECT) !== 0 && (type & EFFECT_TRANSPARENT) !== 0 && e !== null) {
+          e.f |= EFFECT_TRANSPARENT;
+        }
+      }
+    }
+    if (e !== null) {
+      e.parent = parent;
+      if (parent !== null) {
+        push_effect(e, parent);
+      }
+      if (active_reaction !== null && (active_reaction.f & DERIVED) !== 0 && (type & ROOT_EFFECT) === 0) {
+        var derived2 = (
+          /** @type {Derived} */
+          active_reaction
+        );
+        (derived2.effects ??= []).push(e);
+      }
+    }
+    return effect2;
+  }
+  function effect_tracking() {
+    return active_reaction !== null && !untracking;
+  }
+  function teardown(fn) {
+    const effect2 = create_effect(RENDER_EFFECT, null);
+    set_signal_status(effect2, CLEAN);
+    effect2.teardown = fn;
+    return effect2;
+  }
+  function user_effect(fn) {
+    validate_effect();
+    var flags2 = (
+      /** @type {Effect} */
+      active_effect.f
+    );
+    var defer = !active_reaction && (flags2 & BRANCH_EFFECT) !== 0 && (flags2 & REACTION_RAN) === 0;
+    if (defer) {
+      var context = (
+        /** @type {ComponentContext} */
+        component_context
+      );
+      (context.e ??= []).push(fn);
+    } else {
+      return create_user_effect(fn);
+    }
+  }
+  function create_user_effect(fn) {
+    return create_effect(EFFECT | USER_EFFECT, fn);
+  }
+  function component_root(fn) {
+    Batch.ensure();
+    const effect2 = create_effect(ROOT_EFFECT | EFFECT_PRESERVED, fn);
+    return (options = {}) => {
+      return new Promise((fulfil) => {
+        if (options.outro) {
+          pause_effect(effect2, () => {
+            destroy_effect(effect2);
+            fulfil(void 0);
+          });
+        } else {
+          destroy_effect(effect2);
+          fulfil(void 0);
+        }
+      });
+    };
+  }
+  function effect(fn) {
+    return create_effect(EFFECT, fn);
+  }
+  function async_effect(fn) {
+    return create_effect(ASYNC | EFFECT_PRESERVED, fn);
+  }
+  function render_effect(fn, flags2 = 0) {
+    return create_effect(RENDER_EFFECT | flags2, fn);
+  }
+  function template_effect(fn, sync = [], async = [], blockers = []) {
+    flatten(blockers, sync, async, (values) => {
+      create_effect(RENDER_EFFECT, () => fn(...values.map(get)));
+    });
+  }
+  function block(fn, flags2 = 0) {
+    var effect2 = create_effect(BLOCK_EFFECT | flags2, fn);
+    return effect2;
+  }
+  function branch(fn) {
+    return create_effect(BRANCH_EFFECT | EFFECT_PRESERVED, fn);
+  }
+  function execute_effect_teardown(effect2) {
+    var teardown2 = effect2.teardown;
+    if (teardown2 !== null) {
+      const previously_destroying_effect = is_destroying_effect;
+      const previous_reaction = active_reaction;
+      set_is_destroying_effect(true);
+      set_active_reaction(null);
+      try {
+        teardown2.call(null);
+      } finally {
+        set_is_destroying_effect(previously_destroying_effect);
+        set_active_reaction(previous_reaction);
+      }
+    }
+  }
+  function destroy_effect_children(signal, remove_dom = false) {
+    var effect2 = signal.first;
+    signal.first = signal.last = null;
+    while (effect2 !== null) {
+      const controller = effect2.ac;
+      if (controller !== null) {
+        without_reactive_context(() => {
+          controller.abort(STALE_REACTION);
+        });
+      }
+      var next2 = effect2.next;
+      if ((effect2.f & ROOT_EFFECT) !== 0) {
+        effect2.parent = null;
+      } else {
+        destroy_effect(effect2, remove_dom);
+      }
+      effect2 = next2;
+    }
+  }
+  function destroy_block_effect_children(signal) {
+    var effect2 = signal.first;
+    while (effect2 !== null) {
+      var next2 = effect2.next;
+      if ((effect2.f & BRANCH_EFFECT) === 0) {
+        destroy_effect(effect2);
+      }
+      effect2 = next2;
+    }
+  }
+  function destroy_effect(effect2, remove_dom = true) {
+    var removed = false;
+    if ((remove_dom || (effect2.f & HEAD_EFFECT) !== 0) && effect2.nodes !== null && effect2.nodes.end !== null) {
+      remove_effect_dom(
+        effect2.nodes.start,
+        /** @type {TemplateNode} */
+        effect2.nodes.end
+      );
+      removed = true;
+    }
+    destroy_effect_children(effect2, remove_dom && !removed);
+    remove_reactions(effect2, 0);
+    set_signal_status(effect2, DESTROYED);
+    var transitions = effect2.nodes && effect2.nodes.t;
+    if (transitions !== null) {
+      for (const transition of transitions) {
+        transition.stop();
+      }
+    }
+    execute_effect_teardown(effect2);
+    var parent = effect2.parent;
+    if (parent !== null && parent.first !== null) {
+      unlink_effect(effect2);
+    }
+    effect2.next = effect2.prev = effect2.teardown = effect2.ctx = effect2.deps = effect2.fn = effect2.nodes = effect2.ac = null;
+  }
+  function remove_effect_dom(node, end) {
+    while (node !== null) {
+      var next2 = node === end ? null : /* @__PURE__ */ get_next_sibling(node);
+      node.remove();
+      node = next2;
+    }
+  }
+  function unlink_effect(effect2) {
+    var parent = effect2.parent;
+    var prev = effect2.prev;
+    var next2 = effect2.next;
+    if (prev !== null) prev.next = next2;
+    if (next2 !== null) next2.prev = prev;
+    if (parent !== null) {
+      if (parent.first === effect2) parent.first = next2;
+      if (parent.last === effect2) parent.last = prev;
+    }
+  }
+  function pause_effect(effect2, callback, destroy = true) {
+    var transitions = [];
+    pause_children(effect2, transitions, true);
+    var fn = () => {
+      if (destroy) destroy_effect(effect2);
+      if (callback) callback();
+    };
+    var remaining = transitions.length;
+    if (remaining > 0) {
+      var check = () => --remaining || fn();
+      for (var transition of transitions) {
+        transition.out(check);
+      }
+    } else {
+      fn();
+    }
+  }
+  function pause_children(effect2, transitions, local) {
+    if ((effect2.f & INERT) !== 0) return;
+    effect2.f ^= INERT;
+    var t = effect2.nodes && effect2.nodes.t;
+    if (t !== null) {
+      for (const transition of t) {
+        if (transition.is_global || local) {
+          transitions.push(transition);
+        }
+      }
+    }
+    var child2 = effect2.first;
+    while (child2 !== null) {
+      var sibling2 = child2.next;
+      var transparent = (child2.f & EFFECT_TRANSPARENT) !== 0 || // If this is a branch effect without a block effect parent,
+      // it means the parent block effect was pruned. In that case,
+      // transparency information was transferred to the branch effect.
+      (child2.f & BRANCH_EFFECT) !== 0 && (effect2.f & BLOCK_EFFECT) !== 0;
+      pause_children(child2, transitions, transparent ? local : false);
+      child2 = sibling2;
+    }
+  }
+  function resume_effect(effect2) {
+    resume_children(effect2, true);
+  }
+  function resume_children(effect2, local) {
+    if ((effect2.f & INERT) === 0) return;
+    effect2.f ^= INERT;
+    var child2 = effect2.first;
+    while (child2 !== null) {
+      var sibling2 = child2.next;
+      var transparent = (child2.f & EFFECT_TRANSPARENT) !== 0 || (child2.f & BRANCH_EFFECT) !== 0;
+      resume_children(child2, transparent ? local : false);
+      child2 = sibling2;
+    }
+    var t = effect2.nodes && effect2.nodes.t;
+    if (t !== null) {
+      for (const transition of t) {
+        if (transition.is_global || local) {
+          transition.in();
+        }
+      }
+    }
+  }
+  function move_effect(effect2, fragment) {
+    if (!effect2.nodes) return;
+    var node = effect2.nodes.start;
+    var end = effect2.nodes.end;
+    while (node !== null) {
+      var next2 = node === end ? null : /* @__PURE__ */ get_next_sibling(node);
+      fragment.append(node);
+      node = next2;
+    }
+  }
+  const event_symbol = /* @__PURE__ */ Symbol("events");
+  const all_registered_events = /* @__PURE__ */ new Set();
+  const root_event_handles = /* @__PURE__ */ new Set();
+  function create_event(event_name, dom, handler, options = {}) {
+    function target_handler(event2) {
+      if (!options.capture) {
+        handle_event_propagation.call(dom, event2);
+      }
+      if (!event2.cancelBubble) {
+        return without_reactive_context(() => {
+          return handler?.call(this, event2);
+        });
+      }
+    }
+    if (event_name.startsWith("pointer") || event_name.startsWith("touch") || event_name === "wheel") {
+      queue_micro_task(() => {
+        dom.addEventListener(event_name, target_handler, options);
+      });
+    } else {
+      dom.addEventListener(event_name, target_handler, options);
+    }
+    return target_handler;
+  }
+  function event(event_name, dom, handler, capture2, passive) {
+    var options = { capture: capture2, passive };
+    var target_handler = create_event(event_name, dom, handler, options);
+    if (dom === document.body || // @ts-ignore
+    dom === window || // @ts-ignore
+    dom === document || // Firefox has quirky behavior, it can happen that we still get "canplay" events when the element is already removed
+    dom instanceof HTMLMediaElement) {
+      teardown(() => {
+        dom.removeEventListener(event_name, target_handler, options);
+      });
+    }
+  }
+  function delegated(event_name, element, handler) {
+    (element[event_symbol] ??= {})[event_name] = handler;
+  }
+  function delegate(events) {
+    for (var i = 0; i < events.length; i++) {
+      all_registered_events.add(events[i]);
+    }
+    for (var fn of root_event_handles) {
+      fn(events);
+    }
+  }
+  let last_propagated_event = null;
+  function handle_event_propagation(event2) {
+    var handler_element = this;
+    var owner_document = (
+      /** @type {Node} */
+      handler_element.ownerDocument
+    );
+    var event_name = event2.type;
+    var path = event2.composedPath?.() || [];
+    var current_target = (
+      /** @type {null | Element} */
+      path[0] || event2.target
+    );
+    last_propagated_event = event2;
+    var path_idx = 0;
+    var handled_at = last_propagated_event === event2 && event2[event_symbol];
+    if (handled_at) {
+      var at_idx = path.indexOf(handled_at);
+      if (at_idx !== -1 && (handler_element === document || handler_element === /** @type {any} */
+      window)) {
+        event2[event_symbol] = handler_element;
+        return;
+      }
+      var handler_idx = path.indexOf(handler_element);
+      if (handler_idx === -1) {
+        return;
+      }
+      if (at_idx <= handler_idx) {
+        path_idx = at_idx;
+      }
+    }
+    current_target = /** @type {Element} */
+    path[path_idx] || event2.target;
+    if (current_target === handler_element) return;
+    define_property(event2, "currentTarget", {
+      configurable: true,
+      get() {
+        return current_target || owner_document;
+      }
+    });
+    var previous_reaction = active_reaction;
+    var previous_effect = active_effect;
+    set_active_reaction(null);
+    set_active_effect(null);
+    try {
+      var throw_error;
+      var other_errors = [];
+      while (current_target !== null) {
+        var parent_element = current_target.assignedSlot || current_target.parentNode || /** @type {any} */
+        current_target.host || null;
+        try {
+          var delegated2 = current_target[event_symbol]?.[event_name];
+          if (delegated2 != null && (!/** @type {any} */
+          current_target.disabled || // DOM could've been updated already by the time this is reached, so we check this as well
+          // -> the target could not have been disabled because it emits the event in the first place
+          event2.target === current_target)) {
+            delegated2.call(current_target, event2);
+          }
+        } catch (error) {
+          if (throw_error) {
+            other_errors.push(error);
+          } else {
+            throw_error = error;
+          }
+        }
+        if (event2.cancelBubble || parent_element === handler_element || parent_element === null) {
+          break;
+        }
+        current_target = parent_element;
+      }
+      if (throw_error) {
+        for (let error of other_errors) {
+          queueMicrotask(() => {
+            throw error;
+          });
+        }
+        throw throw_error;
+      }
+    } finally {
+      event2[event_symbol] = handler_element;
+      delete event2.currentTarget;
+      set_active_reaction(previous_reaction);
+      set_active_effect(previous_effect);
+    }
+  }
+  const policy = (
+    // We gotta write it like this because after downleveling the pure comment may end up in the wrong location
+    globalThis?.window?.trustedTypes && /* @__PURE__ */ globalThis.window.trustedTypes.createPolicy("svelte-trusted-html", {
+      /** @param {string} html */
+      createHTML: (html) => {
+        return html;
+      }
+    })
+  );
+  function create_trusted_html(html) {
+    return (
+      /** @type {string} */
+      policy?.createHTML(html) ?? html
+    );
+  }
+  function create_fragment_from_html(html) {
+    var elem = create_element("template");
+    elem.innerHTML = create_trusted_html(html.replaceAll("<!>", "<!---->"));
+    return elem.content;
+  }
+  function assign_nodes(start, end) {
+    var effect2 = (
+      /** @type {Effect} */
+      active_effect
+    );
+    if (effect2.nodes === null) {
+      effect2.nodes = { start, end, a: null, t: null };
+    }
+  }
+  // @__NO_SIDE_EFFECTS__
+  function from_html(content, flags2) {
+    var is_fragment = (flags2 & TEMPLATE_FRAGMENT) !== 0;
+    var use_import_node = (flags2 & TEMPLATE_USE_IMPORT_NODE) !== 0;
+    var node;
+    var has_start = !content.startsWith("<!>");
+    return () => {
+      if (hydrating) {
+        assign_nodes(hydrate_node, null);
+        return hydrate_node;
+      }
+      if (node === void 0) {
+        node = create_fragment_from_html(has_start ? content : "<!>" + content);
+        if (!is_fragment) node = /** @type {TemplateNode} */
+        /* @__PURE__ */ get_first_child(node);
+      }
+      var clone = (
+        /** @type {TemplateNode} */
+        use_import_node || is_firefox ? document.importNode(node, true) : node.cloneNode(true)
+      );
+      if (is_fragment) {
+        var start = (
+          /** @type {TemplateNode} */
+          /* @__PURE__ */ get_first_child(clone)
+        );
+        var end = (
+          /** @type {TemplateNode} */
+          clone.lastChild
+        );
+        assign_nodes(start, end);
+      } else {
+        assign_nodes(clone, clone);
+      }
+      return clone;
+    };
+  }
+  function text(value = "") {
+    if (!hydrating) {
+      var t = create_text(value + "");
+      assign_nodes(t, t);
+      return t;
+    }
+    var node = hydrate_node;
+    if (node.nodeType !== TEXT_NODE) {
+      node.before(node = create_text());
+      set_hydrate_node(node);
+    } else {
+      merge_text_nodes(
+        /** @type {Text} */
+        node
+      );
+    }
+    assign_nodes(node, node);
+    return node;
+  }
+  function comment() {
+    if (hydrating) {
+      assign_nodes(hydrate_node, null);
+      return hydrate_node;
+    }
+    var frag = document.createDocumentFragment();
+    var start = document.createComment("");
+    var anchor = create_text();
+    frag.append(start, anchor);
+    assign_nodes(start, anchor);
+    return frag;
+  }
+  function append(anchor, dom) {
+    if (hydrating) {
+      var effect2 = (
+        /** @type {Effect & { nodes: EffectNodes }} */
+        active_effect
+      );
+      if ((effect2.f & REACTION_RAN) === 0 || effect2.nodes.end === null) {
+        effect2.nodes.end = hydrate_node;
+      }
+      hydrate_next();
+      return;
+    }
+    if (anchor === null) {
+      return;
+    }
+    anchor.before(
+      /** @type {Node} */
+      dom
+    );
+  }
+  const PASSIVE_EVENTS = ["touchstart", "touchmove"];
+  function is_passive_event(name) {
+    return PASSIVE_EVENTS.includes(name);
+  }
+  function set_text(text2, value) {
+    var str = value == null ? "" : typeof value === "object" ? `${value}` : value;
+    if (str !== (text2.__t ??= text2.nodeValue)) {
+      text2.__t = str;
+      text2.nodeValue = `${str}`;
+    }
+  }
+  function mount(component2, options) {
+    return _mount(component2, options);
+  }
+  function hydrate(component2, options) {
+    init_operations();
+    options.intro = options.intro ?? false;
+    const target = options.target;
+    const was_hydrating = hydrating;
+    const previous_hydrate_node = hydrate_node;
+    try {
+      var anchor = /* @__PURE__ */ get_first_child(target);
+      while (anchor && (anchor.nodeType !== COMMENT_NODE || /** @type {Comment} */
+      anchor.data !== HYDRATION_START)) {
+        anchor = /* @__PURE__ */ get_next_sibling(anchor);
+      }
+      if (!anchor) {
+        throw HYDRATION_ERROR;
+      }
+      set_hydrating(true);
+      set_hydrate_node(
+        /** @type {Comment} */
+        anchor
+      );
+      const instance = _mount(component2, { ...options, anchor });
+      set_hydrating(false);
+      return (
+        /**  @type {Exports} */
+        instance
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message.split("\n").some((line) => line.startsWith("https://svelte.dev/e/"))) {
+        throw error;
+      }
+      if (error !== HYDRATION_ERROR) {
+        console.warn("Failed to hydrate: ", error);
+      }
+      if (options.recover === false) {
+        hydration_failed();
+      }
+      init_operations();
+      clear_text_content(target);
+      set_hydrating(false);
+      return mount(component2, options);
+    } finally {
+      set_hydrating(was_hydrating);
+      set_hydrate_node(previous_hydrate_node);
+    }
+  }
+  const listeners = /* @__PURE__ */ new Map();
+  function _mount(Component, { target, anchor, props = {}, events, context, intro = true, transformError }) {
+    init_operations();
+    var component2 = void 0;
+    var unmount2 = component_root(() => {
+      var anchor_node = anchor ?? target.appendChild(create_text());
+      boundary(
+        /** @type {TemplateNode} */
+        anchor_node,
+        {
+          pending: () => {
+          }
+        },
+        (anchor_node2) => {
+          push({});
+          var ctx = (
+            /** @type {ComponentContext} */
+            component_context
+          );
+          if (context) ctx.c = context;
+          if (events) {
+            props.$$events = events;
+          }
+          if (hydrating) {
+            assign_nodes(
+              /** @type {TemplateNode} */
+              anchor_node2,
+              null
+            );
+          }
+          component2 = Component(anchor_node2, props) || {};
+          if (hydrating) {
+            active_effect.nodes.end = hydrate_node;
+            if (hydrate_node === null || hydrate_node.nodeType !== COMMENT_NODE || /** @type {Comment} */
+            hydrate_node.data !== HYDRATION_END) {
+              hydration_mismatch();
+              throw HYDRATION_ERROR;
+            }
+          }
+          pop();
+        },
+        transformError
+      );
+      var registered_events = /* @__PURE__ */ new Set();
+      var event_handle = (events2) => {
+        for (var i = 0; i < events2.length; i++) {
+          var event_name = events2[i];
+          if (registered_events.has(event_name)) continue;
+          registered_events.add(event_name);
+          var passive = is_passive_event(event_name);
+          for (const node of [target, document]) {
+            var counts = listeners.get(node);
+            if (counts === void 0) {
+              counts = /* @__PURE__ */ new Map();
+              listeners.set(node, counts);
+            }
+            var count = counts.get(event_name);
+            if (count === void 0) {
+              node.addEventListener(event_name, handle_event_propagation, { passive });
+              counts.set(event_name, 1);
+            } else {
+              counts.set(event_name, count + 1);
+            }
+          }
+        }
+      };
+      event_handle(array_from(all_registered_events));
+      root_event_handles.add(event_handle);
+      return () => {
+        for (var event_name of registered_events) {
+          for (const node of [target, document]) {
+            var counts = (
+              /** @type {Map<string, number>} */
+              listeners.get(node)
+            );
+            var count = (
+              /** @type {number} */
+              counts.get(event_name)
+            );
+            if (--count == 0) {
+              node.removeEventListener(event_name, handle_event_propagation);
+              counts.delete(event_name);
+              if (counts.size === 0) {
+                listeners.delete(node);
+              }
+            } else {
+              counts.set(event_name, count);
+            }
+          }
+        }
+        root_event_handles.delete(event_handle);
+        if (anchor_node !== anchor) {
+          anchor_node.parentNode?.removeChild(anchor_node);
+        }
+      };
+    });
+    mounted_components.set(component2, unmount2);
+    return component2;
+  }
+  let mounted_components = /* @__PURE__ */ new WeakMap();
+  function unmount(component2, options) {
+    const fn = mounted_components.get(component2);
+    if (fn) {
+      mounted_components.delete(component2);
+      return fn(options);
+    }
+    return Promise.resolve();
+  }
+  function asClassComponent(component2) {
+    return class extends Svelte4Component {
+      /** @param {any} options */
+      constructor(options) {
+        super({
+          component: component2,
+          ...options
+        });
+      }
+    };
+  }
+  class Svelte4Component {
+    /** @type {any} */
+    #events;
+    /** @type {Record<string, any>} */
+    #instance;
+    /**
+     * @param {ComponentConstructorOptions & {
+     *  component: any;
+     * }} options
+     */
+    constructor(options) {
+      var sources = /* @__PURE__ */ new Map();
+      var add_source = (key, value) => {
+        var s = /* @__PURE__ */ mutable_source(value, false, false);
+        sources.set(key, s);
+        return s;
+      };
+      const props = new Proxy(
+        { ...options.props || {}, $$events: {} },
+        {
+          get(target, prop2) {
+            return get(sources.get(prop2) ?? add_source(prop2, Reflect.get(target, prop2)));
+          },
+          has(target, prop2) {
+            if (prop2 === LEGACY_PROPS) return true;
+            get(sources.get(prop2) ?? add_source(prop2, Reflect.get(target, prop2)));
+            return Reflect.has(target, prop2);
+          },
+          set(target, prop2, value) {
+            set(sources.get(prop2) ?? add_source(prop2, value), value);
+            return Reflect.set(target, prop2, value);
+          }
+        }
+      );
+      this.#instance = (options.hydrate ? hydrate : mount)(options.component, {
+        target: options.target,
+        anchor: options.anchor,
+        props,
+        context: options.context,
+        intro: options.intro ?? false,
+        recover: options.recover,
+        transformError: options.transformError
+      });
+      if (!options?.props?.$$host || options.sync === false) {
+        flushSync();
+      }
+      this.#events = props.$$events;
+      for (const key of Object.keys(this.#instance)) {
+        if (key === "$set" || key === "$destroy" || key === "$on") continue;
+        define_property(this, key, {
+          get() {
+            return this.#instance[key];
+          },
+          /** @param {any} value */
+          set(value) {
+            this.#instance[key] = value;
+          },
+          enumerable: true
+        });
+      }
+      this.#instance.$set = /** @param {Record<string, any>} next */
+      (next2) => {
+        Object.assign(props, next2);
+      };
+      this.#instance.$destroy = () => {
+        unmount(this.#instance);
+      };
+    }
+    /** @param {Record<string, any>} props */
+    $set(props) {
+      this.#instance.$set(props);
+    }
+    /**
+     * @param {string} event
+     * @param {(...args: any[]) => any} callback
+     * @returns {any}
+     */
+    $on(event2, callback) {
+      this.#events[event2] = this.#events[event2] || [];
+      const cb = (...args) => callback.call(this, ...args);
+      this.#events[event2].push(cb);
+      return () => {
+        this.#events[event2] = this.#events[event2].filter(
+          /** @param {any} fn */
+          (fn) => fn !== cb
+        );
+      };
+    }
+    $destroy() {
+      this.#instance.$destroy();
+    }
+  }
+  const PUBLIC_VERSION = "5";
+  if (typeof window !== "undefined") {
+    ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add(PUBLIC_VERSION);
+  }
+  class BranchManager {
+    /** @type {TemplateNode} */
+    anchor;
+    /** @type {Map<Batch, Key>} */
+    #batches = /* @__PURE__ */ new Map();
+    /**
+     * Map of keys to effects that are currently rendered in the DOM.
+     * These effects are visible and actively part of the document tree.
+     * Example:
+     * ```
+     * {#if condition}
+     * 	foo
+     * {:else}
+     * 	bar
+     * {/if}
+     * ```
+     * Can result in the entries `true->Effect` and `false->Effect`
+     * @type {Map<Key, Effect>}
+     */
+    #onscreen = /* @__PURE__ */ new Map();
+    /**
+     * Similar to #onscreen with respect to the keys, but contains branches that are not yet
+     * in the DOM, because their insertion is deferred.
+     * @type {Map<Key, Branch>}
+     */
+    #offscreen = /* @__PURE__ */ new Map();
+    /**
+     * Keys of effects that are currently outroing
+     * @type {Set<Key>}
+     */
+    #outroing = /* @__PURE__ */ new Set();
+    /**
+     * Whether to pause (i.e. outro) on change, or destroy immediately.
+     * This is necessary for `<svelte:element>`
+     */
+    #transition = true;
+    /**
+     * @param {TemplateNode} anchor
+     * @param {boolean} transition
+     */
+    constructor(anchor, transition = true) {
+      this.anchor = anchor;
+      this.#transition = transition;
+    }
+    /**
+     * @param {Batch} batch
+     */
+    #commit = (batch) => {
+      if (!this.#batches.has(batch)) return;
+      var key = (
+        /** @type {Key} */
+        this.#batches.get(batch)
+      );
+      var onscreen = this.#onscreen.get(key);
+      if (onscreen) {
+        resume_effect(onscreen);
+        this.#outroing.delete(key);
+      } else {
+        var offscreen = this.#offscreen.get(key);
+        if (offscreen && (offscreen.effect.f & INERT) === 0) {
+          this.#onscreen.set(key, offscreen.effect);
+          this.#offscreen.delete(key);
+          offscreen.fragment.lastChild.remove();
+          this.anchor.before(offscreen.fragment);
+          onscreen = offscreen.effect;
+        }
+      }
+      for (const [b, k] of this.#batches) {
+        this.#batches.delete(b);
+        if (b === batch) {
+          break;
+        }
+        const offscreen2 = this.#offscreen.get(k);
+        if (offscreen2) {
+          destroy_effect(offscreen2.effect);
+          this.#offscreen.delete(k);
+        }
+      }
+      for (const [k, effect2] of this.#onscreen) {
+        if (k === key || this.#outroing.has(k)) continue;
+        if ((effect2.f & INERT) !== 0) continue;
+        const on_destroy = () => {
+          const keys = Array.from(this.#batches.values());
+          if (keys.includes(k)) {
+            var fragment = document.createDocumentFragment();
+            move_effect(effect2, fragment);
+            fragment.append(create_text());
+            this.#offscreen.set(k, { effect: effect2, fragment });
+          } else {
+            destroy_effect(effect2);
+          }
+          this.#outroing.delete(k);
+          this.#onscreen.delete(k);
+        };
+        if (this.#transition || !onscreen) {
+          this.#outroing.add(k);
+          pause_effect(effect2, on_destroy, false);
+        } else {
+          on_destroy();
+        }
+      }
+    };
+    /**
+     * @param {Batch} batch
+     */
+    #discard = (batch) => {
+      this.#batches.delete(batch);
+      const keys = Array.from(this.#batches.values());
+      for (const [k, branch2] of this.#offscreen) {
+        if (!keys.includes(k)) {
+          destroy_effect(branch2.effect);
+          this.#offscreen.delete(k);
+        }
+      }
+    };
+    /**
+     *
+     * @param {any} key
+     * @param {null | ((target: TemplateNode) => void)} fn
+     */
+    ensure(key, fn) {
+      var batch = (
+        /** @type {Batch} */
+        current_batch
+      );
+      var defer = should_defer_append();
+      if (fn && !this.#onscreen.has(key) && !this.#offscreen.has(key)) {
+        if (defer) {
+          var fragment = document.createDocumentFragment();
+          var target = create_text();
+          fragment.append(target);
+          this.#offscreen.set(key, {
+            effect: branch(() => fn(target)),
+            fragment
+          });
+        } else {
+          this.#onscreen.set(
+            key,
+            branch(() => fn(this.anchor))
+          );
+        }
+      }
+      this.#batches.set(batch, key);
+      if (defer) {
+        for (const [k, effect2] of this.#onscreen) {
+          if (k === key) {
+            batch.unskip_effect(effect2);
+          } else {
+            batch.skip_effect(effect2);
+          }
+        }
+        for (const [k, branch2] of this.#offscreen) {
+          if (k === key) {
+            batch.unskip_effect(branch2.effect);
+          } else {
+            batch.skip_effect(branch2.effect);
+          }
+        }
+        batch.oncommit(this.#commit);
+        batch.ondiscard(this.#discard);
+      } else {
+        if (hydrating) {
+          this.anchor = hydrate_node;
+        }
+        this.#commit(batch);
+      }
+    }
+  }
+  function snippet(node, get_snippet, ...args) {
+    var branches = new BranchManager(node);
+    block(() => {
+      const snippet2 = get_snippet() ?? null;
+      branches.ensure(snippet2, snippet2 && ((anchor) => snippet2(anchor, ...args)));
+    }, EFFECT_TRANSPARENT);
+  }
+  function onMount(fn) {
+    if (component_context === null) {
+      lifecycle_outside_component();
+    }
+    {
+      user_effect(() => {
+        const cleanup = untrack(fn);
+        if (typeof cleanup === "function") return (
+          /** @type {() => void} */
+          cleanup
+        );
+      });
+    }
+  }
+  function if_block(node, fn, elseif = false) {
+    var marker;
+    if (hydrating) {
+      marker = hydrate_node;
+      hydrate_next();
+    }
+    var branches = new BranchManager(node);
+    var flags2 = elseif ? EFFECT_TRANSPARENT : 0;
+    function update_branch(key, fn2) {
+      if (hydrating) {
+        var data = read_hydration_instruction(
+          /** @type {TemplateNode} */
+          marker
+        );
+        if (key !== parseInt(data.substring(1))) {
+          var anchor = skip_nodes();
+          set_hydrate_node(anchor);
+          branches.anchor = anchor;
+          set_hydrating(false);
+          branches.ensure(key, fn2);
+          set_hydrating(true);
+          return;
+        }
+      }
+      branches.ensure(key, fn2);
+    }
+    block(() => {
+      var has_branch = false;
+      fn((fn2, key = 0) => {
+        has_branch = true;
+        update_branch(key, fn2);
+      });
+      if (!has_branch) {
+        update_branch(-1, null);
+      }
+    }, flags2);
+  }
+  function index(_, i) {
+    return i;
+  }
+  function pause_effects(state2, to_destroy, controlled_anchor) {
+    var transitions = [];
+    var length = to_destroy.length;
+    var group;
+    var remaining = to_destroy.length;
+    for (var i = 0; i < length; i++) {
+      let effect2 = to_destroy[i];
+      pause_effect(
+        effect2,
+        () => {
+          if (group) {
+            group.pending.delete(effect2);
+            group.done.add(effect2);
+            if (group.pending.size === 0) {
+              var groups = (
+                /** @type {Set<EachOutroGroup>} */
+                state2.outrogroups
+              );
+              destroy_effects(state2, array_from(group.done));
+              groups.delete(group);
+              if (groups.size === 0) {
+                state2.outrogroups = null;
+              }
+            }
+          } else {
+            remaining -= 1;
+          }
+        },
+        false
+      );
+    }
+    if (remaining === 0) {
+      var fast_path = transitions.length === 0 && controlled_anchor !== null;
+      if (fast_path) {
+        var anchor = (
+          /** @type {Element} */
+          controlled_anchor
+        );
+        var parent_node = (
+          /** @type {Element} */
+          anchor.parentNode
+        );
+        clear_text_content(parent_node);
+        parent_node.append(anchor);
+        state2.items.clear();
+      }
+      destroy_effects(state2, to_destroy, !fast_path);
+    } else {
+      group = {
+        pending: new Set(to_destroy),
+        done: /* @__PURE__ */ new Set()
+      };
+      (state2.outrogroups ??= /* @__PURE__ */ new Set()).add(group);
+    }
+  }
+  function destroy_effects(state2, to_destroy, remove_dom = true) {
+    var preserved_effects;
+    if (state2.pending.size > 0) {
+      preserved_effects = /* @__PURE__ */ new Set();
+      for (const keys of state2.pending.values()) {
+        for (const key of keys) {
+          preserved_effects.add(
+            /** @type {EachItem} */
+            state2.items.get(key).e
+          );
+        }
+      }
+    }
+    for (var i = 0; i < to_destroy.length; i++) {
+      var e = to_destroy[i];
+      if (preserved_effects?.has(e)) {
+        e.f |= EFFECT_OFFSCREEN;
+        const fragment = document.createDocumentFragment();
+        move_effect(e, fragment);
+      } else {
+        destroy_effect(to_destroy[i], remove_dom);
+      }
+    }
+  }
+  var offscreen_anchor;
+  function each(node, flags2, get_collection, get_key, render_fn, fallback_fn = null) {
+    var anchor = node;
+    var items = /* @__PURE__ */ new Map();
+    var is_controlled = (flags2 & EACH_IS_CONTROLLED) !== 0;
+    if (is_controlled) {
+      var parent_node = (
+        /** @type {Element} */
+        node
+      );
+      anchor = hydrating ? set_hydrate_node(/* @__PURE__ */ get_first_child(parent_node)) : parent_node.appendChild(create_text());
+    }
+    if (hydrating) {
+      hydrate_next();
+    }
+    var fallback = null;
+    var each_array = /* @__PURE__ */ derived_safe_equal(() => {
+      var collection = get_collection();
+      return is_array(collection) ? collection : collection == null ? [] : array_from(collection);
+    });
+    var array;
+    var pending = /* @__PURE__ */ new Map();
+    var first_run = true;
+    function commit(batch) {
+      if ((state2.effect.f & DESTROYED) !== 0) {
+        return;
+      }
+      state2.pending.delete(batch);
+      state2.fallback = fallback;
+      reconcile(state2, array, anchor, flags2, get_key);
+      if (fallback !== null) {
+        if (array.length === 0) {
+          if ((fallback.f & EFFECT_OFFSCREEN) === 0) {
+            resume_effect(fallback);
+          } else {
+            fallback.f ^= EFFECT_OFFSCREEN;
+            move(fallback, null, anchor);
+          }
+        } else {
+          pause_effect(fallback, () => {
+            fallback = null;
+          });
+        }
+      }
+    }
+    function discard(batch) {
+      state2.pending.delete(batch);
+    }
+    var effect2 = block(() => {
+      array = /** @type {V[]} */
+      get(each_array);
+      var length = array.length;
+      let mismatch = false;
+      if (hydrating) {
+        var is_else = read_hydration_instruction(anchor) === HYDRATION_START_ELSE;
+        if (is_else !== (length === 0)) {
+          anchor = skip_nodes();
+          set_hydrate_node(anchor);
+          set_hydrating(false);
+          mismatch = true;
+        }
+      }
+      var keys = /* @__PURE__ */ new Set();
+      var batch = (
+        /** @type {Batch} */
+        current_batch
+      );
+      var defer = should_defer_append();
+      for (var index2 = 0; index2 < length; index2 += 1) {
+        if (hydrating && hydrate_node.nodeType === COMMENT_NODE && /** @type {Comment} */
+        hydrate_node.data === HYDRATION_END) {
+          anchor = /** @type {Comment} */
+          hydrate_node;
+          mismatch = true;
+          set_hydrating(false);
+        }
+        var value = array[index2];
+        var key = get_key(value, index2);
+        var item = first_run ? null : items.get(key);
+        if (item) {
+          if (item.v) internal_set(item.v, value);
+          if (item.i) internal_set(item.i, index2);
+          if (defer) {
+            batch.unskip_effect(item.e);
+          }
+        } else {
+          item = create_item(
+            items,
+            first_run ? anchor : offscreen_anchor ??= create_text(),
+            value,
+            key,
+            index2,
+            render_fn,
+            flags2,
+            get_collection
+          );
+          if (!first_run) {
+            item.e.f |= EFFECT_OFFSCREEN;
+          }
+          items.set(key, item);
+        }
+        keys.add(key);
+      }
+      if (length === 0 && fallback_fn && !fallback) {
+        if (first_run) {
+          fallback = branch(() => fallback_fn(anchor));
+        } else {
+          fallback = branch(() => fallback_fn(offscreen_anchor ??= create_text()));
+          fallback.f |= EFFECT_OFFSCREEN;
+        }
+      }
+      if (length > keys.size) {
+        {
+          each_key_duplicate();
+        }
+      }
+      if (hydrating && length > 0) {
+        set_hydrate_node(skip_nodes());
+      }
+      if (!first_run) {
+        pending.set(batch, keys);
+        if (defer) {
+          for (const [key2, item2] of items) {
+            if (!keys.has(key2)) {
+              batch.skip_effect(item2.e);
+            }
+          }
+          batch.oncommit(commit);
+          batch.ondiscard(discard);
+        } else {
+          commit(batch);
+        }
+      }
+      if (mismatch) {
+        set_hydrating(true);
+      }
+      get(each_array);
+    });
+    var state2 = { effect: effect2, items, pending, outrogroups: null, fallback };
+    first_run = false;
+    if (hydrating) {
+      anchor = hydrate_node;
+    }
+  }
+  function skip_to_branch(effect2) {
+    while (effect2 !== null && (effect2.f & BRANCH_EFFECT) === 0) {
+      effect2 = effect2.next;
+    }
+    return effect2;
+  }
+  function reconcile(state2, array, anchor, flags2, get_key) {
+    var is_animated = (flags2 & EACH_IS_ANIMATED) !== 0;
+    var length = array.length;
+    var items = state2.items;
+    var current = skip_to_branch(state2.effect.first);
+    var seen;
+    var prev = null;
+    var to_animate;
+    var matched = [];
+    var stashed = [];
+    var value;
+    var key;
+    var effect2;
+    var i;
+    if (is_animated) {
+      for (i = 0; i < length; i += 1) {
+        value = array[i];
+        key = get_key(value, i);
+        effect2 = /** @type {EachItem} */
+        items.get(key).e;
+        if ((effect2.f & EFFECT_OFFSCREEN) === 0) {
+          effect2.nodes?.a?.measure();
+          (to_animate ??= /* @__PURE__ */ new Set()).add(effect2);
+        }
+      }
+    }
+    for (i = 0; i < length; i += 1) {
+      value = array[i];
+      key = get_key(value, i);
+      effect2 = /** @type {EachItem} */
+      items.get(key).e;
+      if (state2.outrogroups !== null) {
+        for (const group of state2.outrogroups) {
+          group.pending.delete(effect2);
+          group.done.delete(effect2);
+        }
+      }
+      if ((effect2.f & EFFECT_OFFSCREEN) !== 0) {
+        effect2.f ^= EFFECT_OFFSCREEN;
+        if (effect2 === current) {
+          move(effect2, null, anchor);
+        } else {
+          var next2 = prev ? prev.next : current;
+          if (effect2 === state2.effect.last) {
+            state2.effect.last = effect2.prev;
+          }
+          if (effect2.prev) effect2.prev.next = effect2.next;
+          if (effect2.next) effect2.next.prev = effect2.prev;
+          link(state2, prev, effect2);
+          link(state2, effect2, next2);
+          move(effect2, next2, anchor);
+          prev = effect2;
+          matched = [];
+          stashed = [];
+          current = skip_to_branch(prev.next);
+          continue;
+        }
+      }
+      if ((effect2.f & INERT) !== 0) {
+        resume_effect(effect2);
+        if (is_animated) {
+          effect2.nodes?.a?.unfix();
+          (to_animate ??= /* @__PURE__ */ new Set()).delete(effect2);
+        }
+      }
+      if (effect2 !== current) {
+        if (seen !== void 0 && seen.has(effect2)) {
+          if (matched.length < stashed.length) {
+            var start = stashed[0];
+            var j;
+            prev = start.prev;
+            var a = matched[0];
+            var b = matched[matched.length - 1];
+            for (j = 0; j < matched.length; j += 1) {
+              move(matched[j], start, anchor);
+            }
+            for (j = 0; j < stashed.length; j += 1) {
+              seen.delete(stashed[j]);
+            }
+            link(state2, a.prev, b.next);
+            link(state2, prev, a);
+            link(state2, b, start);
+            current = start;
+            prev = b;
+            i -= 1;
+            matched = [];
+            stashed = [];
+          } else {
+            seen.delete(effect2);
+            move(effect2, current, anchor);
+            link(state2, effect2.prev, effect2.next);
+            link(state2, effect2, prev === null ? state2.effect.first : prev.next);
+            link(state2, prev, effect2);
+            prev = effect2;
+          }
+          continue;
+        }
+        matched = [];
+        stashed = [];
+        while (current !== null && current !== effect2) {
+          (seen ??= /* @__PURE__ */ new Set()).add(current);
+          stashed.push(current);
+          current = skip_to_branch(current.next);
+        }
+        if (current === null) {
+          continue;
+        }
+      }
+      if ((effect2.f & EFFECT_OFFSCREEN) === 0) {
+        matched.push(effect2);
+      }
+      prev = effect2;
+      current = skip_to_branch(effect2.next);
+    }
+    if (state2.outrogroups !== null) {
+      for (const group of state2.outrogroups) {
+        if (group.pending.size === 0) {
+          destroy_effects(state2, array_from(group.done));
+          state2.outrogroups?.delete(group);
+        }
+      }
+      if (state2.outrogroups.size === 0) {
+        state2.outrogroups = null;
+      }
+    }
+    if (current !== null || seen !== void 0) {
+      var to_destroy = [];
+      if (seen !== void 0) {
+        for (effect2 of seen) {
+          if ((effect2.f & INERT) === 0) {
+            to_destroy.push(effect2);
+          }
+        }
+      }
+      while (current !== null) {
+        if ((current.f & INERT) === 0 && current !== state2.fallback) {
+          to_destroy.push(current);
+        }
+        current = skip_to_branch(current.next);
+      }
+      var destroy_length = to_destroy.length;
+      if (destroy_length > 0) {
+        var controlled_anchor = (flags2 & EACH_IS_CONTROLLED) !== 0 && length === 0 ? anchor : null;
+        if (is_animated) {
+          for (i = 0; i < destroy_length; i += 1) {
+            to_destroy[i].nodes?.a?.measure();
+          }
+          for (i = 0; i < destroy_length; i += 1) {
+            to_destroy[i].nodes?.a?.fix();
+          }
+        }
+        pause_effects(state2, to_destroy, controlled_anchor);
+      }
+    }
+    if (is_animated) {
+      queue_micro_task(() => {
+        if (to_animate === void 0) return;
+        for (effect2 of to_animate) {
+          effect2.nodes?.a?.apply();
+        }
+      });
+    }
+  }
+  function create_item(items, anchor, value, key, index2, render_fn, flags2, get_collection) {
+    var v = (flags2 & EACH_ITEM_REACTIVE) !== 0 ? (flags2 & EACH_ITEM_IMMUTABLE) === 0 ? /* @__PURE__ */ mutable_source(value, false, false) : source(value) : null;
+    var i = (flags2 & EACH_INDEX_REACTIVE) !== 0 ? source(index2) : null;
+    return {
+      v,
+      i,
+      e: branch(() => {
+        render_fn(anchor, v ?? value, i ?? index2, get_collection);
+        return () => {
+          items.delete(key);
+        };
+      })
+    };
+  }
+  function move(effect2, next2, anchor) {
+    if (!effect2.nodes) return;
+    var node = effect2.nodes.start;
+    var end = effect2.nodes.end;
+    var dest = next2 && (next2.f & EFFECT_OFFSCREEN) === 0 ? (
+      /** @type {EffectNodes} */
+      next2.nodes.start
+    ) : anchor;
+    while (node !== null) {
+      var next_node = (
+        /** @type {TemplateNode} */
+        /* @__PURE__ */ get_next_sibling(node)
+      );
+      dest.before(node);
+      if (node === end) {
+        return;
+      }
+      node = next_node;
+    }
+  }
+  function link(state2, prev, next2) {
+    if (prev === null) {
+      state2.effect.first = next2;
+    } else {
+      prev.next = next2;
+    }
+    if (next2 === null) {
+      state2.effect.last = prev;
+    } else {
+      next2.prev = prev;
+    }
+  }
+  function component(node, get_component, render_fn) {
+    var hydration_start_node;
+    if (hydrating) {
+      hydration_start_node = hydrate_node;
+      hydrate_next();
+    }
+    var branches = new BranchManager(node);
+    block(() => {
+      var component2 = get_component() ?? null;
+      if (hydrating) {
+        var data = read_hydration_instruction(
+          /** @type {TemplateNode} */
+          hydration_start_node
+        );
+        var server_had_component = data === HYDRATION_START;
+        var client_has_component = component2 !== null;
+        if (server_had_component !== client_has_component) {
+          var anchor = skip_nodes();
+          set_hydrate_node(anchor);
+          branches.anchor = anchor;
+          set_hydrating(false);
+          branches.ensure(component2, component2 && ((target) => render_fn(target, component2)));
+          set_hydrating(true);
+          return;
+        }
+      }
+      branches.ensure(component2, component2 && ((target) => render_fn(target, component2)));
+    }, EFFECT_TRANSPARENT);
+  }
+  const whitespace = [..." 	\n\r\f \v\uFEFF"];
+  function to_class(value, hash, directives) {
+    var classname = value == null ? "" : "" + value;
+    if (directives) {
+      for (var key of Object.keys(directives)) {
+        if (directives[key]) {
+          classname = classname ? classname + " " + key : key;
+        } else if (classname.length) {
+          var len = key.length;
+          var a = 0;
+          while ((a = classname.indexOf(key, a)) >= 0) {
+            var b = a + len;
+            if ((a === 0 || whitespace.includes(classname[a - 1])) && (b === classname.length || whitespace.includes(classname[b]))) {
+              classname = (a === 0 ? "" : classname.substring(0, a)) + classname.substring(b + 1);
+            } else {
+              a = b;
+            }
+          }
+        }
+      }
+    }
+    return classname === "" ? null : classname;
+  }
+  function append_styles(styles, important = false) {
+    var separator = important ? " !important;" : ";";
+    var css = "";
+    for (var key of Object.keys(styles)) {
+      var value = styles[key];
+      if (value != null && value !== "") {
+        css += " " + key + ": " + value + separator;
+      }
+    }
+    return css;
+  }
+  function to_css_name(name) {
+    if (name[0] !== "-" || name[1] !== "-") {
+      return name.toLowerCase();
+    }
+    return name;
+  }
+  function to_style(value, styles) {
+    if (styles) {
+      var new_style = "";
+      var normal_styles;
+      var important_styles;
+      if (Array.isArray(styles)) {
+        normal_styles = styles[0];
+        important_styles = styles[1];
+      } else {
+        normal_styles = styles;
+      }
+      if (value) {
+        value = String(value).replaceAll(/\s*\/\*.*?\*\/\s*/g, "").trim();
+        var in_str = false;
+        var in_apo = 0;
+        var in_comment = false;
+        var reserved_names = [];
+        if (normal_styles) {
+          reserved_names.push(...Object.keys(normal_styles).map(to_css_name));
+        }
+        if (important_styles) {
+          reserved_names.push(...Object.keys(important_styles).map(to_css_name));
+        }
+        var start_index = 0;
+        var name_index = -1;
+        const len = value.length;
+        for (var i = 0; i < len; i++) {
+          var c = value[i];
+          if (in_comment) {
+            if (c === "/" && value[i - 1] === "*") {
+              in_comment = false;
+            }
+          } else if (in_str) {
+            if (in_str === c) {
+              in_str = false;
+            }
+          } else if (c === "/" && value[i + 1] === "*") {
+            in_comment = true;
+          } else if (c === '"' || c === "'") {
+            in_str = c;
+          } else if (c === "(") {
+            in_apo++;
+          } else if (c === ")") {
+            in_apo--;
+          }
+          if (!in_comment && in_str === false && in_apo === 0) {
+            if (c === ":" && name_index === -1) {
+              name_index = i;
+            } else if (c === ";" || i === len - 1) {
+              if (name_index !== -1) {
+                var name = to_css_name(value.substring(start_index, name_index).trim());
+                if (!reserved_names.includes(name)) {
+                  if (c !== ";") {
+                    i++;
+                  }
+                  var property = value.substring(start_index, i).trim();
+                  new_style += " " + property + ";";
+                }
+              }
+              start_index = i + 1;
+              name_index = -1;
+            }
+          }
+        }
+      }
+      if (normal_styles) {
+        new_style += append_styles(normal_styles);
+      }
+      if (important_styles) {
+        new_style += append_styles(important_styles, true);
+      }
+      new_style = new_style.trim();
+      return new_style === "" ? null : new_style;
+    }
+    return value == null ? null : String(value);
+  }
+  function set_class(dom, is_html, value, hash, prev_classes, next_classes) {
+    var prev = dom.__className;
+    if (hydrating || prev !== value || prev === void 0) {
+      var next_class_name = to_class(value, hash, next_classes);
+      if (!hydrating || next_class_name !== dom.getAttribute("class")) {
+        if (next_class_name == null) {
+          dom.removeAttribute("class");
+        } else {
+          dom.className = next_class_name;
+        }
+      }
+      dom.__className = value;
+    } else if (next_classes && prev_classes !== next_classes) {
+      for (var key in next_classes) {
+        var is_present = !!next_classes[key];
+        if (prev_classes == null || is_present !== !!prev_classes[key]) {
+          dom.classList.toggle(key, is_present);
+        }
+      }
+    }
+    return next_classes;
+  }
+  function update_styles(dom, prev = {}, next2, priority) {
+    for (var key in next2) {
+      var value = next2[key];
+      if (prev[key] !== value) {
+        if (next2[key] == null) {
+          dom.style.removeProperty(key);
+        } else {
+          dom.style.setProperty(key, value, priority);
+        }
+      }
+    }
+  }
+  function set_style(dom, value, prev_styles, next_styles) {
+    var prev = dom.__style;
+    if (hydrating || prev !== value) {
+      var next_style_attr = to_style(value, next_styles);
+      if (!hydrating || next_style_attr !== dom.getAttribute("style")) {
+        if (next_style_attr == null) {
+          dom.removeAttribute("style");
+        } else {
+          dom.style.cssText = next_style_attr;
+        }
+      }
+      dom.__style = value;
+    } else if (next_styles) {
+      if (Array.isArray(next_styles)) {
+        update_styles(dom, prev_styles?.[0], next_styles[0]);
+        update_styles(dom, prev_styles?.[1], next_styles[1], "important");
+      } else {
+        update_styles(dom, prev_styles, next_styles);
+      }
+    }
+    return next_styles;
+  }
+  const IS_CUSTOM_ELEMENT = /* @__PURE__ */ Symbol("is custom element");
+  const IS_HTML = /* @__PURE__ */ Symbol("is html");
+  const LINK_TAG = IS_XHTML ? "link" : "LINK";
+  function set_attribute(element, attribute, value, skip_warning) {
+    var attributes = get_attributes(element);
+    if (hydrating) {
+      attributes[attribute] = element.getAttribute(attribute);
+      if (attribute === "src" || attribute === "srcset" || attribute === "href" && element.nodeName === LINK_TAG) {
+        return;
+      }
+    }
+    if (attributes[attribute] === (attributes[attribute] = value)) return;
+    if (attribute === "loading") {
+      element[LOADING_ATTR_SYMBOL] = value;
+    }
+    if (value == null) {
+      element.removeAttribute(attribute);
+    } else if (typeof value !== "string" && get_setters(element).includes(attribute)) {
+      element[attribute] = value;
+    } else {
+      element.setAttribute(attribute, value);
+    }
+  }
+  function get_attributes(element) {
+    return (
+      /** @type {Record<string | symbol, unknown>} **/
+      // @ts-expect-error
+      element.__attributes ??= {
+        [IS_CUSTOM_ELEMENT]: element.nodeName.includes("-"),
+        [IS_HTML]: element.namespaceURI === NAMESPACE_HTML
+      }
+    );
+  }
+  var setters_cache = /* @__PURE__ */ new Map();
+  function get_setters(element) {
+    var cache_key = element.getAttribute("is") || element.nodeName;
+    var setters = setters_cache.get(cache_key);
+    if (setters) return setters;
+    setters_cache.set(cache_key, setters = []);
+    var descriptors;
+    var proto = element;
+    var element_proto = Element.prototype;
+    while (element_proto !== proto) {
+      descriptors = get_descriptors(proto);
+      for (var key in descriptors) {
+        if (descriptors[key].set) {
+          setters.push(key);
+        }
+      }
+      proto = get_prototype_of(proto);
+    }
+    return setters;
+  }
+  function is_bound_this(bound_value, element_or_component) {
+    return bound_value === element_or_component || bound_value?.[STATE_SYMBOL] === element_or_component;
+  }
+  function bind_this(element_or_component = {}, update, get_value, get_parts) {
+    effect(() => {
+      var old_parts;
+      var parts;
+      render_effect(() => {
+        old_parts = parts;
+        parts = [];
+        untrack(() => {
+          if (element_or_component !== get_value(...parts)) {
+            update(element_or_component, ...parts);
+            if (old_parts && is_bound_this(get_value(...old_parts), element_or_component)) {
+              update(null, ...old_parts);
+            }
+          }
+        });
+      });
+      return () => {
+        queue_micro_task(() => {
+          if (parts && is_bound_this(get_value(...parts), element_or_component)) {
+            update(null, ...parts);
+          }
+        });
+      };
+    });
+    return element_or_component;
+  }
+  let is_store_binding = false;
+  function capture_store_binding(fn) {
+    var previous_is_store_binding = is_store_binding;
+    try {
+      is_store_binding = false;
+      return [fn(), is_store_binding];
+    } finally {
+      is_store_binding = previous_is_store_binding;
+    }
+  }
+  const rest_props_handler = {
+    get(target, key) {
+      if (target.exclude.includes(key)) return;
+      return target.props[key];
+    },
+    set(target, key) {
+      return false;
+    },
+    getOwnPropertyDescriptor(target, key) {
+      if (target.exclude.includes(key)) return;
+      if (key in target.props) {
+        return {
+          enumerable: true,
+          configurable: true,
+          value: target.props[key]
+        };
+      }
+    },
+    has(target, key) {
+      if (target.exclude.includes(key)) return false;
+      return key in target.props;
+    },
+    ownKeys(target) {
+      return Reflect.ownKeys(target.props).filter((key) => !target.exclude.includes(key));
+    }
+  };
+  // @__NO_SIDE_EFFECTS__
+  function rest_props(props, exclude, name) {
+    return new Proxy(
+      { props, exclude },
+      rest_props_handler
+    );
+  }
+  const spread_props_handler = {
+    get(target, key) {
+      let i = target.props.length;
+      while (i--) {
+        let p = target.props[i];
+        if (is_function(p)) p = p();
+        if (typeof p === "object" && p !== null && key in p) return p[key];
+      }
+    },
+    set(target, key, value) {
+      let i = target.props.length;
+      while (i--) {
+        let p = target.props[i];
+        if (is_function(p)) p = p();
+        const desc = get_descriptor(p, key);
+        if (desc && desc.set) {
+          desc.set(value);
+          return true;
+        }
+      }
+      return false;
+    },
+    getOwnPropertyDescriptor(target, key) {
+      let i = target.props.length;
+      while (i--) {
+        let p = target.props[i];
+        if (is_function(p)) p = p();
+        if (typeof p === "object" && p !== null && key in p) {
+          const descriptor = get_descriptor(p, key);
+          if (descriptor && !descriptor.configurable) {
+            descriptor.configurable = true;
+          }
+          return descriptor;
+        }
+      }
+    },
+    has(target, key) {
+      if (key === STATE_SYMBOL || key === LEGACY_PROPS) return false;
+      for (let p of target.props) {
+        if (is_function(p)) p = p();
+        if (p != null && key in p) return true;
+      }
+      return false;
+    },
+    ownKeys(target) {
+      const keys = [];
+      for (let p of target.props) {
+        if (is_function(p)) p = p();
+        if (!p) continue;
+        for (const key in p) {
+          if (!keys.includes(key)) keys.push(key);
+        }
+        for (const key of Object.getOwnPropertySymbols(p)) {
+          if (!keys.includes(key)) keys.push(key);
+        }
+      }
+      return keys;
+    }
+  };
+  function spread_props(...props) {
+    return new Proxy({ props }, spread_props_handler);
+  }
+  function prop(props, key, flags2, fallback) {
+    var bindable = (flags2 & PROPS_IS_BINDABLE) !== 0;
+    var lazy = (flags2 & PROPS_IS_LAZY_INITIAL) !== 0;
+    var fallback_value = (
+      /** @type {V} */
+      fallback
+    );
+    var fallback_dirty = true;
+    var get_fallback = () => {
+      if (fallback_dirty) {
+        fallback_dirty = false;
+        fallback_value = lazy ? untrack(
+          /** @type {() => V} */
+          fallback
+        ) : (
+          /** @type {V} */
+          fallback
+        );
+      }
+      return fallback_value;
+    };
+    var setter;
+    if (bindable) {
+      var is_entry_props = STATE_SYMBOL in props || LEGACY_PROPS in props;
+      setter = get_descriptor(props, key)?.set ?? (is_entry_props && key in props ? (v) => props[key] = v : void 0);
+    }
+    var initial_value;
+    var is_store_sub = false;
+    if (bindable) {
+      [initial_value, is_store_sub] = capture_store_binding(() => (
+        /** @type {V} */
+        props[key]
+      ));
+    } else {
+      initial_value = /** @type {V} */
+      props[key];
+    }
+    if (initial_value === void 0 && fallback !== void 0) {
+      initial_value = get_fallback();
+      if (setter) {
+        props_invalid_value();
+        setter(initial_value);
+      }
+    }
+    var getter;
+    {
+      getter = () => {
+        var value = (
+          /** @type {V} */
+          props[key]
+        );
+        if (value === void 0) return get_fallback();
+        fallback_dirty = true;
+        return value;
+      };
+    }
+    if ((flags2 & PROPS_IS_UPDATED) === 0) {
+      return getter;
+    }
+    if (setter) {
+      var legacy_parent = props.$$legacy;
+      return (
+        /** @type {() => V} */
+        (function(value, mutation) {
+          if (arguments.length > 0) {
+            if (!mutation || legacy_parent || is_store_sub) {
+              setter(mutation ? getter() : value);
+            }
+            return value;
+          }
+          return getter();
+        })
+      );
+    }
+    var overridden = false;
+    var d = ((flags2 & PROPS_IS_IMMUTABLE) !== 0 ? derived : derived_safe_equal)(() => {
+      overridden = false;
+      return getter();
+    });
+    if (bindable) get(d);
+    var parent_effect = (
+      /** @type {Effect} */
+      active_effect
+    );
+    return (
+      /** @type {() => V} */
+      (function(value, mutation) {
+        if (arguments.length > 0) {
+          const new_value = mutation ? get(d) : bindable ? proxy(value) : value;
+          set(d, new_value);
+          overridden = true;
+          if (fallback_value !== void 0) {
+            fallback_value = new_value;
+          }
+          return value;
+        }
+        if (is_destroying_effect && overridden || (parent_effect.f & DESTROYED) !== 0) {
+          return d.v;
+        }
+        return get(d);
+      })
+    );
+  }
+  class SvelteMap extends Map {
+    /** @type {Map<K, Source<number>>} */
+    #sources = /* @__PURE__ */ new Map();
+    #version = /* @__PURE__ */ state(0);
+    #size = /* @__PURE__ */ state(0);
+    #update_version = update_version || -1;
+    /**
+     * @param {Iterable<readonly [K, V]> | null | undefined} [value]
+     */
+    constructor(value) {
+      super();
+      if (value) {
+        for (var [key, v] of value) {
+          super.set(key, v);
+        }
+        this.#size.v = super.size;
+      }
+    }
+    /**
+     * If the source is being created inside the same reaction as the SvelteMap instance,
+     * we use `state` so that it will not be a dependency of the reaction. Otherwise we
+     * use `source` so it will be.
+     *
+     * @template T
+     * @param {T} value
+     * @returns {Source<T>}
+     */
+    #source(value) {
+      return update_version === this.#update_version ? /* @__PURE__ */ state(value) : source(value);
+    }
+    /** @param {K} key */
+    has(key) {
+      var sources = this.#sources;
+      var s = sources.get(key);
+      if (s === void 0) {
+        if (super.has(key)) {
+          s = this.#source(0);
+          sources.set(key, s);
+        } else {
+          get(this.#version);
+          return false;
+        }
+      }
+      get(s);
+      return true;
+    }
+    /**
+     * @param {(value: V, key: K, map: Map<K, V>) => void} callbackfn
+     * @param {any} [this_arg]
+     */
+    forEach(callbackfn, this_arg) {
+      this.#read_all();
+      super.forEach(callbackfn, this_arg);
+    }
+    /** @param {K} key */
+    get(key) {
+      var sources = this.#sources;
+      var s = sources.get(key);
+      if (s === void 0) {
+        if (super.has(key)) {
+          s = this.#source(0);
+          sources.set(key, s);
+        } else {
+          get(this.#version);
+          return void 0;
+        }
+      }
+      get(s);
+      return super.get(key);
+    }
+    /**
+     * @param {K} key
+     * @param {V} value
+     * */
+    set(key, value) {
+      var sources = this.#sources;
+      var s = sources.get(key);
+      var prev_res = super.get(key);
+      var res = super.set(key, value);
+      var version = this.#version;
+      if (s === void 0) {
+        s = this.#source(0);
+        sources.set(key, s);
+        set(this.#size, super.size);
+        increment(version);
+      } else if (prev_res !== value) {
+        increment(s);
+        var v_reactions = version.reactions === null ? null : new Set(version.reactions);
+        var needs_version_increase = v_reactions === null || !s.reactions?.every(
+          (r) => (
+            /** @type {NonNullable<typeof v_reactions>} */
+            v_reactions.has(r)
+          )
+        );
+        if (needs_version_increase) {
+          increment(version);
+        }
+      }
+      return res;
+    }
+    /** @param {K} key */
+    delete(key) {
+      var sources = this.#sources;
+      var s = sources.get(key);
+      var res = super.delete(key);
+      if (s !== void 0) {
+        sources.delete(key);
+        set(s, -1);
+      }
+      if (res) {
+        set(this.#size, super.size);
+        increment(this.#version);
+      }
+      return res;
+    }
+    clear() {
+      if (super.size === 0) {
+        return;
+      }
+      super.clear();
+      var sources = this.#sources;
+      set(this.#size, 0);
+      for (var s of sources.values()) {
+        set(s, -1);
+      }
+      increment(this.#version);
+      sources.clear();
+    }
+    #read_all() {
+      get(this.#version);
+      var sources = this.#sources;
+      if (this.#size.v !== sources.size) {
+        for (var key of super.keys()) {
+          if (!sources.has(key)) {
+            var s = this.#source(0);
+            sources.set(key, s);
+          }
+        }
+      }
+      for ([, s] of this.#sources) {
+        get(s);
+      }
+    }
+    keys() {
+      get(this.#version);
+      return super.keys();
+    }
+    values() {
+      this.#read_all();
+      return super.values();
+    }
+    entries() {
+      this.#read_all();
+      return super.entries();
+    }
+    [Symbol.iterator]() {
+      return this.entries();
+    }
+    get size() {
+      get(this.#size);
+      return super.size;
+    }
+  }
+  const constructFromSymbol = /* @__PURE__ */ Symbol.for("constructDateFrom");
+  function constructFrom(date, value) {
+    if (typeof date === "function") return date(value);
+    if (date && typeof date === "object" && constructFromSymbol in date)
+      return date[constructFromSymbol](value);
+    if (date instanceof Date) return new date.constructor(value);
+    return new Date(value);
+  }
+  function toDate(argument, context) {
+    return constructFrom(context || argument, argument);
+  }
+  function addDays(date, amount, options) {
+    const _date = toDate(date, options?.in);
+    if (isNaN(amount)) return constructFrom(date, NaN);
+    if (!amount) return _date;
+    _date.setDate(_date.getDate() + amount);
+    return _date;
+  }
+  let defaultOptions = {};
+  function getDefaultOptions() {
+    return defaultOptions;
+  }
+  function startOfWeek$1(date, options) {
+    const defaultOptions2 = getDefaultOptions();
+    const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions2.weekStartsOn ?? defaultOptions2.locale?.options?.weekStartsOn ?? 0;
+    const _date = toDate(date, options?.in);
+    const day = _date.getDay();
+    const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
+    _date.setDate(_date.getDate() - diff);
+    _date.setHours(0, 0, 0, 0);
+    return _date;
+  }
+  function startOfDay(date, options) {
+    const _date = toDate(date, options?.in);
+    _date.setHours(0, 0, 0, 0);
+    return _date;
+  }
+  function getDate(date, options) {
+    return toDate(date, options?.in).getDate();
+  }
+  function getHours(date, options) {
+    return toDate(date, options?.in).getHours();
+  }
+  function getMinutes(date, options) {
+    return toDate(date, options?.in).getMinutes();
+  }
+  function getSeconds(date) {
+    return toDate(date).getSeconds();
+  }
+  const DAY_MS = 864e5;
+  const HOUR_MS = 36e5;
+  Array.from({ length: 24 }, (_, i) => i);
+  function sod(ms) {
+    return startOfDay(ms).getTime();
+  }
+  function startOfWeek(ms, mondayStart = true) {
+    return startOfWeek$1(ms, { weekStartsOn: mondayStart ? 1 : 0 }).getTime();
+  }
+  function addDaysMs(ms, n) {
+    return addDays(ms, n).getTime();
+  }
+  function pad(n) {
+    return n < 10 ? "0" + n : "" + n;
+  }
+  function fractionalHour(ms) {
+    const d = new Date(ms);
+    return getHours(d) + getMinutes(d) / 60 + getSeconds(d) / 3600;
+  }
+  function fmtHM(ms) {
+    const d = new Date(ms);
+    return pad(getHours(d)) + ":" + pad(getMinutes(d));
+  }
+  function fmtS(ms) {
+    return ":" + pad(getSeconds(new Date(ms)));
+  }
+  function dayNum(ms) {
+    return getDate(new Date(ms));
+  }
+  function isMultiDay(ev) {
+    return sod(ev.start.getTime()) !== sod(ev.end.getTime() - 1);
+  }
+  function isAllDay(ev) {
+    if (ev.allDay) return true;
+    const duration2 = ev.end.getTime() - ev.start.getTime();
+    if (duration2 < DAY_MS) return false;
+    const s = ev.start;
+    return s.getHours() === 0 && s.getMinutes() === 0 && s.getSeconds() === 0;
+  }
+  function segmentForDay(ev, dayMs) {
+    const dayStart = sod(dayMs);
+    const dayEnd = dayStart + DAY_MS;
+    const evStart = ev.start.getTime();
+    const evEnd = ev.end.getTime();
+    if (evStart >= dayEnd || evEnd <= dayStart) return null;
+    const firstDayMs = sod(evStart);
+    const lastDayMs = sod(evEnd - 1);
+    const totalDays = Math.floor((lastDayMs - firstDayMs) / DAY_MS) + 1;
+    const dayIndex = Math.floor((dayStart - firstDayMs) / DAY_MS) + 1;
+    return {
+      ev,
+      start: new Date(Math.max(evStart, dayStart)),
+      end: new Date(Math.min(evEnd, dayEnd)),
+      isStart: dayStart === firstDayMs,
+      isEnd: dayStart === lastDayMs,
+      dayIndex,
+      totalDays,
+      allDay: isAllDay(ev)
+    };
+  }
+  function createEventStore(adapter) {
+    let eventMap = new SvelteMap();
+    let loading = /* @__PURE__ */ state(false);
+    let error = /* @__PURE__ */ state(null);
+    const eventArray = /* @__PURE__ */ user_derived(() => [...eventMap.values()]);
+    function overlaps(ev, start, end) {
+      return ev.start < end && ev.end > start;
+    }
+    function removeEvent(id) {
+      eventMap.delete(id);
+    }
+    function upsertEvent(ev) {
+      eventMap.set(ev.id, ev);
+    }
+    return {
+      get events() {
+        return get(eventArray);
+      },
+      get loading() {
+        return get(loading);
+      },
+      get error() {
+        return get(error);
+      },
+      async load(range) {
+        set(loading, true);
+        set(error, null);
+        try {
+          const fetched = await adapter.fetchEvents(range);
+          for (const ev of fetched) {
+            upsertEvent(ev);
+          }
+        } catch (e) {
+          set(error, e instanceof Error ? e.message : String(e), true);
+        } finally {
+          set(loading, false);
+        }
+      },
+      forRange(start, end) {
+        return get(eventArray).filter((ev) => overlaps(ev, start, end));
+      },
+      forDay(date) {
+        const dayStart = new Date(sod(date.getTime()));
+        const dayEnd = new Date(dayStart.getTime() + DAY_MS);
+        return get(eventArray).filter((ev) => overlaps(ev, dayStart, dayEnd));
+      },
+      byId(id) {
+        return eventMap.get(id);
+      },
+      async add(eventData) {
+        if (!adapter.createEvent) throw new Error("Adapter is read-only: createEvent not implemented");
+        set(loading, true);
+        set(error, null);
+        try {
+          const created = await adapter.createEvent(eventData);
+          upsertEvent(created);
+          return created;
+        } catch (e) {
+          set(error, e instanceof Error ? e.message : String(e), true);
+          throw e;
+        } finally {
+          set(loading, false);
+        }
+      },
+      async update(id, patch) {
+        if (!adapter.updateEvent) throw new Error("Adapter is read-only: updateEvent not implemented");
+        set(loading, true);
+        set(error, null);
+        try {
+          const updated = await adapter.updateEvent(id, patch);
+          upsertEvent(updated);
+        } catch (e) {
+          set(error, e instanceof Error ? e.message : String(e), true);
+          throw e;
+        } finally {
+          set(loading, false);
+        }
+      },
+      async remove(id) {
+        if (!adapter.deleteEvent) throw new Error("Adapter is read-only: deleteEvent not implemented");
+        set(loading, true);
+        set(error, null);
+        try {
+          await adapter.deleteEvent(id);
+          removeEvent(id);
+        } catch (e) {
+          set(error, e instanceof Error ? e.message : String(e), true);
+          throw e;
+        } finally {
+          set(loading, false);
+        }
+      },
+      async move(id, newStart, newEnd) {
+        const existing = eventMap.get(id);
+        if (existing) {
+          upsertEvent({ ...existing, start: newStart, end: newEnd });
+        }
+        try {
+          await this.update(id, { start: newStart, end: newEnd });
+        } catch (e) {
+          if (existing) upsertEvent(existing);
+          throw e;
+        }
+      }
+    };
+  }
+  function inferMode(view) {
+    if (view.startsWith("day")) return "day";
+    return "week";
+  }
+  function computeRange(focus, mode, mondayStart, dayCount = 7) {
+    if (mode === "day") {
+      const start2 = new Date(focus);
+      start2.setHours(0, 0, 0, 0);
+      const end = new Date(start2.getTime() + DAY_MS);
+      return { start: start2, end };
+    }
+    if (dayCount === 7) {
+      const ws = startOfWeek(focus.getTime(), mondayStart);
+      return { start: new Date(ws), end: new Date(addDaysMs(ws, 7)) };
+    }
+    const start = new Date(focus);
+    start.setHours(0, 0, 0, 0);
+    return { start, end: new Date(start.getTime() + dayCount * DAY_MS) };
+  }
+  function createViewState(options = {}) {
+    let view = /* @__PURE__ */ state(proxy(options.view ?? "week-planner"));
+    let focusDate = /* @__PURE__ */ state(proxy(options.initialDate ?? /* @__PURE__ */ new Date()));
+    let mondayStart = /* @__PURE__ */ state(proxy(options.mondayStart ?? true));
+    let dayCount = /* @__PURE__ */ state(proxy(options.dayCount ?? 7));
+    const timezone = options.timezone;
+    const modeResolver = options.modeForView;
+    const mode = /* @__PURE__ */ user_derived(() => modeResolver?.(get(view)) ?? inferMode(get(view)));
+    const range = /* @__PURE__ */ user_derived(() => computeRange(get(focusDate), get(mode), get(mondayStart), get(dayCount)));
+    return {
+      get view() {
+        return get(view);
+      },
+      get focusDate() {
+        return get(focusDate);
+      },
+      get range() {
+        return get(range);
+      },
+      get mode() {
+        return get(mode);
+      },
+      get mondayStart() {
+        return get(mondayStart);
+      },
+      get timezone() {
+        return timezone;
+      },
+      get dayCount() {
+        return get(dayCount);
+      },
+      setView(id) {
+        set(view, id, true);
+      },
+      setMondayStart(value) {
+        set(mondayStart, value, true);
+      },
+      setFocusDate(date) {
+        set(focusDate, date, true);
+      },
+      setDayCount(n) {
+        set(dayCount, n, true);
+      },
+      next() {
+        const days = get(mode) === "day" ? 1 : get(dayCount);
+        set(focusDate, new Date(addDaysMs(get(focusDate).getTime(), days)), true);
+      },
+      prev() {
+        const days = get(mode) === "day" ? -1 : -get(dayCount);
+        set(focusDate, new Date(addDaysMs(get(focusDate).getTime(), days)), true);
+      },
+      goToday() {
+        set(focusDate, /* @__PURE__ */ new Date(), true);
+      }
+    };
+  }
+  function createSelection() {
+    let selectedId = /* @__PURE__ */ state(null);
+    let hoveredId = /* @__PURE__ */ state(null);
+    let selectedIds = /* @__PURE__ */ state(proxy(/* @__PURE__ */ new Set()));
+    return {
+      get selectedId() {
+        return get(selectedId);
+      },
+      get hoveredId() {
+        return get(hoveredId);
+      },
+      get selectedIds() {
+        return get(selectedIds);
+      },
+      select(id) {
+        set(selectedId, id, true);
+        set(selectedIds, /* @__PURE__ */ new Set([id]), true);
+      },
+      deselect() {
+        set(selectedId, null);
+        set(selectedIds, /* @__PURE__ */ new Set(), true);
+      },
+      toggle(id) {
+        const next2 = new Set(get(selectedIds));
+        if (next2.has(id)) {
+          next2.delete(id);
+        } else {
+          next2.add(id);
+        }
+        set(selectedIds, next2, true);
+        set(selectedId, next2.size === 1 ? [...next2][0] : null, true);
+      },
+      clear() {
+        set(selectedId, null);
+        set(hoveredId, null);
+        set(selectedIds, /* @__PURE__ */ new Set(), true);
+      },
+      hover(id) {
+        set(hoveredId, id, true);
+      },
+      isSelected(id) {
+        return get(selectedIds).has(id);
+      }
+    };
+  }
+  function createDragState() {
+    let mode = /* @__PURE__ */ state("none");
+    let payload = /* @__PURE__ */ state(null);
+    const active = /* @__PURE__ */ user_derived(() => get(mode) !== "none");
+    function reset2() {
+      set(mode, "none");
+      set(payload, null);
+    }
+    return {
+      get mode() {
+        return get(mode);
+      },
+      get payload() {
+        return get(payload);
+      },
+      get active() {
+        return get(active);
+      },
+      beginCreate(start, end, dayIndex = 0) {
+        set(mode, "create");
+        set(payload, { eventId: null, start, end, dayIndex }, true);
+      },
+      beginMove(eventId, start, end) {
+        set(mode, "move");
+        set(payload, { eventId, start, end, dayIndex: 0 }, true);
+      },
+      beginResize(eventId, edge, start, end) {
+        set(mode, edge === "start" ? "resize-start" : "resize-end", true);
+        set(payload, { eventId, start, end, dayIndex: 0 }, true);
+      },
+      updatePointer(start, end, dayIndex) {
+        if (!get(payload)) return;
+        set(
+          payload,
+          {
+            ...get(payload),
+            start,
+            end,
+            ...dayIndex !== void 0 ? { dayIndex } : {}
+          },
+          true
+        );
+      },
+      commit() {
+        const result = get(payload);
+        reset2();
+        return result;
+      },
+      cancel() {
+        reset2();
+      }
+    };
+  }
+  const defaultLabels = {
+    today: "Today",
+    yesterday: "Yesterday",
+    tomorrow: "Tomorrow",
+    day: "Day",
+    week: "Week",
+    planner: "Planner",
+    agenda: "Agenda",
+    now: "now",
+    free: "free",
+    allDay: "All day",
+    done: "Done",
+    upNext: "Up next",
+    until: "until",
+    noEvents: "No events",
+    nothingScheduled: "Nothing scheduled",
+    nothingScheduledYet: "Nothing scheduled yet",
+    nothingWasScheduled: "Nothing was scheduled",
+    allDoneForToday: "All done for today",
+    goToToday: "Go to today",
+    previousDay: "Previous day",
+    nextDay: "Next day",
+    previousWeek: "Previous week",
+    nextWeek: "Next week",
+    calendar: "Calendar",
+    viewMode: "View mode",
+    dayNavigation: "Day navigation",
+    weekNavigation: "Week navigation",
+    dayPlanner: "Day planner",
+    scrollableDayPlanner: "Scrollable day planner",
+    todaysLineup: "Today's lineup",
+    weekAhead: "Week ahead",
+    multiWeekGrid: "Multi-week calendar grid",
+    currentTime: "Current time",
+    createEvent: "Create event",
+    happeningNow: "happening now",
+    past: "past",
+    completed: "completed",
+    inProgress: "in progress",
+    nMore: (n) => `+${n} more`,
+    nEvents: (n) => `${n} event${n === 1 ? "" : "s"}`,
+    nCompleted: (n) => `${n} completed`,
+    dayNOfTotal: (current, total) => `day ${current} of ${total}`,
+    percentComplete: (pct) => `${pct}% complete`
+  };
+  let _labels = { ...defaultLabels };
+  function getLabels() {
+    return _labels;
+  }
+  let defaultLocale = "en-US";
+  const hourCycleCache = /* @__PURE__ */ new Map();
+  function is24HourLocale(locale) {
+    const loc = locale ?? defaultLocale;
+    if (hourCycleCache.has(loc)) return hourCycleCache.get(loc);
+    const sample = new Intl.DateTimeFormat(loc, { hour: "numeric" }).resolvedOptions();
+    const is24 = sample.hourCycle === "h23" || sample.hourCycle === "h24";
+    hourCycleCache.set(loc, is24);
+    return is24;
+  }
+  function fmtH(h, locale) {
+    if (is24HourLocale(locale)) {
+      return String(h);
+    }
+    if (h === 0) return "12a";
+    if (h === 12) return "12p";
+    return h < 12 ? h + "a" : h - 12 + "p";
+  }
+  function weekdayShort(ms, locale) {
+    return new Date(ms).toLocaleDateString(locale ?? defaultLocale, { weekday: "short" });
+  }
+  function weekdayLong(ms, locale) {
+    return new Date(ms).toLocaleDateString(locale ?? defaultLocale, { weekday: "long" });
+  }
+  function monthLong(ms, locale) {
+    return new Date(ms).toLocaleDateString(locale ?? defaultLocale, { month: "long" });
+  }
+  function fmtTime$1(d, locale) {
+    if (is24HourLocale(locale)) {
+      const h2 = d.getHours();
+      const m2 = d.getMinutes();
+      return `${h2}:${String(m2).padStart(2, "0")}`;
+    }
+    const h = d.getHours();
+    const m = d.getMinutes();
+    const suffix = h >= 12 ? "p" : "a";
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${h12}:${String(m).padStart(2, "0")}${suffix}`;
+  }
+  function fmtDuration(start, end) {
+    const mins = Math.round((end.getTime() - start.getTime()) / 6e4);
+    if (mins < 60) return `${mins}m`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  }
+  const auto = ``;
+  const neutral = `
 	--dt-stage-bg: #ffffff;
 	--dt-bg: #ffffff;
 	--dt-surface: #f9fafb;
@@ -19,7 +5109,8 @@
 	--dt-serif: inherit;
 	--dt-sans: inherit;
 	--dt-mono: ui-monospace, 'SFMono-Regular', monospace;
-`,midnight:`
+`;
+  const midnight = `
 	--dt-stage-bg: #080a0f;
 	--dt-bg: #0b0e14;
 	--dt-surface: #10141c;
@@ -36,5 +5127,5290 @@
 	--dt-scrollbar: rgba(148, 163, 184, 0.12);
 	--dt-success: rgba(74, 222, 128, 0.7);
 	--dt-serif: Georgia, 'Times New Roman', serif;
-`};function cn(n){if(!n||n==="transparent"||n==="rgba(0, 0, 0, 0)")return null;const t=n.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);if(t)return[+t[1],+t[2],+t[3]];if(n.startsWith("#")){const r=n.replace("#",""),a=r.length===3?parseInt(r[0]+r[0]+r[1]+r[1]+r[2]+r[2],16):parseInt(r,16);return[a>>16&255,a>>8&255,a&255]}return null}function Fr([n,t,r]){const a=s=>{const o=s/255;return o<=.03928?o/12.92:((o+.055)/1.055)**2.4};return .2126*a(n)+.7152*a(t)+.0722*a(r)}function Ir(n,t,r){n/=255,t/=255,r/=255;const a=Math.max(n,t,r),s=Math.min(n,t,r),o=(a+s)/2;if(a===s)return[0,0,o];const i=a-s,u=o>.5?i/(2-a-s):i/(a+s);let l=0;return a===n?l=((t-r)/i+(t<r?6:0))/6:a===t?l=((r-n)/i+2)/6:l=((n-t)/i+4)/6,[l,u,o]}function Wi(n,t,r){n=(n%1+1)%1;const a=(i,u,l)=>(l<0&&(l+=1),l>1&&(l-=1),l<1/6?i+(u-i)*6*l:l<1/2?u:l<2/3?i+(u-i)*(2/3-l)*6:i);if(t===0){const i=Math.round(r*255);return[i,i,i]}const s=r<.5?r*(1+t):r+t-r*t,o=2*r-s;return[Math.round(a(o,s,n+1/3)*255),Math.round(a(o,s,n)*255),Math.round(a(o,s,n-1/3)*255)]}function Or(n,t,r){return`#${[n,t,r].map(a=>a.toString(16).padStart(2,"0")).join("")}`}function gn(n,t,r,a){return`rgba(${n}, ${t}, ${r}, ${a})`}function Lr(n,t,r){return[Math.round(n[0]+(t[0]-n[0])*r),Math.round(n[1]+(t[1]-n[1])*r),Math.round(n[2]+(t[2]-n[2])*r)]}const qi=["--text","--text-color","--color-text","--foreground","--color-foreground","--bs-body-color","--chakra-colors-text","--chakra-colors-gray-800","--md-sys-color-on-background","--mdc-theme-on-surface","--bc","--gray-12","--text-1"];function Ui(n,t){const r=[];try{const o=getComputedStyle(document.documentElement);for(const i of qi){const u=o.getPropertyValue(i).trim();if(u){const l=cn(u);if(l){r.push(l);break}}}}catch{}let a=n;for(;a;){const o=a.style.color;if(o){const i=cn(o);if(i){r.push(i);break}}a=a.parentElement}for(a=n;a;){try{const o=getComputedStyle(a).color,i=cn(o);if(i){r.push(i);break}}catch{}a=a.parentElement}const s=Fr(t);for(const o of r){const i=Fr(o);if((Math.max(s,i)+.05)/(Math.min(s,i)+.05)>=3)return o}return null}const Xi=["--accent","--accent-color","--primary","--primary-color","--brand","--brand-color","--theme-color","--color-primary","--color-accent","--p","--color-primary","--primary","--md-sys-color-primary","--mdc-theme-primary","--bs-primary","--bs-primary-rgb","--chakra-colors-brand-500","--chakra-colors-primary","--blue-6","--accent-9","--color-primary-500","--primary-500"];function Gi(n){let t;try{t=getComputedStyle(n)}catch{return null}for(const o of Xi){const i=t.getPropertyValue(o).trim();if(i){const u=cn(i);if(u){const[,l]=Ir(...u);if(l>.15)return u}}}const r=n.querySelector("a[href]");if(r){const o=cn(getComputedStyle(r).color);if(o){const[,i]=Ir(...o);if(i>.2)return o}}const a=t.getPropertyValue("accent-color").trim();if(a&&a!=="auto"){const o=cn(a);if(o)return o}const s=n.querySelector('button:not([class*="cal-"])');if(s){const o=cn(getComputedStyle(s).backgroundColor);if(o){const[,i]=Ir(...o);if(i>.25)return o}}return null}const Ki=["--bg","--background","--color-bg","--color-background","--body-bg","--bs-body-bg","--chakra-colors-bg","--md-sys-color-background","--b1","--background","--color-background"];function Ji(n){const t=a=>({bg:a,isDark:Fr(a)<.4});try{const a=getComputedStyle(document.documentElement);for(const s of Ki){const o=a.getPropertyValue(s).trim();if(o){const i=cn(o);if(i)return t(i)}}}catch{}let r=n;for(;r;){const a=r.style.backgroundColor||r.style.background;if(a){const s=cn(a);if(s)return t(s)}r=r.parentElement}for(r=n;r;){try{const a=getComputedStyle(r).backgroundColor,s=cn(a);if(s)return t(s)}catch{}r=r.parentElement}return typeof window<"u"&&typeof window.matchMedia=="function"&&window.matchMedia("(prefers-color-scheme: dark)").matches?{bg:[18,18,18],isDark:!0}:{bg:[255,255,255],isDark:!1}}function Qi(n,t={}){const r=n.parentElement??n,a=(r.closest("body")??r)instanceof HTMLElement?r.closest("body")??r:document.body,{bg:s,isDark:o}=Ji(r),i=t.mode==="auto"||!t.mode?o:t.mode==="dark";let u;t.accent?u=cn(t.accent)??[37,99,235]:u=Gi(a)??(i?[239,68,68]:[37,99,235]);const[l,c,v]=Ir(...u),E=t.font?{sans:t.font,mono:"ui-monospace, 'SFMono-Regular', monospace"}:{sans:"inherit",mono:"ui-monospace, 'SFMono-Regular', monospace"},B=Ui(r,s)??(i?[226,232,240]:[30,30,46]),L=i?Lr(s,[255,255,255],.02):Lr(s,[0,0,0],.005),q=s,R=i?Lr(L,[255,255,255],.04):Lr(L,[0,0,0],.02),G=i?.07:.08,Z=.14,se=i?[148,163,184]:[0,0,0],De=i?.15:.12,Ke=i?.3:.25,ce=i?.03:.04,de=i?Math.max(v,.45):Math.min(v,.48),nt=Wi(l,Math.max(c,.5),de),ne=Fr(nt)<.4?"#ffffff":"#1a1a2e",$=i?.12:.1,qe=i?[74,222,128]:[22,163,74];return[`--dt-stage-bg: ${Or(...q)}`,`--dt-bg: ${Or(...L)}`,`--dt-surface: ${Or(...R)}`,`--dt-border: ${gn(...se,G)}`,`--dt-border-day: ${gn(...se,Z)}`,`--dt-text: ${gn(...B,.87)}`,`--dt-text-2: ${gn(...B,i?.55:.54)}`,`--dt-text-3: ${gn(...B,.38)}`,`--dt-accent: ${Or(...nt)}`,`--dt-accent-dim: ${gn(...nt,De)}`,`--dt-glow: ${gn(...nt,Ke)}`,`--dt-today-bg: ${gn(...nt,ce)}`,`--dt-btn-text: ${ne}`,`--dt-scrollbar: ${gn(...se,$)}`,`--dt-success: ${gn(...qe,.7)}`,`--dt-sans: ${E.sans}`,`--dt-mono: ${E.mono}`].map(vt=>`	${vt}`).join(`;
-`)+";"}function Zi(n,t,r={}){let a="";const s=()=>{const E=Qi(n,r);E!==a&&(a=E,t(E))},i=typeof window.matchMedia=="function"?window.matchMedia("(prefers-color-scheme: dark)"):null,u=()=>s();i?.addEventListener("change",u);let l=0;const c=()=>{cancelAnimationFrame(l),l=requestAnimationFrame(()=>{l=requestAnimationFrame(s)})},v=new MutationObserver(c);return v.observe(document.documentElement,{attributes:!0,attributeFilter:["class","style","data-theme","data-mode","color-scheme"]}),v.observe(document.body,{attributes:!0,attributeFilter:["class","style","data-theme","data-mode","color-scheme"]}),s(),()=>{cancelAnimationFrame(l),i?.removeEventListener("change",u),v.disconnect()}}function tr(){const n=Do("calendar");return{get viewState(){return n?.viewState},get drag(){return n?.drag},get commitDrag(){return n?.commitDrag},get snapInterval(){return n?.snapInterval??15},get showNav(){return n?.showNavigation??!0},get equalDays(){return n?.equalDays??!1},get showDates(){return n?.showDates??!0},get hideDays(){return n?.hideDays},get isMobile(){return n?.mobile??!1},get autoHeight(){return n?.autoHeight??!1},get compact(){return n?.compact??!1},get readOnly(){return n?.readOnly??!1},get blockedSlots(){return n?.blockedSlots},get dayHeaderSnippet(){return n?.dayHeaderSnippet},get minDuration(){return n?.minDuration},get maxDuration(){return n?.maxDuration},get oneventhover(){return n?.oneventhover},get disabledDates(){return n?.disabledDates},get disabledSet(){return new Set(n?.disabledDates?.map(t=>Ct(t.getTime()))??[])},get loadRange(){if(n)return{get current(){return n.loadRange},set:t=>n.setLoadRange(t)}},get eventSnippet(){return n?.eventSnippet},get emptySnippet(){return n?.emptySnippet}}}function nr(){let n=Re(jt(Date.now())),t=Re(jt(Ct(Date.now()))),r=null;function a(){r=setInterval(()=>{P(n,Date.now(),!0);const o=Ct(e(n));o!==e(t)&&P(t,o,!0)},1e3)}function s(){r!==null&&(clearInterval(r),r=null)}return hr(()=>(a(),s)),{get tick(){return e(n)},get today(){return e(t)},get hm(){return Ai(e(n))},get s(){return Fi(e(n))},get fractionalHour(){return Ni(e(n))},destroy:s}}const $i={titleFont:"500 12px system-ui, sans-serif",secondaryFont:"400 10px system-ui, sans-serif",tagFont:"500 8px system-ui, sans-serif",titleLineHeight:16,secondaryLineHeight:13,contentGap:3};function el(n={}){const t={...$i,...n};let r=null,a=!1,s=!1;const o=new Map;function i(){if(a)return s;a=!0;try{const v=globalThis.__pretextModule;v&&(r=v,s=!0)}catch{}return s}function u(v,E){const T=`${E}\0${v}`;let B=o.get(T);return B||(B=r.prepare(v,E),o.set(T,B)),B}function l(v,E,T,B){const L=B.match(/(\d+)px/),R=(L?parseInt(L[1]):12)*.55,G=Math.max(1,Math.floor(E/R)),Z=Math.max(1,Math.ceil(v.length/G));return{height:Z*T,lineCount:Z}}function c(v,E,T,B){if(!v)return{height:0,lineCount:0};if(s&&r){const L=u(v,B);return r.layout(L,E,T)}return l(v,E,T,B)}return{get available(){return i(),s},measure(v,E,T){return i(),c(v,E,T,t.titleFont)},fits(v,E,T){i();const{lineCount:B}=c(v,E,T,t.titleFont);return B<=1},measureStack(v,E,T=t.contentGap){i();const B=[];let L=0;for(const q of v){if(!q.text){B.push({height:0,lineCount:0});continue}const R=q.font??t.secondaryFont,G=q.lineHeight??t.secondaryLineHeight,Z=c(q.text,E,G,R);B.push(Z),Z.height>0&&(L+=(L>0?T:0)+Z.height)}return{height:L,breakdown:B}},fitContent(v){i();const{title:E,subtitle:T,location:B,time:L,tags:q,maxWidth:R,maxHeight:G}=v,Z=t.contentGap,se=c(E,R,t.titleLineHeight,t.titleFont);let De=se.height;const Ke={title:!0,titleLines:se.lineCount,subtitle:!1,location:!1,time:!1,tags:!1,totalHeight:De};if(L){const ce=c(L,R,t.secondaryLineHeight,t.secondaryFont);De+Z+ce.height<=G&&(Ke.time=!0,De+=Z+ce.height)}if(T){const ce=c(T,R,t.secondaryLineHeight,t.secondaryFont);De+Z+ce.height<=G&&(Ke.subtitle=!0,De+=Z+ce.height)}if(B){const ce=c(B,R,t.secondaryLineHeight,t.secondaryFont);De+Z+ce.height<=G&&(Ke.location=!0,De+=Z+ce.height)}if(q?.length){const ce=q.join("  "),de=c(ce,R,t.secondaryLineHeight,t.tagFont);De+Z+de.height<=G&&(Ke.tags=!0,De+=Z+de.height)}return Ke.totalHeight=De,Ke},clear(){o.clear(),s&&r&&r.clearCache()}}}var tl=D('<div class="fs-tick svelte-mrwdy7"><span class="fs-tick-lb svelte-mrwdy7"> </span></div> <div class="fs-tick fs-tick--half svelte-mrwdy7"></div>',1),nl=D('<span class="fs-blocked-label svelte-mrwdy7"> </span>'),rl=D('<div class="fs-blocked svelte-mrwdy7"><!></div>'),al=D('<div class="fs-day-header-custom svelte-mrwdy7"><!></div>'),sl=D("<div><!> <!> <!></div>"),ol=D('<span class="fs-ev-live svelte-mrwdy7" aria-hidden="true"></span>'),il=D('<span class="fs-ev-next-badge svelte-mrwdy7" aria-hidden="true"> </span>'),ll=D('<span class="fs-ev-time svelte-mrwdy7"> </span>'),cl=D('<span class="fs-ev-sub svelte-mrwdy7"> </span>'),dl=D('<span class="fs-ev-loc svelte-mrwdy7"> </span>'),ul=D('<span class="fs-ev-tag svelte-mrwdy7"> </span>'),vl=D('<span class="fs-ev-tags svelte-mrwdy7"></span>'),fl=D('<div role="button" tabindex="0"><div class="fs-ev-inner svelte-mrwdy7"><!> <!> <span class="fs-ev-title svelte-mrwdy7"> </span> <!> <!> <!></div></div>'),hl=D('<span class="fs-ad-span svelte-mrwdy7"> </span>'),gl=D('<span class="fs-ad-span svelte-mrwdy7"> </span>'),_l=D('<div role="button" tabindex="0"><span class="fs-ad-dot svelte-mrwdy7" aria-hidden="true"></span> <span class="fs-ad-title svelte-mrwdy7"> </span> <!></div>'),ml=D('<div class="fs-allday svelte-mrwdy7"></div>'),pl=D('<nav class="fs-nav svelte-mrwdy7"><button> </button> <button class="fs-nav-pill svelte-mrwdy7"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></button> <button class="fs-nav-pill svelte-mrwdy7"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></button></nav>'),wl=D('<div role="region"><div role="application"><div class="fs-track svelte-mrwdy7" role="none"><!> <div class="fs-now svelte-mrwdy7"><span class="fs-now-tag svelte-mrwdy7"> <span class="fs-now-sec svelte-mrwdy7"> </span></span> <div class="fs-now-line svelte-mrwdy7"></div></div> <!></div></div> <!> <div class="fs-date-label svelte-mrwdy7"> </div> <!></div>');function yl(n,t){_n(t,!0);const r=m(An);let a=we(t,"height",3,520),s=we(t,"events",19,()=>[]),o=we(t,"style",3,""),i=we(t,"selectedEventId",3,null),u=we(t,"readOnly",3,!1);const l=tr(),c=nr(),v=m(()=>l.drag),E=m(()=>l.commitDrag),T=m(()=>l.viewState),B=m(()=>l.loadRange),L=m(()=>l.showNav),q=m(()=>l.showDates),R=m(()=>l.blockedSlots),G=m(()=>l.dayHeaderSnippet),Z=m(()=>l.minDuration),se=m(()=>l.autoHeight),De=m(()=>l.oneventhover),Ke=m(()=>l.disabledSet),ce=m(()=>l.snapInterval*6e4);let de=Re(!0),nt=Re(!1),Je=!1,ne,$=Re(0),qe=Re(520),ut=0,vt=0,Tt=0;const Rt=7,ft=2,ht=5,le=Rn(()=>Ct(t.focusDate?.getTime()??Date.now()));let Ue=Re(jt(le)),Me=le,pt=!1,Ee=Re(jt(le));const X=m(()=>t.visibleHours?.[0]??0),I=m(()=>t.visibleHours?.[1]??24),oe=m(()=>Math.max(1,e(I)-e(X))),ze=2,Fe=m(()=>e(q)?new Date(e(Ee)).toLocaleDateString(t.locale??"en-US",{weekday:"long",month:"long",day:"numeric"}):new Date(e(Ee)).toLocaleDateString(t.locale??"en-US",{weekday:"long"})),Ie=1+2*Rt,ct=m(()=>e(Ue)-Rt*Ye);Gt(()=>{if(!e(B))return;const J=new Date(e(Ue)-Rt*Ye),w=new Date(e(Ue)+(Rt+1)*Ye);return e(B).set({start:J,end:w}),()=>e(B).set(null)});const rt=60,Pe=m(()=>e($)>0?Math.max(rt,e($)/e(oe)):110),Be=m(()=>e(oe)*e(Pe)),gt=m(()=>Ie*(e(Be)+ze)),We=m(()=>{const J=[];for(let w=0;w<Ie;w++){const N=e(ct)+w*Ye;J.push({ms:N,today:N===c.today,past:N<c.today,x:w*(e(Be)+ze)})}return J});function z(J){const w=J-e(ct),N=Math.floor(w/Ye),be=(w-N*Ye)/hn-e(X);return N*(e(Be)+ze)+be*e(Pe)}function te(J){const w=e(Be)+ze,N=Math.max(0,Math.min(Ie-1,Math.floor(J/w))),K=J-N*w,be=e(X)+K/e(Pe);return e(ct)+N*Ye+be*hn}const h=m(()=>z(c.tick)),g=m(()=>s().filter(J=>!zt(J)&&!Bt(J))),F=m(()=>{const J=[];for(const w of s()){if(!zt(w)&&!Bt(w))continue;const N=Rr(w,e(Ee));N&&J.push(N)}return J}),A=56,O=24,j=m(()=>A+(e(F).length>0?O+4:0)),U=5,p=32,V=el({titleFont:"600 13px system-ui, sans-serif",secondaryFont:"400 10px system-ui, sans-serif",tagFont:"500 8px system-ui, sans-serif",titleLineHeight:16,secondaryLineHeight:13,contentGap:6}),ve=m(()=>{const J=c.tick,w=e(v)?.active&&e(v).mode==="move"?e(v).payload:null,N=[];let K=null;for(const me of e(g))w?.eventId===me.id?K=me:N.push(me);const be=[...N].sort((me,Ae)=>me.start.getTime()-Ae.start.getTime()),it=Ct(J),_t=it+Ye;let pe=null;for(const me of be){const Ae=me.start.getTime(),Ce=me.end.getTime();if(Ae>=it&&Ae<_t&&Ae>J&&!(Ae<=J&&Ce>J)){pe=me.id;break}}const Ge=be.map(me=>{const Ae=me.start.getTime(),Ce=me.end.getTime(),Nt=z(Ae),Wt=z(Ce);return{ev:me,x:Nt,width:Math.max(Wt-Nt,28),row:0,groupMaxRow:1,isCurrent:Ae<=J&&Ce>J,isNext:me.id===pe,isDragged:!1,startMs:Ae,endMs:Ce}}),St=Ge.map((me,Ae)=>Ae);function wt(me){for(;St[me]!==me;)St[me]=St[St[me]],me=St[me];return me}for(let me=0;me<Ge.length;me++)for(let Ae=me+1;Ae<Ge.length&&Ge[Ae].startMs<Ge[me].endMs;Ae++)St[wt(me)]=wt(Ae);const bt=new Map;for(let me=0;me<Ge.length;me++){const Ae=wt(me);bt.has(Ae)||bt.set(Ae,[]),bt.get(Ae).push(me)}for(const[,me]of bt){const Ae=[];for(const Ce of me){const Nt=Ge[Ce];let Wt=0;for(let He=0;He<Ae.length;He++){if(Ae[He]<=Nt.startMs){Wt=He,Ae[He]=Nt.endMs;break}Wt=He+1}Wt>=Ae.length&&Ae.push(Nt.endMs),Ge[Ce].row=Wt}for(const Ce of me)Ge[Ce].groupMaxRow=Ae.length}const Ve=e(qe)-e(j)-8,Mt=Ge.map(({startMs:me,endMs:Ae,...Ce})=>{const Nt=Math.max(p,Ve/Ce.groupMaxRow-U),Wt=e(j)+Ce.row*(Ve/Ce.groupMaxRow),He=V.fitContent({title:Ce.ev.title,subtitle:Ce.ev.subtitle,location:Ce.ev.location,time:`${En(Ce.ev.start,t.locale)} – ${En(Ce.ev.end,t.locale)}`,tags:Ce.ev.tags,maxWidth:Nt-16,maxHeight:Ce.width-16});return{...Ce,topPx:Wt,heightPx:Nt,isNext:Ce.isNext,fit:He}});if(K&&w){const me=z(w.start.getTime()),Ae=z(w.end.getTime()),Ce=Math.max(p,Ve-U),Nt=Math.max(Ae-me,28);Mt.push({ev:K,x:me,width:Nt,row:0,groupMaxRow:1,topPx:e(j),heightPx:Ce,isCurrent:K.start.getTime()<=J&&K.end.getTime()>J,isNext:!1,isDragged:!0,fit:V.fitContent({title:K.title,subtitle:K.subtitle,location:K.location,tags:K.tags,maxWidth:Ce-16,maxHeight:Nt-16})})}return Mt});Gt(()=>{const J=t.focusDate?Ct(t.focusDate.getTime()):c.today;J!==Me&&!pt&&(Me=J,P(Ue,J,!0),P(Ee,J,!0),P(de,!1),Zn().then(()=>{if(ne){const w=Rt*(e(Be)+ze);ne.scrollLeft=w+e(Be)/2-ne.clientWidth/2}}))});function Te(){if(!ne||!e(T)||pt)return;const w=(e(Be)+ze)*ft,N=ne.scrollWidth-ne.clientWidth;ne.scrollLeft<w?ye(-1):N>0&&N-ne.scrollLeft<w&&ye(1)}function ye(J){if(pt)return;pt=!0;const w=ht*J,N=e(Be)+ze,K=-w*N;ne&&(ne.scrollLeft+=K),vt+=K,P(Ue,e(Ue)+w*Ye),Me=e(Ue),e(T)?.setFocusDate(new Date(e(Ue))),Zn().then(()=>{pt=!1})}function ue(){if(!ne||!e(T)||e(de)||pt)return;const J=ne.scrollLeft+ne.clientWidth/2,w=Ct(te(J));P(Ee,w,!0),w!==Me&&(Me=w,e(T).setFocusDate(new Date(w)))}hr(()=>{const J=new ResizeObserver(N=>{for(const K of N)P($,K.contentRect.width,!0),P(qe,K.contentRect.height,!0)});J.observe(ne);function w(){if(e(de)&&ne&&!e(nt)){e(Ue)!==c.today&&(P(Ue,c.today,!0),Me=c.today,e(T)?.goToday()),P(Ee,c.today,!0);const N=e(We).find(K=>K.today);N&&(ne.scrollLeft=N.x+e(Be)/2-ne.clientWidth/2)}else ne&&!pt&&(Te(),ue());Tt=requestAnimationFrame(w)}return Tt=requestAnimationFrame(w),()=>{cancelAnimationFrame(Tt),J.disconnect()}});const ie=3;function ke(J){J.button===0&&u()&&(J.target.closest(".fs-event")||(ut=J.clientX,vt=ne.scrollLeft,window.addEventListener("pointermove",ee),window.addEventListener("pointerup",M,{once:!0}),window.addEventListener("pointercancel",M,{once:!0})))}function ee(J){const w=J.clientX-ut;!e(nt)&&Math.abs(w)>=ie&&(P(nt,!0),Je=!0,P(de,!1)),e(nt)&&(ne.scrollLeft=vt-w)}function M(){window.removeEventListener("pointermove",ee),window.removeEventListener("pointerup",M),window.removeEventListener("pointercancel",M),P(nt,!1)}function Y(J,w){if(!e(R)?.length)return!1;const N=new Date(J).getDay(),K=N===0?7:N;return e(R).some(be=>be.day&&be.day!==K?!1:w>=be.start&&w<be.end)}function Q(J){if(Je){Je=!1;return}if(!t.oneventcreate||u()||J.target.closest(".fs-event"))return;const w=J.currentTarget.getBoundingClientRect(),N=J.clientX-w.left+ne.scrollLeft;for(const K of e(We))if(N>=K.x&&N<K.x+e(Be)){if(e(Ke).has(K.ms))return;const be=(N-K.x)/e(Be),it=e(X)+be*e(oe);if(Y(K.ms,it))return;const _t=Math.floor(it),pe=e(Z)?Math.max(60,e(Z)):60,Ge=new Date(K.ms+_t*hn),St=new Date(Ge.getTime()+pe*6e4);t.oneventcreate({start:Ge,end:St});return}}const y=5;let b=0,k=0,H=!1,re=Re(!1),he=Re(null),Se=null;function fe(J,w){J.button!==0||!e(v)||u()||w.data?.readOnly||(J.stopPropagation(),b=J.clientX,k=z(w.start.getTime()),H=!1,P(he,w.id,!0),Se=w,window.addEventListener("pointermove",Ne),window.addEventListener("pointerup",Oe,{once:!0}),window.addEventListener("pointercancel",Xe,{once:!0}))}function Ne(J){const w=Se;if(!e(v)||!w||e(he)!==w.id)return;const N=J.clientX-b;if(!H&&Math.abs(N)<y)return;H||(H=!0,P(re,!0),e(v).beginMove(w.id,w.start,w.end));const K=w.end.getTime()-w.start.getTime(),be=te(k+N),it=Math.round(be/e(ce))*e(ce);e(v).updatePointer(new Date(it),new Date(it+K))}function ge(){window.removeEventListener("pointermove",Ne),window.removeEventListener("pointerup",Oe),window.removeEventListener("pointercancel",Xe),H=!1,P(re,!1),P(he,null),Se=null}function Oe(){if(!e(v)){ge();return}!H&&Se?t.oneventclick?.(Se):H&&e(E)?.(),ge()}function Xe(){e(v)&&H&&e(v).cancel(),ge()}var Qe=wl();let at,st;var yt=f(Qe);let It;var Qt=f(yt);let dt;var xt=f(Qt);Le(xt,17,()=>e(We),J=>J.ms,(J,w)=>{var N=sl();let K,be;var it=f(N);Le(it,17,()=>({length:e(oe)}),Jt,(wt,bt,Ve)=>{const Mt=m(()=>e(X)+Ve),me=m(()=>Ve*e(Pe));var Ae=tl(),Ce=lt(Ae);let Nt;var Wt=f(Ce),He=f(Wt,!0);d(Wt),d(Ce);var mt=x(Ce,2);let Vt;S(Fn=>{Nt=je(Ce,"",Nt,{left:`${e(me)??""}px`}),C(He,Fn),Vt=je(mt,"",Vt,{left:`${e(me)+e(Pe)*.5}px`})},[()=>Os(e(Mt),t.locale)]),_(wt,Ae)});var _t=x(it,2);{var pe=wt=>{const bt=m(()=>new Date(e(w).ms).getDay()),Ve=m(()=>e(bt)===0?7:e(bt));var Mt=Dt(),me=lt(Mt);Le(me,17,()=>e(R),Jt,(Ae,Ce)=>{var Nt=Dt(),Wt=lt(Nt);{var He=mt=>{const Vt=m(()=>Math.max(e(Ce).start,e(X))),Fn=m(()=>Math.min(e(Ce).end,e(I)));var In=Dt(),pa=lt(In);{var Jd=wa=>{var mr=rl();let Ws;var Qd=f(mr);{var Zd=ya=>{var ba=nl(),$d=f(ba,!0);d(ba),S(()=>C($d,e(Ce).label)),_(ya,ba)};W(Qd,ya=>{e(Ce).label&&ya(Zd)})}d(mr),S(()=>{_e(mr,"aria-label",e(Ce).label||"Unavailable"),Ws=je(mr,"",Ws,{left:`${(e(Vt)-e(X))*e(Pe)}px`,width:`${(e(Fn)-e(Vt))*e(Pe)}px`})}),_(wa,mr)};W(pa,wa=>{e(Fn)>e(Vt)&&wa(Jd)})}_(mt,In)};W(Wt,mt=>{(!e(Ce).day||e(Ce).day===e(Ve))&&mt(He)})}_(Ae,Nt)}),_(wt,Mt)};W(_t,wt=>{e(R)?.length&&wt(pe)})}var Ge=x(_t,2);{var St=wt=>{var bt=al(),Ve=f(bt);{let Mt=m(()=>({date:new Date(e(w).ms),isToday:e(w).today,dayName:Nr(e(w).ms,t.locale)}));$n(Ve,()=>e(G),()=>e(Mt))}d(bt),_(wt,bt)};W(Ge,wt=>{e(G)&&wt(St)})}d(N),S(wt=>{K=xe(N,1,"fs-day svelte-mrwdy7",null,K,wt),be=je(N,"",be,{left:`${e(w).x??""}px`,width:`${e(Be)??""}px`})},[()=>({"fs-today":e(w).today,"fs-past":e(w).past,"fs-disabled":e(Ke).has(e(w).ms)})]),_(J,N)});var ot=x(xt,2);let Ft;var kt=f(ot),Lt=f(kt,!0),en=x(Lt),Bn=f(en,!0);d(en),d(kt),yr(2),d(ot);var Hr=x(ot,2);Le(Hr,17,()=>e(ve),J=>J.ev.id,(J,w)=>{var N=fl();let K,be;var it=f(N),_t=f(it);{var pe=He=>{var mt=ol();_(He,mt)},Ge=He=>{var mt=il(),Vt=f(mt,!0);d(mt),S(()=>C(Vt,e(r).upNext)),_(He,mt)};W(_t,He=>{e(w).isCurrent?He(pe):e(w).isNext&&He(Ge,1)})}var St=x(_t,2);{var wt=He=>{var mt=ll(),Vt=f(mt);d(mt),S((Fn,In)=>C(Vt,`${Fn??""} – ${In??""}`),[()=>En(e(w).ev.start,t.locale),()=>En(e(w).ev.end,t.locale)]),_(He,mt)};W(St,He=>{e(w).fit.time&&He(wt)})}var bt=x(St,2),Ve=f(bt,!0);d(bt);var Mt=x(bt,2);{var me=He=>{var mt=cl(),Vt=f(mt,!0);d(mt),S(()=>C(Vt,e(w).ev.subtitle)),_(He,mt)};W(Mt,He=>{e(w).ev.subtitle&&e(w).fit.subtitle&&He(me)})}var Ae=x(Mt,2);{var Ce=He=>{var mt=dl(),Vt=f(mt,!0);d(mt),S(()=>C(Vt,e(w).ev.location)),_(He,mt)};W(Ae,He=>{e(w).ev.location&&e(w).fit.location&&He(Ce)})}var Nt=x(Ae,2);{var Wt=He=>{var mt=vl();Le(mt,21,()=>e(w).ev.tags,Jt,(Vt,Fn)=>{var In=ul(),pa=f(In,!0);d(In),S(()=>C(pa,e(Fn))),_(Vt,In)}),d(mt),_(He,mt)};W(Nt,He=>{e(w).ev.tags?.length&&e(w).fit.tags&&He(Wt)})}d(it),d(N),S(()=>{K=xe(N,1,"fs-event svelte-mrwdy7",null,K,{"fs-event--selected":i()===e(w).ev.id,"fs-event--current":e(w).isCurrent,"fs-event--next":e(w).isNext,"fs-event--dragging":e(w).isDragged,"fs-event--readonly":e(w).ev.data?.readOnly,"fs-event--cancelled":e(w).ev.status==="cancelled","fs-event--tentative":e(w).ev.status==="tentative","fs-event--full":e(w).ev.status==="full","fs-event--limited":e(w).ev.status==="limited"}),_e(N,"aria-label",`${e(w).ev.title??""}${e(w).ev.status==="cancelled"?" (cancelled)":""}${e(w).ev.status==="tentative"?" (tentative)":""}${e(w).ev.status==="full"?" (full)":""}${e(w).ev.status==="limited"?" (limited)":""}${e(w).isCurrent?` (${e(r).inProgress})`:""}${e(w).isNext?` (${e(r).upNext})`:""}`),be=je(N,"",be,{left:`${e(w).x??""}px`,width:`${e(w).width??""}px`,top:`${e(w).topPx??""}px`,height:`${e(w).heightPx??""}px`,"--ev-color":e(w).ev.color??"var(--dt-accent)"}),C(Ve,e(w).ev.title)}),ae("pointerdown",N,He=>fe(He,e(w).ev)),Yt("pointerenter",N,()=>e(De)?.(e(w).ev)),ae("keydown",N,He=>{(He.key==="Enter"||He.key===" ")&&(He.preventDefault(),t.oneventclick?.(e(w).ev))}),_(J,N)}),d(Qt),d(yt),Sr(yt,J=>ne=J,()=>ne);var Pr=x(yt,2);{var jr=J=>{var w=ml();je(w,"",{},{top:"56px"}),Le(w,21,()=>e(F),N=>N.ev.id,(N,K)=>{var be=_l();let it,_t;var pe=x(f(be),2),Ge=f(pe,!0);d(pe);var St=x(pe,2);{var wt=Ve=>{var Mt=hl(),me=f(Mt);d(Mt),S(()=>C(me,`${e(r).day??""} ${e(K).dayIndex??""}/${e(K).totalDays??""}`)),_(Ve,Mt)},bt=Ve=>{var Mt=gl(),me=f(Mt,!0);d(Mt),S(()=>C(me,e(r).allDay)),_(Ve,Mt)};W(St,Ve=>{e(K).totalDays>1?Ve(wt):Ve(bt,-1)})}d(be),S(Ve=>{it=xe(be,1,"fs-ad svelte-mrwdy7",null,it,{"fs-ad--start":e(K).isStart,"fs-ad--selected":i()===e(K).ev.id}),_e(be,"aria-label",`${e(K).ev.title??""}${Ve??""}`),_t=je(be,"",_t,{"--ev-color":e(K).ev.color??"var(--dt-accent)"}),C(Ge,e(K).ev.title)},[()=>e(K).totalDays>1?`, ${e(r).dayNOfTotal(e(K).dayIndex,e(K).totalDays)}`:`, ${e(r).allDay}`]),ae("click",be,()=>t.oneventclick?.(e(K).ev)),ae("keydown",be,Ve=>{(Ve.key==="Enter"||Ve.key===" ")&&(Ve.preventDefault(),t.oneventclick?.(e(K).ev))}),_(N,be)}),d(w),_(J,w)};W(Pr,J=>{e(F).length>0&&J(jr)})}var rr=x(Pr,2),Yr=f(rr,!0);d(rr);var _a=x(rr,2);{var ma=J=>{var w=pl(),N=f(w);let K;var be=f(N,!0);d(N);var it=x(N,2),_t=x(it,2);d(w),S(()=>{_e(w,"aria-label",e(r).dayNavigation),K=xe(N,1,"fs-nav-pill fs-nav-today svelte-mrwdy7",null,K,{"fs-nav-today--hidden":e(de)}),_e(N,"aria-label",e(r).goToToday),_e(N,"tabindex",e(de)?-1:0),C(be,e(r).today),_e(it,"aria-label",e(r).previousDay),_e(_t,"aria-label",e(r).nextDay)}),ae("click",N,()=>{P(Ue,c.today,!0),Me=c.today,e(T)?.goToday(),P(de,!0)}),ae("click",it,()=>{const pe=e(Ue)-Ye;P(Ue,pe),Me=pe,e(T)?.prev(),P(de,!1)}),ae("click",_t,()=>{const pe=e(Ue)+Ye;P(Ue,pe),Me=pe,e(T)?.next(),P(de,!1)}),_(J,w)};W(_a,J=>{e(L)&&J(ma)})}d(Qe),S(()=>{at=xe(Qe,1,"fs svelte-mrwdy7",null,at,{"fs--auto":e(se)}),st=je(Qe,o()||void 0,st,{height:e(se)?void 0:a()?`${a()}px`:"100%"}),_e(Qe,"aria-label",e(r).dayPlanner),It=xe(yt,1,"fs-scroll svelte-mrwdy7",null,It,{"fs-grabbing":e(nt),"fs-readonly":u()}),_e(yt,"aria-label",e(r).scrollableDayPlanner),dt=je(Qt,"",dt,{width:`${e(gt)??""}px`}),Ft=je(ot,"",Ft,{left:`${e(h)??""}px`}),C(Lt,c.hm),C(Bn,c.s),C(Yr,e(Fe))}),Yt("wheel",yt,J=>{J.preventDefault(),ne.scrollLeft+=J.deltaY||J.deltaX,P(de,!1)}),ae("pointerdown",yt,ke),ae("click",Qt,Q),_(n,Qe),mn()}Yn(["pointerdown","click","keydown"]);const Hs=(n,t=Un)=>{var r=Tl(),a=lt(r);{var s=l=>{var c=bl(),v=f(c,!0);d(c),S(()=>C(v,t().ev.title)),_(l,c)},o=l=>{var c=El(),v=x(lt(c),2),E=f(v,!0);d(v),S(()=>C(E,t().ev.title)),_(l,c)};W(a,l=>{t().isStart?l(s):l(o,-1)})}var i=x(a,2);{var u=l=>{var c=Dl();_(l,c)};W(i,l=>{!t().isEnd&&t().totalDays>1&&l(u)})}_(n,r)};var bl=D('<span class="wg-ad-title svelte-j4rvbp"> </span>'),El=D('<span class="wg-ad-cont svelte-j4rvbp" aria-hidden="true">◂</span> <span class="wg-ad-title svelte-j4rvbp"> </span>',1),Dl=D('<span class="wg-ad-arrow svelte-j4rvbp" aria-hidden="true">▸</span>'),Tl=D("<!> <!>",1),xl=D('<span class="wg-ev-loc svelte-j4rvbp"> </span>'),kl=D('<span class="wg-ev-time svelte-j4rvbp"> </span> <span class="wg-ev-title svelte-j4rvbp"> </span> <!>',1),Sl=D("<span> </span>"),Cl=D('<span class="wg-cell-month svelte-j4rvbp"> </span>'),Rl=D('<div class="wg-cell-custom-header svelte-j4rvbp"><!></div>'),Ml=D('<span class="wg-blocked-label svelte-j4rvbp"> </span>'),Nl=D('<div class="wg-blocked svelte-j4rvbp"><!></div>'),Al=D('<div role="button" tabindex="0"><!></div>'),Fl=D('<div aria-hidden="true"><!></div>'),Il=D('<div class="wg-allday svelte-j4rvbp"><!> <!></div>'),Ol=D('<div role="button" tabindex="0"><!></div>'),Ll=D('<div class="wg-ev wg-ev--drag-preview svelte-j4rvbp" aria-hidden="true"><!></div>'),Hl=D('<div class="wg-ev-more svelte-j4rvbp"> </div>'),Pl=D('<div role="gridcell" tabindex="0"><div><!> <span class="wg-day-wd svelte-j4rvbp"> </span></div> <!> <!> <!> <!> <div class="wg-cell-events svelte-j4rvbp"><!> <!> <!></div></div>'),jl=D('<div><div class="wg-week-body svelte-j4rvbp"><div class="wg-days svelte-j4rvbp"></div></div></div>'),Yl=D('<nav class="wg-nav svelte-j4rvbp"><button class="wg-nav-pill svelte-j4rvbp"> </button></nav>'),zl=D('<div><div class="wg-body svelte-j4rvbp" role="grid"></div> <!></div>');function Vl(n,t){_n(t,!0);const r=(y,b=Un)=>{var k=kl(),H=lt(k),re=f(H,!0);d(H);var he=x(H,2),Se=f(he,!0);d(he);var fe=x(he,2);{var Ne=ge=>{var Oe=xl(),Xe=f(Oe,!0);d(Oe),S(()=>C(Xe,b().location)),_(ge,Oe)};W(fe,ge=>{b().location&&ge(Ne)})}S(ge=>{C(re,ge),C(Se,b().title)},[()=>oe(b().start)]),_(y,k)},a=m(An);let s=we(t,"mondayStart",3,!0),o=we(t,"height",3,520),i=we(t,"events",19,()=>[]),u=we(t,"style",3,""),l=we(t,"selectedEventId",3,null),c=we(t,"readOnly",3,!1);const v=tr(),E=nr(),T=m(()=>v.drag),B=m(()=>v.commitDrag),L=m(()=>v.viewState),q=m(()=>v.loadRange),R=m(()=>v.showNav),G=m(()=>v.equalDays),Z=m(()=>v.showDates),se=m(()=>v.hideDays),De=m(()=>v.blockedSlots),Ke=m(()=>v.dayHeaderSnippet),ce=m(()=>v.minDuration),de=m(()=>v.autoHeight),nt=m(()=>v.oneventhover),Je=m(()=>v.disabledSet),ne=52,$=26,qe=200;let ut=Re(ne),vt=Re(ne);const Tt=5,Rt=Rn(()=>Ct(t.focusDate?.getTime()??Date.now()));let ft=Re(jt(Rt)),ht=Rt,le,Ue=Re(!1);function Me(y,b="auto"){if(!le)return;let k=null;if(y!==void 0){const re=le.querySelectorAll("[data-week]");for(const he of re){const Se=Number(he.dataset.week);if(Se<=y&&y<Se+e(Ee)*Ye){k=he;break}}}if(k||(k=le.querySelector(".wg-week--current")),!k)return;const H=k.offsetTop-(le.clientHeight-k.offsetHeight)/2;le.scrollTo({top:Math.max(0,H),behavior:b})}const pt=m(()=>E.today),Ee=m(()=>e(L)?.dayCount??7),X=m(()=>e(Ee)===7?er(e(ft),s()):Ct(e(ft)));Gt(()=>{if(!e(q))return;const y=new Date(e(X)-e(ut)*e(Ee)*Ye),b=new Date(e(X)+(e(vt)+1)*e(Ee)*Ye);return e(q).set({start:y,end:b}),()=>e(q).set(null)});const I=m(()=>{const y=[];for(let b=-e(ut);b<=e(vt);b++){const k=e(X)+b*e(Ee)*Ye,H=e(pt)>=k&&e(pt)<k+e(Ee)*Ye,re=[];for(let Ne=0;Ne<e(Ee);Ne++){const ge=k+Ne*Ye,Oe=new Date(ge),Xe=Oe.getDate(),Qe=Oe.getDay(),at=Qe===0||Qe===6,st=ge===e(pt),yt=e(G)?!1:ge<e(pt),It=Xe===1,Qt=Ne===0||It?ha(ge,t.locale).toUpperCase():null,dt=ge+Ye,xt=i().filter(kt=>kt.start.getTime()<dt&&kt.end.getTime()>ge).sort((kt,Lt)=>kt.start.getTime()-Lt.start.getTime()),ot=[],Ft=[];for(const kt of xt)if(zt(kt)||Bt(kt)){const Lt=Rr(kt,ge);Lt&&Ft.push(Lt)}else ot.push(kt);re.push({ms:ge,dayNum:Xe,isToday:st,isPast:yt,isWeekend:at,isFirstOfMonth:It,monthLabel:Qt,events:ot,allDaySegments:Ft})}const he=new Date(k),fe=(e(Ee)===7?he.getDate()<=7:he.getDate()<=e(Ee))?ha(k,t.locale).toUpperCase():null;y.push({weekStart:k,isCurrent:H,monthLabel:fe,days:re})}if(e(se)?.length)for(const b of y)b.days=b.days.filter(k=>{const H=new Date(k.ms).getDay(),re=H===0?7:H;return!e(se).includes(re)});return y});function oe(y){return En(y,t.locale)}hr(async()=>{await Zn(),Me()}),Gt(()=>{const y=t.focusDate?Ct(t.focusDate.getTime()):E.today;y!==ht&&(ht=y,P(ft,y,!0),Zn().then(()=>Me(y,"smooth")))});function ze(){if(!le)return!1;const y=le.querySelector(".wg-week--current");if(!y)return!1;const b=y.offsetTop-le.scrollTop;return b+y.offsetHeight>0&&b<le.clientHeight}let Fe=!1;function Ie(){if(P(Ue,!ze()),!(!le||Fe))if(le.scrollTop<qe){Fe=!0;const y=le.scrollHeight;P(ut,e(ut)+$),Zn().then(()=>{le.scrollTop+=le.scrollHeight-y,Fe=!1})}else le.scrollHeight-le.clientHeight-le.scrollTop<qe&&P(vt,e(vt)+$)}function ct(){P(ft,E.today,!0),ht=E.today,e(L)?.goToday(),P(Ue,!1),Zn().then(()=>{Me(E.today,"smooth")})}function rt(y,b){if(b.target.closest(".wg-ev")||c()||!t.oneventcreate||e(Je).has(y))return;const H=e(ce)?Math.max(60,e(ce)):60,re=new Date(y+9*hn),he=new Date(re.getTime()+H*6e4);t.oneventcreate({start:re,end:he})}const Pe=8;let Be=0,gt=0,We=!1,z=Re(!1),te=Re(null),h=null;const g=m(()=>{const y=e(T)?.active&&e(T).mode==="move"?e(T).payload:null;if(!y?.eventId)return null;const b=i().find(k=>k.id===y.eventId);return b?{...b,start:y.start,end:y.end}:null});function F(y){return e(g)?.id===y}function A(y){return e(g)?y.events.filter(b=>b.id!==e(g).id):y.events}function O(y){const b=e(g);if(!b||zt(b)||Bt(b))return null;const k=y+Ye;return b.start.getTime()<k&&b.end.getTime()>y?b:null}function j(y){const b=e(g);return!b||!zt(b)&&!Bt(b)?null:Rr(b,y)}function U(){const y=le?.querySelector(".wg-cell");return y?y.getBoundingClientRect().width:100}function p(){const y=le?.querySelector(".wg-week");return y?y.getBoundingClientRect().height+24:200}function V(y,b){y.button!==0||!e(T)||c()||b.data?.readOnly||(y.stopPropagation(),Be=y.clientX,gt=y.clientY,We=!1,P(te,b.id,!0),h=b,window.addEventListener("pointermove",ve),window.addEventListener("pointerup",ye,{once:!0}),window.addEventListener("pointercancel",ue,{once:!0}))}function ve(y){const b=h;if(!e(T)||!b||e(te)!==b.id)return;const k=y.clientX-Be,H=y.clientY-gt;if(!We&&Math.abs(k)+Math.abs(H)<Pe)return;We||(We=!0,P(z,!0),e(T).beginMove(b.id,b.start,b.end));const re=U(),he=p(),Se=Math.round(k/re),fe=Math.round(H/he),Ne=(Se+fe*7)*Ye;e(T).updatePointer(new Date(b.start.getTime()+Ne),new Date(b.end.getTime()+Ne))}function Te(){window.removeEventListener("pointermove",ve),window.removeEventListener("pointerup",ye),window.removeEventListener("pointercancel",ue),We=!1,P(z,!1),P(te,null),h=null}function ye(){if(!e(T)){Te();return}We?e(B)?.():h&&t.oneventclick?.(h),Te()}function ue(){e(T)&&We&&e(T).cancel(),Te()}var ie=zl();let ke,ee;var M=f(ie);Le(M,21,()=>e(I),y=>y.weekStart,(y,b)=>{var k=jl();let H;var re=f(k),he=f(re);Le(he,21,()=>e(b).days,Se=>Se.ms,(Se,fe)=>{const Ne=m(()=>e(fe).allDaySegments.filter(w=>!F(w.ev.id))),ge=m(()=>A(e(fe))),Oe=m(()=>O(e(fe).ms)),Xe=m(()=>j(e(fe).ms));var Qe=Pl();let at;var st=f(Qe);let yt;var It=f(st);{var Qt=w=>{var N=Sl();let K;var be=f(N,!0);d(N),S(()=>{K=xe(N,1,"wg-day-num svelte-j4rvbp",null,K,{"wg-day-num--today":e(fe).isToday}),C(be,e(fe).dayNum)}),_(w,N)};W(It,w=>{e(Z)&&w(Qt)})}var dt=x(It,2),xt=f(dt,!0);d(dt),d(st);var ot=x(st,2);{var Ft=w=>{var N=Cl(),K=f(N,!0);d(N),S(()=>C(K,e(fe).monthLabel)),_(w,N)};W(ot,w=>{e(fe).monthLabel&&e(Z)&&w(Ft)})}var kt=x(ot,2);{var Lt=w=>{var N=Rl(),K=f(N);{let be=m(()=>({date:new Date(e(fe).ms),isToday:e(fe).isToday,dayName:Nr(e(fe).ms,t.locale)}));$n(K,()=>e(Ke),()=>e(be))}d(N),_(w,N)};W(kt,w=>{e(Ke)&&w(Lt)})}var en=x(kt,2);{var Bn=w=>{const N=m(()=>new Date(e(fe).ms).getDay()),K=m(()=>e(N)===0?7:e(N));var be=Dt(),it=lt(be);Le(it,17,()=>e(De),Jt,(_t,pe)=>{var Ge=Dt(),St=lt(Ge);{var wt=bt=>{var Ve=Nl(),Mt=f(Ve);{var me=Ae=>{var Ce=Ml(),Nt=f(Ce,!0);d(Ce),S(()=>C(Nt,e(pe).label)),_(Ae,Ce)};W(Mt,Ae=>{e(pe).label&&Ae(me)})}d(Ve),S(()=>_e(Ve,"aria-label",e(pe).label||"Unavailable")),_(bt,Ve)};W(St,bt=>{(!e(pe).day||e(pe).day===e(K))&&bt(wt)})}_(_t,Ge)}),_(w,be)};W(en,w=>{e(De)?.length&&w(Bn)})}var Hr=x(en,2);{var Pr=w=>{var N=Il(),K=f(N);Le(K,17,()=>e(Ne),_t=>_t.ev.id,(_t,pe)=>{var Ge=Al();let St,wt;var bt=f(Ge);Hs(bt,()=>e(pe)),d(Ge),S(Ve=>{St=xe(Ge,1,"wg-ad svelte-j4rvbp",null,St,{"wg-ad--start":e(pe).isStart,"wg-ad--end":e(pe).isEnd,"wg-ad--mid":!e(pe).isStart&&!e(pe).isEnd,"wg-ad--selected":l()===e(pe).ev.id}),_e(Ge,"aria-label",`${e(pe).ev.title??""}${Ve??""}`),wt=je(Ge,"",wt,{"--ev-color":e(pe).ev.color??"var(--dt-accent)"})},[()=>e(pe).totalDays>1?`, ${e(a).dayNOfTotal(e(pe).dayIndex,e(pe).totalDays)}`:`, ${e(a).allDay}`]),ae("pointerdown",Ge,Ve=>V(Ve,e(pe).ev)),ae("keydown",Ge,Ve=>{(Ve.key==="Enter"||Ve.key===" ")&&(Ve.preventDefault(),Ve.stopPropagation(),t.oneventclick?.(e(pe).ev))}),_(_t,Ge)});var be=x(K,2);{var it=_t=>{var pe=Fl();let Ge,St;var wt=f(pe);Hs(wt,()=>e(Xe)),d(pe),S(()=>{Ge=xe(pe,1,"wg-ad wg-ad--drag-preview svelte-j4rvbp",null,Ge,{"wg-ad--start":e(Xe).isStart,"wg-ad--end":e(Xe).isEnd,"wg-ad--mid":!e(Xe).isStart&&!e(Xe).isEnd}),St=je(pe,"",St,{"--ev-color":e(Xe).ev.color??"var(--dt-accent)"})}),_(_t,pe)};W(be,_t=>{e(Xe)&&_t(it)})}d(N),_(w,N)};W(Hr,w=>{(e(Ne).length>0||e(Xe))&&w(Pr)})}var jr=x(Hr,2),rr=f(jr);Le(rr,17,()=>e(ge).slice(0,Tt),w=>w.id,(w,N)=>{var K=Ol();let be,it;var _t=f(K);r(_t,()=>e(N)),d(K),S((pe,Ge)=>{be=xe(K,1,"wg-ev svelte-j4rvbp",null,be,pe),_e(K,"aria-label",`${e(N).title??""}${e(N).status==="cancelled"?" (cancelled)":""}${e(N).status==="tentative"?" (tentative)":""}${e(N).status==="full"?" (full)":""}${e(N).status==="limited"?" (limited)":""}${Ge??""}`),it=je(K,"",it,{"--ev-color":e(N).color??"var(--dt-accent)"})},[()=>({"wg-ev--selected":l()===e(N).id,"wg-ev--current":e(N).start.getTime()<=E.tick&&e(N).end.getTime()>E.tick,"wg-ev--dragging":e(z)&&e(te)===e(N).id,"wg-ev--readonly":e(N).data?.readOnly,"wg-ev--cancelled":e(N).status==="cancelled","wg-ev--tentative":e(N).status==="tentative","wg-ev--full":e(N).status==="full","wg-ev--limited":e(N).status==="limited"}),()=>e(N).start.getTime()<=E.tick&&e(N).end.getTime()>E.tick?` (${e(a).inProgress})`:""]),ae("pointerdown",K,pe=>V(pe,e(N))),Yt("pointerenter",K,()=>e(nt)?.(e(N))),ae("keydown",K,pe=>{(pe.key==="Enter"||pe.key===" ")&&(pe.preventDefault(),pe.stopPropagation(),t.oneventclick?.(e(N)))}),_(w,K)});var Yr=x(rr,2);{var _a=w=>{var N=Ll();let K;var be=f(N);r(be,()=>e(Oe)),d(N),S(()=>K=je(N,"",K,{"--ev-color":e(Oe).color??"var(--dt-accent)"})),_(w,N)};W(Yr,w=>{e(Oe)&&w(_a)})}var ma=x(Yr,2);{var J=w=>{var N=Hl(),K=f(N,!0);d(N),S(be=>C(K,be),[()=>e(a).nMore(e(ge).length-Tt)]),_(w,N)};W(ma,w=>{e(ge).length>Tt&&w(J)})}d(jr),d(Qe),S((w,N,K,be,it)=>{at=xe(Qe,1,"wg-cell svelte-j4rvbp",null,at,w),_e(Qe,"aria-label",`${N??""}${K??""}, ${be??""}`),yt=xe(st,1,"wg-cell-hd svelte-j4rvbp",null,yt,{"wg-cell-hd--today":e(fe).isToday}),C(xt,it)},[()=>({"wg-cell--today":e(fe).isToday,"wg-cell--past":e(fe).isPast,"wg-cell--weekend":e(fe).isWeekend,"wg-cell--disabled":e(Je).has(e(fe).ms)}),()=>new Date(e(fe).ms).toLocaleDateString(t.locale??"en-US",{weekday:"long",month:"short",day:"numeric"}),()=>e(fe).isToday?` (${e(a).today.toLowerCase()})`:"",()=>e(a).nEvents(e(fe).events.length),()=>Nr(e(fe).ms,t.locale)]),ae("click",Qe,w=>rt(e(fe).ms,w)),ae("keydown",Qe,w=>{(w.key==="Enter"||w.key===" ")&&(w.preventDefault(),rt(e(fe).ms,w))}),_(Se,Qe)}),d(he),d(re),d(k),S(()=>{H=xe(k,1,"wg-week svelte-j4rvbp",null,H,{"wg-week--current":e(b).isCurrent}),_e(k,"data-week",e(b).weekStart)}),_(y,k)}),d(M),Sr(M,y=>le=y,()=>le);var Y=x(M,2);{var Q=y=>{var b=Yl(),k=f(b),H=f(k,!0);d(k),d(b),S(()=>{_e(b,"aria-label",e(a).weekNavigation),_e(k,"aria-label",e(a).goToToday),C(H,e(a).today)}),ae("click",k,ct),_(y,b)};W(Y,y=>{e(R)&&e(Ue)&&y(Q)})}d(ie),S(()=>{ke=xe(ie,1,"wg svelte-j4rvbp",null,ke,{"wg--auto":e(de)}),ee=je(ie,u()||void 0,ee,{height:e(de)?void 0:o()?`${o()}px`:"100%"}),_e(M,"aria-label",e(a).multiWeekGrid)}),Yt("scroll",M,Ie),_(n,ie),mn()}Yn(["click","keydown","pointerdown"]);function Ps(n,t){let r=we(t,"mode",3,"week"),a=da(t,["$$slots","$$events","$$legacy","mode"]);var s=Dt(),o=lt(s);{var i=l=>{yl(l,zn(()=>a))},u=l=>{Vl(l,zn(()=>a))};W(o,l=>{r()==="day"?l(i):l(u,-1)})}_(n,s)}function js(n,t){return En(n,t)}function $t(n){return Bi(n.start,n.end)}function Ys(n,t){const r=An(),a=n-t;if(a<=0)return r.now;const s=Math.floor(a/6e4);if(s<60)return`in ${s}m`;const o=Math.floor(s/60),i=s%60;return o<24?i>0?`in ${o}h ${i}m`:`in ${o}h`:`in ${Math.floor(o/24)}d`}function zs(n,t){const r=n.start.getTime(),a=n.end.getTime();return Math.min(1,Math.max(0,(t-r)/(a-r)))}function ga(n){const t=[...n].sort((a,s)=>a.start.getTime()-s.start.getTime()),r=[];for(const a of t){const s=r[r.length-1];s&&a.start.getTime()<s.endMs?(s.events.push(a),s.endMs=Math.max(s.endMs,a.end.getTime())):r.push({startMs:a.start.getTime(),endMs:a.end.getTime(),events:[a]})}return r}var Bl=D('<div role="button" tabindex="0"><span class="ag-allday-dot svelte-n8lbn1"></span> <span class="ag-allday-title svelte-n8lbn1"> </span></div>'),Wl=D('<div class="ag-allday svelte-n8lbn1"><div class="ag-allday-label svelte-n8lbn1"> </div> <div class="ag-allday-items svelte-n8lbn1"></div></div>'),ql=D('<div class="ag-q-empty svelte-n8lbn1"> </div>'),Ul=D('<span class="ag-compact-row-sub svelte-n8lbn1"> </span>'),Xl=D('<span class="ag-compact-row-tag svelte-n8lbn1"> </span>'),Gl=D('<div role="button" tabindex="0"><span class="ag-compact-row-dot svelte-n8lbn1"></span> <span class="ag-compact-row-time svelte-n8lbn1"> </span> <span class="ag-compact-row-title svelte-n8lbn1"> </span> <!> <!> <span class="ag-compact-row-dur svelte-n8lbn1"> </span></div>'),Kl=D('<div class="ag-compact-list svelte-n8lbn1"><!></div>'),Jl=D('<div role="button" tabindex="0"><span class="ag-q-done-check svelte-n8lbn1">✓</span> <span class="ag-q-done-title svelte-n8lbn1"> </span></div>'),Ql=D('<div class="ag-q-done-section svelte-n8lbn1"><div class="ag-q-label svelte-n8lbn1"> </div> <!></div>'),Zl=D('<div role="button" tabindex="0"><div class="ag-q-now-dot svelte-n8lbn1"></div> <div class="ag-q-now-title svelte-n8lbn1"> </div> <div class="ag-q-now-time svelte-n8lbn1"> </div> <div class="ag-q-now-track svelte-n8lbn1"><div class="ag-q-now-fill svelte-n8lbn1"></div></div></div>'),$l=D('<div class="ag-q-free svelte-n8lbn1"><div class="ag-q-free-label svelte-n8lbn1"> </div></div>'),ec=D('<div class="ag-q-empty svelte-n8lbn1"> </div>'),tc=D('<span class="ag-card-sub svelte-n8lbn1"> </span>'),nc=D('<span class="ag-card-tag svelte-n8lbn1"> </span>'),rc=D('<div class="ag-card-tags svelte-n8lbn1"></div>'),ac=D('<div role="button" tabindex="0"><div class="ag-card-body svelte-n8lbn1"><div class="ag-card-top svelte-n8lbn1"><span class="ag-card-title svelte-n8lbn1"> </span> <span class="ag-card-eta svelte-n8lbn1"> </span></div> <!> <div class="ag-card-meta svelte-n8lbn1"> <span class="ag-card-dur svelte-n8lbn1"> </span></div> <!></div></div>'),sc=D('<div class="ag-q svelte-n8lbn1"><div class="ag-q-status svelte-n8lbn1"><!> <div class="ag-q-label svelte-n8lbn1"> <span class="ag-q-clock svelte-n8lbn1"> </span></div> <!></div> <div class="ag-q-queue svelte-n8lbn1"><div class="ag-q-label svelte-n8lbn1"> </div> <!></div></div>'),oc=D('<div class="ag-q-empty svelte-n8lbn1"> </div>'),ic=D('<div role="button" tabindex="0"><span class="ag-log-check svelte-n8lbn1">✓</span> <span class="ag-log-time svelte-n8lbn1"> </span> <span class="ag-log-dot svelte-n8lbn1"></span> <span class="ag-log-title svelte-n8lbn1"> </span> <span class="ag-log-dur svelte-n8lbn1"> </span></div>'),lc=D('<div class="ag-log svelte-n8lbn1"><!></div>'),cc=D('<div class="ag-q-empty svelte-n8lbn1"> </div>'),dc=D('<span class="ag-card-sub svelte-n8lbn1"> </span>'),uc=D('<span class="ag-card-loc svelte-n8lbn1"> </span>'),vc=D('<span class="ag-card-tag svelte-n8lbn1"> </span>'),fc=D('<div class="ag-card-tags svelte-n8lbn1"></div>'),hc=D('<div role="button" tabindex="0"><div class="ag-card-body svelte-n8lbn1"><div class="ag-card-top svelte-n8lbn1"><span class="ag-card-order svelte-n8lbn1"> </span> <span class="ag-card-title svelte-n8lbn1"> </span></div> <!> <!> <div class="ag-card-meta svelte-n8lbn1"> <span class="ag-card-dur svelte-n8lbn1"> </span></div> <!></div></div>'),gc=D('<div class="ag-plan svelte-n8lbn1"><!></div>'),_c=D('<div class="ag-date-label svelte-n8lbn1"> </div>'),mc=D('<nav class="ag-nav svelte-n8lbn1"><button> </button> <button class="ag-nav-pill svelte-n8lbn1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true" class="svelte-n8lbn1"><path d="M10 3 5 8l5 5" class="svelte-n8lbn1"></path></svg></button> <button class="ag-nav-pill svelte-n8lbn1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true" class="svelte-n8lbn1"><path d="M6 3l5 5-5 5" class="svelte-n8lbn1"></path></svg></button></nav>'),pc=D('<div><div class="ag-body svelte-n8lbn1" role="list"><!> <!></div> <!> <!></div>');function wc(n,t){_n(t,!0);const r=m(An),a=tr();let s=we(t,"events",19,()=>[]),o=we(t,"style",3,""),i=we(t,"selectedEventId",3,null);const u=nr(),l=m(()=>a.viewState),c=m(()=>a.showNav),v=m(()=>a.equalDays),E=m(()=>a.showDates),T=m(()=>a.isMobile),B=m(()=>a.autoHeight),L=m(()=>a.compact),q=m(()=>a.oneventhover),R=m(()=>a.disabledSet);let G=0,Z=0;const se=50;function De(z){e(T)&&(G=z.clientX,Z=z.clientY)}function Ke(z){if(!e(T))return;const te=z.clientX-G,h=z.clientY-Z;Math.abs(te)>se&&Math.abs(te)>Math.abs(h)*1.4&&(te>0?e(l)?.prev():e(l)?.next())}const ce=z=>js(z,t.locale),de=z=>Ys(z,u.tick),nt=z=>zs(z,u.tick);function Je(z){t.oneventclick?.(z)}function ne(z,te){(z.key==="Enter"||z.key===" ")&&(z.preventDefault(),t.oneventclick?.(te))}const $=m(()=>t.focusDate?Ct(t.focusDate.getTime()):u.today),qe=m(()=>e($)+Ye),ut=m(()=>e($)===u.today),vt=m(()=>e(v)?!1:e($)<u.today),Tt=m(()=>e(E)?new Date(e($)).toLocaleDateString(t.locale??"en-US",{weekday:"long",month:"long",day:"numeric"}):new Date(e($)).toLocaleDateString(t.locale??"en-US",{weekday:"long"})),Rt=m(()=>s().filter(z=>z.start.getTime()<e(qe)&&z.end.getTime()>e($)).sort((z,te)=>z.start.getTime()-te.start.getTime())),ft=m(()=>e(Rt).filter(z=>zt(z)||Bt(z))),ht=m(()=>e(Rt).filter(z=>!zt(z)&&!Bt(z))),le=m(()=>{const z=u.tick,te=[],h=[],g=[];for(const F of e(ht)){const A=F.start.getTime(),O=F.end.getTime();O<=z?te.push(F):A<=z&&O>z?h.push(F):g.push(F)}return{past:te,current:h,upcomingSlots:ga(g),totalUp:g.length}}),Ue=m(()=>{const z=[];for(const te of e(le).upcomingSlots)for(const h of te.events)if(z.push(h),z.length>=5)return z;return z});var Me=pc();let pt,Ee;var X=f(Me),I=f(X);{var oe=z=>{var te=Wl(),h=f(te),g=f(h,!0);d(h);var F=x(h,2);Le(F,21,()=>e(ft),A=>A.id,(A,O)=>{var j=Bl();let U,p;var V=x(f(j),2),ve=f(V,!0);d(V),d(j),S(()=>{U=xe(j,1,"ag-allday-chip svelte-n8lbn1",null,U,{"ag-allday-chip--selected":i()===e(O).id}),_e(j,"aria-label",`${e(O).title??""}, ${e(r).allDay??""}`),p=je(j,"",p,{"--ev-color":e(O).color||"var(--dt-accent)"}),C(ve,e(O).title)}),ae("click",j,()=>Je(e(O))),Yt("pointerenter",j,()=>e(q)?.(e(O))),ae("keydown",j,Te=>ne(Te,e(O))),_(A,j)}),d(F),d(te),S(()=>C(g,e(r).allDay)),_(z,te)};W(I,z=>{e(ft).length>0&&z(oe)})}var ze=x(I,2);{var Fe=z=>{var te=Kl(),h=f(te);{var g=A=>{var O=ql(),j=f(O,!0);d(O),S(()=>C(j,e(r).nothingScheduledYet)),_(A,O)},F=A=>{var O=Dt(),j=lt(O);Le(j,17,()=>e(ht),U=>U.id,(U,p)=>{var V=Gl();let ve,Te;var ye=x(f(V),2),ue=f(ye,!0);d(ye);var ie=x(ye,2),ke=f(ie,!0);d(ie);var ee=x(ie,2);{var M=k=>{var H=Ul(),re=f(H,!0);d(H),S(()=>C(re,e(p).subtitle)),_(k,H)};W(ee,k=>{e(p).subtitle&&k(M)})}var Y=x(ee,2);{var Q=k=>{var H=Dt(),re=lt(H);Le(re,17,()=>e(p).tags,Jt,(he,Se)=>{var fe=Xl(),Ne=f(fe,!0);d(fe),S(()=>C(Ne,e(Se))),_(he,fe)}),_(k,H)};W(Y,k=>{e(p).tags?.length&&k(Q)})}var y=x(Y,2),b=f(y,!0);d(y),d(V),S((k,H,re,he)=>{ve=xe(V,1,"ag-compact-row svelte-n8lbn1",null,ve,{"ag-compact-row--selected":i()===e(p).id,"ag-compact-row--cancelled":e(p).status==="cancelled","ag-compact-row--tentative":e(p).status==="tentative"}),_e(V,"aria-label",`${e(p).title??""}, ${k??""}, ${H??""}`),Te=je(V,"",Te,{"--ev-color":e(p).color||"var(--dt-accent)"}),C(ue,re),C(ke,e(p).title),C(b,he)},[()=>ce(e(p).start),()=>$t(e(p)),()=>ce(e(p).start),()=>$t(e(p))]),ae("click",V,()=>Je(e(p))),Yt("pointerenter",V,()=>e(q)?.(e(p))),ae("keydown",V,k=>ne(k,e(p))),_(U,V)}),_(A,O)};W(h,A=>{e(ht).length===0&&e(ft).length===0?A(g):A(F,-1)})}d(te),_(z,te)},Ie=z=>{var te=sc(),h=f(te),g=f(h);{var F=M=>{var Y=Ql(),Q=f(Y),y=f(Q,!0);d(Q);var b=x(Q,2);Le(b,17,()=>e(le).past,k=>k.id,(k,H)=>{var re=Jl();let he;var Se=x(f(re),2),fe=f(Se,!0);d(Se),d(re),S(Ne=>{he=xe(re,1,"ag-q-done-item svelte-n8lbn1",null,he,{"ag-q-done-item--selected":i()===e(H).id}),_e(re,"aria-label",`${e(H).title??""}, ${e(r).completed??""}, ${Ne??""}`),C(fe,e(H).title)},[()=>ce(e(H).start)]),ae("click",re,()=>Je(e(H))),ae("keydown",re,Ne=>ne(Ne,e(H))),_(k,re)}),d(Y),S(()=>C(y,e(r).done)),_(M,Y)};W(g,M=>{e(le).past.length>0&&M(F)})}var A=x(g,2),O=f(A),j=x(O),U=f(j,!0);d(j),d(A);var p=x(A,2);{var V=M=>{var Y=Dt(),Q=lt(Y);Le(Q,17,()=>e(le).current,y=>y.id,(y,b)=>{var k=Zl();let H,re;var he=x(f(k),2),Se=f(he,!0);d(he);var fe=x(he,2),Ne=f(fe);d(fe);var ge=x(fe,2),Oe=f(ge);let Xe;d(ge),d(k),S((Qe,at,st)=>{H=xe(k,1,"ag-q-now svelte-n8lbn1",null,H,{"ag-q-now--selected":i()===e(b).id}),_e(k,"aria-label",`${e(b).title??""}, ${e(r).happeningNow??""}, ${Qe??""}`),re=je(k,"",re,{"--ev-color":e(b).color||"var(--dt-accent)"}),C(Se,e(b).title),C(Ne,`${e(r).until??""} ${at??""}`),Xe=je(Oe,"",Xe,st)},[()=>e(r).percentComplete(Math.round(nt(e(b))*100)),()=>ce(e(b).end),()=>({width:`${nt(e(b))*100}%`})]),ae("click",k,()=>Je(e(b))),Yt("pointerenter",k,()=>e(q)?.(e(b))),ae("keydown",k,Qe=>ne(Qe,e(b))),_(y,k)}),_(M,Y)},ve=M=>{var Y=$l(),Q=f(Y),y=f(Q,!0);d(Q),d(Y),S(()=>C(y,e(r).free)),_(M,Y)};W(p,M=>{e(le).current.length>0?M(V):M(ve,-1)})}d(h);var Te=x(h,2),ye=f(Te),ue=f(ye,!0);d(ye);var ie=x(ye,2);{var ke=M=>{var Y=ec(),Q=f(Y,!0);d(Y),S(()=>C(Q,e(le).past.length>0?e(r).allDoneForToday:e(r).nothingScheduled)),_(M,Y)},ee=M=>{var Y=Dt(),Q=lt(Y);Le(Q,19,()=>e(Ue),y=>y.id,(y,b,k)=>{var H=ac();let re,he;var Se=f(H),fe=f(Se),Ne=f(fe),ge=f(Ne,!0);d(Ne);var Oe=x(Ne,2),Xe=f(Oe,!0);d(Oe),d(fe);var Qe=x(fe,2);{var at=ot=>{var Ft=tc(),kt=f(Ft,!0);d(Ft),S(()=>C(kt,e(b).subtitle)),_(ot,Ft)};W(Qe,ot=>{e(b).subtitle&&ot(at)})}var st=x(Qe,2),yt=f(st),It=x(yt),Qt=f(It,!0);d(It),d(st);var dt=x(st,2);{var xt=ot=>{var Ft=rc();Le(Ft,21,()=>e(b).tags,Jt,(kt,Lt)=>{var en=nc(),Bn=f(en,!0);d(en),S(()=>C(Bn,e(Lt))),_(kt,en)}),d(Ft),_(ot,Ft)};W(dt,ot=>{e(b).tags?.length&&ot(xt)})}d(Se),d(H),S((ot,Ft,kt,Lt,en,Bn)=>{re=xe(H,1,"ag-card ag-card--q svelte-n8lbn1",null,re,{"ag-card--hero":e(k)===0,"ag-card--selected":i()===e(b).id}),_e(H,"aria-label",`${e(b).title??""}, ${ot??""}, ${Ft??""}`),he=je(H,"",he,{"--ev-color":e(b).color||"var(--dt-accent)"}),C(ge,e(b).title),C(Xe,kt),C(yt,`${Lt??""} – ${en??""} `),C(Qt,Bn)},[()=>ce(e(b).start),()=>$t(e(b)),()=>de(e(b).start.getTime()),()=>ce(e(b).start),()=>ce(e(b).end),()=>$t(e(b))]),ae("click",H,()=>Je(e(b))),Yt("pointerenter",H,()=>e(q)?.(e(b))),ae("keydown",H,ot=>ne(ot,e(b))),_(y,H)}),_(M,Y)};W(ie,M=>{e(Ue).length===0?M(ke):M(ee,-1)})}d(Te),d(te),S(()=>{C(O,`${e(r).now??""} `),C(U,u.hm),C(ue,e(r).upNext)}),_(z,te)},ct=z=>{var te=lc(),h=f(te);{var g=A=>{var O=oc(),j=f(O,!0);d(O),S(()=>C(j,e(r).nothingWasScheduled)),_(A,O)},F=A=>{var O=Dt(),j=lt(O);Le(j,17,()=>e(ht),U=>U.id,(U,p)=>{var V=ic();let ve,Te;var ye=x(f(V),2),ue=f(ye,!0);d(ye);var ie=x(ye,2);let ke;var ee=x(ie,2),M=f(ee,!0);d(ee);var Y=x(ee,2),Q=f(Y,!0);d(Y),d(V),S((y,b,k,H)=>{ve=xe(V,1,"ag-log-row svelte-n8lbn1",null,ve,{"ag-log-row--selected":i()===e(p).id}),_e(V,"aria-label",`${e(p).title??""}, ${y??""} to ${b??""}`),Te=je(V,"",Te,{"--ev-color":e(p).color||"var(--dt-accent)"}),C(ue,k),ke=je(ie,"",ke,{background:e(p).color||"var(--dt-accent)"}),C(M,e(p).title),C(Q,H)},[()=>ce(e(p).start),()=>ce(e(p).end),()=>ce(e(p).start),()=>$t(e(p))]),ae("click",V,()=>Je(e(p))),Yt("pointerenter",V,()=>e(q)?.(e(p))),ae("keydown",V,y=>ne(y,e(p))),_(U,V)}),_(A,O)};W(h,A=>{e(ht).length===0&&e(ft).length===0?A(g):A(F,-1)})}d(te),_(z,te)},rt=z=>{var te=gc(),h=f(te);{var g=A=>{var O=cc(),j=f(O,!0);d(O),S(()=>C(j,e(r).nothingScheduledYet)),_(A,O)},F=A=>{var O=Dt(),j=lt(O);Le(j,19,()=>e(ht),U=>U.id,(U,p,V)=>{var ve=hc();let Te,ye;var ue=f(ve),ie=f(ue),ke=f(ie),ee=f(ke,!0);d(ke);var M=x(ke,2),Y=f(M,!0);d(M),d(ie);var Q=x(ie,2);{var y=ge=>{var Oe=dc(),Xe=f(Oe,!0);d(Oe),S(()=>C(Xe,e(p).subtitle)),_(ge,Oe)};W(Q,ge=>{e(p).subtitle&&ge(y)})}var b=x(Q,2);{var k=ge=>{var Oe=uc(),Xe=f(Oe,!0);d(Oe),S(()=>C(Xe,e(p).location)),_(ge,Oe)};W(b,ge=>{e(p).location&&ge(k)})}var H=x(b,2),re=f(H),he=x(re),Se=f(he,!0);d(he),d(H);var fe=x(H,2);{var Ne=ge=>{var Oe=fc();Le(Oe,21,()=>e(p).tags,Jt,(Xe,Qe)=>{var at=vc(),st=f(at,!0);d(at),S(()=>C(st,e(Qe))),_(Xe,at)}),d(Oe),_(ge,Oe)};W(fe,ge=>{e(p).tags?.length&&ge(Ne)})}d(ue),d(ve),S((ge,Oe,Xe,Qe,at,st)=>{Te=xe(ve,1,"ag-card ag-card--plan svelte-n8lbn1",null,Te,{"ag-card--first":e(V)===0,"ag-card--selected":i()===e(p).id,"ag-card--cancelled":e(p).status==="cancelled","ag-card--tentative":e(p).status==="tentative","ag-card--full":e(p).status==="full","ag-card--limited":e(p).status==="limited"}),_e(ve,"aria-label",`${e(p).title??""}${e(p).status==="cancelled"?" (cancelled)":""}${e(p).status==="tentative"?" (tentative)":""}${e(p).status==="full"?" (full)":""}${e(p).status==="limited"?" (limited)":""}, ${ge??""} to ${Oe??""}, ${Xe??""}`),ye=je(ve,"",ye,{"--ev-color":e(p).color||"var(--dt-accent)"}),C(ee,e(V)+1),C(Y,e(p).title),C(re,`${Qe??""} – ${at??""} `),C(Se,st)},[()=>ce(e(p).start),()=>ce(e(p).end),()=>$t(e(p)),()=>ce(e(p).start),()=>ce(e(p).end),()=>$t(e(p))]),ae("click",ve,()=>Je(e(p))),Yt("pointerenter",ve,()=>e(q)?.(e(p))),ae("keydown",ve,ge=>ne(ge,e(p))),_(U,ve)}),_(A,O)};W(h,A=>{e(ht).length===0&&e(ft).length===0?A(g):A(F,-1)})}d(te),_(z,te)};W(ze,z=>{e(L)?z(Fe):e(ut)?z(Ie,1):e(vt)?z(ct,2):z(rt,-1)})}d(X);var Pe=x(X,2);{var Be=z=>{var te=_c(),h=f(te,!0);d(te),S(()=>C(h,e(Tt))),_(z,te)};W(Pe,z=>{e(T)||z(Be)})}var gt=x(Pe,2);{var We=z=>{var te=mc(),h=f(te);let g;var F=f(h,!0);d(h);var A=x(h,2),O=x(A,2);d(te),S(()=>{_e(te,"aria-label",e(r).dayNavigation),g=xe(h,1,"ag-nav-pill ag-nav-today svelte-n8lbn1",null,g,{"ag-nav-today--hidden":e(ut)}),_e(h,"aria-label",e(r).goToToday),_e(h,"tabindex",e(ut)?-1:0),C(F,e(r).today),_e(A,"aria-label",e(r).previousDay),_e(O,"aria-label",e(r).nextDay)}),ae("click",h,()=>e(l)?.goToday()),ae("click",A,()=>e(l)?.prev()),ae("click",O,()=>e(l)?.next()),_(z,te)};W(gt,z=>{e(c)&&!e(T)&&z(We)})}d(Me),S(z=>{pt=xe(Me,1,"ag ag--day svelte-n8lbn1",null,pt,z),Ee=je(Me,o()||void 0,Ee,{height:t.height?`${t.height}px`:void 0}),_e(X,"aria-label",e(r).todaysLineup)},[()=>({"ag--disabled":e(R).has(e($)),"ag--mobile":e(T),"ag--auto":e(B)})]),ae("pointerdown",Me,De),ae("pointerup",Me,Ke),_(n,Me),mn()}Yn(["pointerdown","pointerup","click","keydown"]);var yc=D('<span class="ag-card-sub svelte-uhwfyj"> </span>'),bc=D('<span class="ag-card-loc svelte-uhwfyj"> </span>'),Ec=D('<span class="ag-card-eta svelte-uhwfyj"> </span>'),Dc=D('<span class="ag-card-tag svelte-uhwfyj"> </span>'),Tc=D('<div class="ag-card-tags svelte-uhwfyj"></div>'),xc=D('<div class="ag-card-progress svelte-uhwfyj"><div class="ag-card-progress-fill svelte-uhwfyj"></div></div>'),kc=D('<div role="button" tabindex="0"><div class="ag-card-body svelte-uhwfyj"><span class="ag-card-title svelte-uhwfyj"> </span> <!> <!> <span class="ag-card-meta svelte-uhwfyj"><!> <span class="ag-card-dur svelte-uhwfyj"> </span> <!></span> <!> <!></div></div>'),Sc=D('<span class="ag-wday-date svelte-uhwfyj"> </span>'),Cc=D('<div class="ag-wday-custom-header svelte-uhwfyj"><!></div>'),Rc=D('<div role="listitem"><div class="ag-wday-head svelte-uhwfyj"><div class="ag-wday-head-left svelte-uhwfyj"><span class="ag-wday-name svelte-uhwfyj"> </span> <!></div> <!></div></div>'),Mc=D('<span class="ag-wday-badge svelte-uhwfyj"> </span>'),Nc=D('<span class="ag-wday-badge ag-wday-badge--muted svelte-uhwfyj"> </span>'),Ac=D('<span class="ag-wday-date svelte-uhwfyj"> </span>'),Fc=D('<div class="ag-wday-custom-header svelte-uhwfyj"><!></div>'),Ic=D('<div role="button" tabindex="0"><span class="ag-allday-dot svelte-uhwfyj"></span> <span class="ag-allday-title svelte-uhwfyj"> </span></div>'),Oc=D('<div class="ag-allday svelte-uhwfyj"></div>'),Lc=D('<div class="ag-wday-empty svelte-uhwfyj"> </div>'),Hc=D('<span class="ag-compact-sub svelte-uhwfyj"> </span>'),Pc=D('<span class="ag-compact-tag svelte-uhwfyj"> </span>'),jc=D('<div role="button" tabindex="0"><span class="ag-compact-dot svelte-uhwfyj"></span> <span class="ag-compact-time svelte-uhwfyj"> </span> <span class="ag-compact-title svelte-uhwfyj"> </span> <!> <!> <span class="ag-compact-dur svelte-uhwfyj"> </span></div>'),Yc=D('<div class="ag-wday-compact svelte-uhwfyj"></div>'),zc=D('<div class="ag-wslot svelte-uhwfyj"><div></div></div>'),Vc=D('<div class="ag-wday-expanded svelte-uhwfyj"></div>'),Bc=D('<div class="ag-wslot svelte-uhwfyj"><div class="ag-wslot-header svelte-uhwfyj"><span class="ag-wslot-now svelte-uhwfyj"> </span></div> <!></div>'),Wc=D('<div class="ag-wslot svelte-uhwfyj"><div></div></div>'),qc=D('<div class="ag-wday-past-line svelte-uhwfyj"> </div>'),Uc=D('<div class="ag-wday-expanded svelte-uhwfyj"><!> <!> <!></div>'),Xc=D('<span class="ag-compact-loc svelte-uhwfyj"> </span>'),Gc=D('<span class="ag-compact-sub svelte-uhwfyj"> </span>'),Kc=D('<span class="ag-compact-tag svelte-uhwfyj"> </span>'),Jc=D('<div role="button" tabindex="0"><span class="ag-compact-dot svelte-uhwfyj"></span> <span class="ag-compact-time svelte-uhwfyj"> </span> <span class="ag-compact-title svelte-uhwfyj"> </span> <!> <!> <!> <span class="ag-compact-dur svelte-uhwfyj"> </span></div>'),Qc=D('<div class="ag-compact-more svelte-uhwfyj"> </div>'),Zc=D('<div class="ag-wday-compact svelte-uhwfyj"><!> <!></div>'),$c=D('<div role="listitem"><div class="ag-wday-head svelte-uhwfyj"><div class="ag-wday-head-left svelte-uhwfyj"><!> <span class="ag-wday-name svelte-uhwfyj"> </span> <!></div> <!></div> <!> <!></div>'),ed=D('<nav class="ag-nav svelte-uhwfyj"><button> </button> <button class="ag-nav-pill svelte-uhwfyj"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></button> <button class="ag-nav-pill svelte-uhwfyj"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></button></nav>'),td=D('<div><div class="ag-body svelte-uhwfyj" role="list"></div> <!></div>');function nd(n,t){_n(t,!0);const r=(X,I=Un,oe=Un,ze=Un)=>{var Fe=kc();let Ie,ct;var rt=f(Fe),Pe=f(rt),Be=f(Pe,!0);d(Pe);var gt=x(Pe,2);{var We=ue=>{var ie=yc(),ke=f(ie,!0);d(ie),S(()=>C(ke,I().subtitle)),_(ue,ie)};W(gt,ue=>{I().subtitle&&ue(We)})}var z=x(gt,2);{var te=ue=>{var ie=bc(),ke=f(ie,!0);d(ie),S(()=>C(ke,I().location)),_(ue,ie)};W(z,ue=>{I().location&&ue(te)})}var h=x(z,2),g=f(h);{var F=ue=>{var ie=bs();S(ke=>C(ie,`${e(a).until??""} ${ke??""}`),[()=>ne(I().end)]),_(ue,ie)},A=ue=>{var ie=bs();S((ke,ee)=>C(ie,`${ke??""} – ${ee??""}`),[()=>ne(I().start),()=>ne(I().end)]),_(ue,ie)};W(g,ue=>{oe()?ue(F):ue(A,-1)})}var O=x(g,2),j=f(O,!0);d(O);var U=x(O,2);{var p=ue=>{var ie=Ec(),ke=f(ie,!0);d(ie),S(()=>C(ke,ze())),_(ue,ie)};W(U,ue=>{ze()&&ue(p)})}d(h);var V=x(h,2);{var ve=ue=>{var ie=Tc();Le(ie,21,()=>I().tags,Jt,(ke,ee)=>{var M=Dc(),Y=f(M,!0);d(M),S(()=>C(Y,e(ee))),_(ke,M)}),d(ie),_(ue,ie)};W(V,ue=>{I().tags?.length&&ue(ve)})}var Te=x(V,2);{var ye=ue=>{var ie=xc(),ke=f(ie);let ee;d(ie),S(M=>ee=je(ke,"",ee,M),[()=>({width:`${qe(I())*100}%`})]),_(ue,ie)};W(Te,ue=>{oe()&&ue(ye)})}d(rt),d(Fe),S((ue,ie,ke,ee)=>{Ie=xe(Fe,1,"ag-card svelte-uhwfyj",null,Ie,{"ag-card--selected":l()===I().id,"ag-card--cancelled":I().status==="cancelled","ag-card--tentative":I().status==="tentative","ag-card--full":I().status==="full","ag-card--limited":I().status==="limited"}),_e(Fe,"aria-label",`${I().title??""}${I().status==="cancelled"?" (cancelled)":""}${I().status==="tentative"?" (tentative)":""}${I().status==="full"?" (full)":""}${I().status==="limited"?" (limited)":""}, ${ue??""} to ${ie??""}, ${ke??""}`),ct=je(Fe,"",ct,{"--ev-color":I().color||"var(--dt-accent)"}),C(Be,I().title),C(j,ee)},[()=>ne(I().start),()=>ne(I().end),()=>$t(I()),()=>$t(I())]),ae("click",Fe,()=>ut(I())),Yt("pointerenter",Fe,()=>e(se)?.(I())),ae("keydown",Fe,ue=>vt(ue,I())),_(X,Fe)},a=m(An),s=tr();let o=we(t,"mondayStart",3,!0);we(t,"height",3,520);let i=we(t,"events",19,()=>[]),u=we(t,"style",3,""),l=we(t,"selectedEventId",3,null);const c=nr(),v=m(()=>s.viewState),E=m(()=>s.showNav),T=m(()=>s.equalDays),B=m(()=>s.showDates),L=m(()=>s.hideDays),q=m(()=>s.isMobile),R=m(()=>s.autoHeight),G=m(()=>s.compact),Z=m(()=>s.dayHeaderSnippet),se=m(()=>s.oneventhover),De=m(()=>s.disabledSet);let Ke=0,ce=0;const de=50;function nt(X){e(q)&&(Ke=X.clientX,ce=X.clientY)}function Je(X){if(!e(q))return;const I=X.clientX-Ke,oe=X.clientY-ce;Math.abs(I)>de&&Math.abs(I)>Math.abs(oe)*1.4&&(I>0?e(v)?.prev():e(v)?.next())}const ne=X=>js(X,t.locale),$=X=>Ys(X,c.tick),qe=X=>zs(X,c.tick);function ut(X){t.oneventclick?.(X)}function vt(X,I){(X.key==="Enter"||X.key===" ")&&(X.preventDefault(),t.oneventclick?.(I))}const Tt=m(()=>t.focusDate?e(v)?.dayCount===7?er(Ct(t.focusDate.getTime()),o()):Ct(t.focusDate.getTime()):e(v)?.dayCount===7?er(c.today,o()):c.today),Rt=m(()=>e(v)?.dayCount??7),ft=m(()=>e(Rt)===7?e(Tt)===er(c.today,o()):c.today>=e(Tt)&&c.today<e(Tt)+e(Rt)*Ye),ht=m(()=>{const X=c.tick,I=c.today,oe=I+Ye,ze=[];for(let Fe=0;Fe<e(Rt);Fe++){const Ie=e(Tt)+Fe*Ye,ct=Ie+Ye,rt=i().filter(g=>g.start.getTime()<ct&&g.end.getTime()>Ie).sort((g,F)=>g.start.getTime()-F.start.getTime()),Pe=rt.filter(g=>zt(g)||Bt(g)),Be=rt.filter(g=>!zt(g)&&!Bt(g)),gt=Be.reduce((g,F)=>{const A=Math.max(F.start.getTime(),Ie),O=Math.min(F.end.getTime(),ct);return g+(O-A)/6e4},0),We=[],z=[],te=[];for(const g of Be)g.end.getTime()<=X?We.push(g):g.start.getTime()<=X&&g.end.getTime()>X?z.push(g):te.push(g);let h;e(T)?h="upcoming":Ie===I?h="today":Ie===oe?h="tomorrow":Ie<I?h="past":h="upcoming",ze.push({ms:Ie,dayName:Vi(Ie,t.locale),dateLabel:`${ha(Ie,t.locale)} ${Ii(Ie)}`,tier:h,events:rt,allDayEvents:Pe,timedEvents:Be,pastEvents:We,currentEvents:z,upcomingEvents:te,totalHours:Math.round(gt/60*10)/10})}return e(L)?.length?ze.filter(Fe=>{const Ie=new Date(Fe.ms).getDay(),ct=Ie===0?7:Ie;return!e(L).includes(ct)}):ze});var le=td();let Ue;var Me=f(le);Le(Me,21,()=>e(ht),X=>X.ms,(X,I)=>{const oe=m(()=>e(I).tier==="today"||e(I).tier==="tomorrow");var ze=Dt(),Fe=lt(ze);{var Ie=rt=>{var Pe=Rc();let Be;var gt=f(Pe),We=f(gt),z=f(We),te=f(z,!0);d(z);var h=x(z,2);{var g=O=>{var j=Sc(),U=f(j,!0);d(j),S(()=>C(U,e(I).dateLabel)),_(O,j)};W(h,O=>{e(B)&&O(g)})}d(We);var F=x(We,2);{var A=O=>{var j=Cc(),U=f(j);$n(U,()=>e(Z),()=>({date:new Date(e(I).ms),isToday:!1,dayName:e(I).dayName})),d(j),_(O,j)};W(F,O=>{e(Z)&&O(A)})}d(gt),d(Pe),S(O=>{Be=xe(Pe,1,"ag-wday ag-wday--past svelte-uhwfyj",null,Be,O),C(te,e(I).dayName)},[()=>({"ag-wday--disabled":e(De).has(e(I).ms)})]),_(rt,Pe)},ct=rt=>{var Pe=$c();let Be;var gt=f(Pe),We=f(gt),z=f(We);{var te=ee=>{var M=Mc(),Y=f(M,!0);d(M),S(()=>C(Y,e(a).today)),_(ee,M)},h=ee=>{var M=Nc(),Y=f(M,!0);d(M),S(()=>C(Y,e(a).tomorrow)),_(ee,M)};W(z,ee=>{e(I).tier==="today"?ee(te):e(I).tier==="tomorrow"&&ee(h,1)})}var g=x(z,2),F=f(g,!0);d(g);var A=x(g,2);{var O=ee=>{var M=Ac(),Y=f(M,!0);d(M),S(()=>C(Y,e(I).dateLabel)),_(ee,M)};W(A,ee=>{e(B)&&ee(O)})}d(We);var j=x(We,2);{var U=ee=>{var M=Fc(),Y=f(M);$n(Y,()=>e(Z),()=>({date:new Date(e(I).ms),isToday:e(I).tier==="today",dayName:e(I).dayName})),d(M),_(ee,M)};W(j,ee=>{e(Z)&&ee(U)})}d(gt);var p=x(gt,2);{var V=ee=>{var M=Oc();Le(M,21,()=>e(I).allDayEvents,Y=>Y.id,(Y,Q)=>{var y=Ic();let b,k;var H=x(f(y),2),re=f(H,!0);d(H),d(y),S(()=>{b=xe(y,1,"ag-allday-chip svelte-uhwfyj",null,b,{"ag-allday-chip--selected":l()===e(Q).id}),_e(y,"aria-label",`${e(Q).title??""}, ${e(a).allDay??""}`),k=je(y,"",k,{"--ev-color":e(Q).color||"var(--dt-accent)"}),C(re,e(Q).title)}),ae("click",y,()=>ut(e(Q))),Yt("pointerenter",y,()=>e(se)?.(e(Q))),ae("keydown",y,he=>vt(he,e(Q))),_(Y,y)}),d(M),_(ee,M)};W(p,ee=>{e(I).allDayEvents.length>0&&ee(V)})}var ve=x(p,2);{var Te=ee=>{var M=Lc(),Y=f(M,!0);d(M),S(()=>C(Y,e(a).noEvents)),_(ee,M)},ye=ee=>{var M=Yc();Le(M,21,()=>e(I).timedEvents,Y=>Y.id,(Y,Q)=>{var y=jc();let b,k;var H=x(f(y),2),re=f(H,!0);d(H);var he=x(H,2),Se=f(he,!0);d(he);var fe=x(he,2);{var Ne=at=>{var st=Hc(),yt=f(st,!0);d(st),S(()=>C(yt,e(Q).subtitle)),_(at,st)};W(fe,at=>{e(Q).subtitle&&at(Ne)})}var ge=x(fe,2);{var Oe=at=>{var st=Dt(),yt=lt(st);Le(yt,17,()=>e(Q).tags,Jt,(It,Qt)=>{var dt=Pc(),xt=f(dt,!0);d(dt),S(()=>C(xt,e(Qt))),_(It,dt)}),_(at,st)};W(ge,at=>{e(Q).tags?.length&&at(Oe)})}var Xe=x(ge,2),Qe=f(Xe,!0);d(Xe),d(y),S((at,st,yt,It)=>{b=xe(y,1,"ag-compact svelte-uhwfyj",null,b,{"ag-compact--selected":l()===e(Q).id,"ag-compact--cancelled":e(Q).status==="cancelled","ag-compact--tentative":e(Q).status==="tentative","ag-compact--full":e(Q).status==="full","ag-compact--limited":e(Q).status==="limited"}),_e(y,"aria-label",`${e(Q).title??""}, ${at??""}, ${st??""}`),k=je(y,"",k,{"--ev-color":e(Q).color||"var(--dt-accent)"}),C(re,yt),C(Se,e(Q).title),C(Qe,It)},[()=>ne(e(Q).start),()=>$t(e(Q)),()=>ne(e(Q).start),()=>$t(e(Q))]),ae("click",y,()=>ut(e(Q))),Yt("pointerenter",y,()=>e(se)?.(e(Q))),ae("keydown",y,at=>vt(at,e(Q))),_(Y,y)}),d(M),_(ee,M)},ue=ee=>{var M=Vc();Le(M,21,()=>ga(e(I).timedEvents),Y=>Y.startMs,(Y,Q)=>{var y=zc(),b=f(y);let k;Le(b,21,()=>e(Q).events,H=>H.id,(H,re)=>{r(H,()=>e(re),()=>!1)}),d(b),d(y),S(()=>k=xe(b,1,"ag-wslot-cards svelte-uhwfyj",null,k,{"ag-wslot-cards--multi":e(Q).events.length>1})),_(Y,y)}),d(M),_(ee,M)},ie=ee=>{var M=Uc(),Y=f(M);{var Q=H=>{var re=Dt(),he=lt(re);Le(he,17,()=>e(I).currentEvents,Se=>Se.id,(Se,fe)=>{var Ne=Bc(),ge=f(Ne),Oe=f(ge),Xe=f(Oe,!0);d(Oe),d(ge);var Qe=x(ge,2);r(Qe,()=>e(fe),()=>!0),d(Ne),S(()=>C(Xe,e(a).now)),_(Se,Ne)}),_(H,re)};W(Y,H=>{e(I).currentEvents.length>0&&H(Q)})}var y=x(Y,2);Le(y,17,()=>ga(e(I).upcomingEvents),H=>H.startMs,(H,re)=>{var he=Wc(),Se=f(he);let fe;Le(Se,21,()=>e(re).events,Ne=>Ne.id,(Ne,ge)=>{{let Oe=m(()=>e(I).tier==="today"?$(e(ge).start.getTime()):void 0);r(Ne,()=>e(ge),()=>!1,()=>e(Oe))}}),d(Se),d(he),S(()=>fe=xe(Se,1,"ag-wslot-cards svelte-uhwfyj",null,fe,{"ag-wslot-cards--multi":e(re).events.length>1})),_(H,he)});var b=x(y,2);{var k=H=>{var re=qc(),he=f(re);d(re),S(Se=>C(he,`✓ ${Se??""}`),[()=>e(a).nCompleted(e(I).pastEvents.length)]),_(H,re)};W(b,H=>{e(I).pastEvents.length>0&&H(k)})}d(M),_(ee,M)},ke=ee=>{var M=Zc(),Y=f(M);Le(Y,17,()=>e(I).timedEvents.slice(0,4),b=>b.id,(b,k)=>{var H=Jc();let re,he;var Se=x(f(H),2),fe=f(Se,!0);d(Se);var Ne=x(Se,2),ge=f(Ne,!0);d(Ne);var Oe=x(Ne,2);{var Xe=dt=>{var xt=Xc(),ot=f(xt,!0);d(xt),S(()=>C(ot,e(k).location)),_(dt,xt)};W(Oe,dt=>{e(k).location&&dt(Xe)})}var Qe=x(Oe,2);{var at=dt=>{var xt=Gc(),ot=f(xt,!0);d(xt),S(()=>C(ot,e(k).subtitle)),_(dt,xt)};W(Qe,dt=>{e(k).subtitle&&dt(at)})}var st=x(Qe,2);{var yt=dt=>{var xt=Dt(),ot=lt(xt);Le(ot,17,()=>e(k).tags,Jt,(Ft,kt)=>{var Lt=Kc(),en=f(Lt,!0);d(Lt),S(()=>C(en,e(kt))),_(Ft,Lt)}),_(dt,xt)};W(st,dt=>{e(k).tags?.length&&dt(yt)})}var It=x(st,2),Qt=f(It,!0);d(It),d(H),S((dt,xt,ot,Ft)=>{re=xe(H,1,"ag-compact svelte-uhwfyj",null,re,{"ag-compact--selected":l()===e(k).id,"ag-compact--cancelled":e(k).status==="cancelled","ag-compact--tentative":e(k).status==="tentative","ag-compact--full":e(k).status==="full","ag-compact--limited":e(k).status==="limited"}),_e(H,"aria-label",`${e(k).title??""}, ${dt??""}, ${xt??""}`),he=je(H,"",he,{"--ev-color":e(k).color||"var(--dt-accent)"}),C(fe,ot),C(ge,e(k).title),C(Qt,Ft)},[()=>ne(e(k).start),()=>$t(e(k)),()=>ne(e(k).start),()=>$t(e(k))]),ae("click",H,()=>ut(e(k))),Yt("pointerenter",H,()=>e(se)?.(e(k))),ae("keydown",H,dt=>vt(dt,e(k))),_(b,H)});var Q=x(Y,2);{var y=b=>{var k=Qc(),H=f(k,!0);d(k),S(re=>C(H,re),[()=>e(a).nMore(e(I).timedEvents.length-4)]),_(b,k)};W(Q,b=>{e(I).timedEvents.length>4&&b(y)})}d(M),_(ee,M)};W(ve,ee=>{e(I).events.length===0?ee(Te):e(G)?ee(ye,1):e(T)?ee(ue,2):e(oe)?ee(ie,3):ee(ke,-1)})}d(Pe),S(ee=>{Be=xe(Pe,1,"ag-wday svelte-uhwfyj",null,Be,ee),C(F,e(I).dayName)},[()=>({"ag-wday--today":e(I).tier==="today","ag-wday--tomorrow":e(I).tier==="tomorrow","ag-wday--equal":e(T),"ag-wday--disabled":e(De).has(e(I).ms)})]),_(rt,Pe)};W(Fe,rt=>{e(I).tier==="past"?rt(Ie):rt(ct,-1)})}_(X,ze)}),d(Me);var pt=x(Me,2);{var Ee=X=>{var I=ed(),oe=f(I);let ze;var Fe=f(oe,!0);d(oe);var Ie=x(oe,2),ct=x(Ie,2);d(I),S(()=>{_e(I,"aria-label",e(a).weekNavigation),ze=xe(oe,1,"ag-nav-pill ag-nav-today svelte-uhwfyj",null,ze,{"ag-nav-today--hidden":e(ft)}),_e(oe,"aria-label",e(a).goToToday),_e(oe,"tabindex",e(ft)?-1:0),C(Fe,e(a).today),_e(Ie,"aria-label",e(a).previousWeek),_e(ct,"aria-label",e(a).nextWeek)}),ae("click",oe,()=>e(v)?.goToday()),ae("click",Ie,()=>e(v)?.prev()),ae("click",ct,()=>e(v)?.next()),_(X,I)};W(pt,X=>{e(E)&&!e(q)&&X(Ee)})}d(le),S(()=>{Ue=xe(le,1,"ag ag--week svelte-uhwfyj",null,Ue,{"ag--mobile":e(q),"ag--auto":e(R)}),je(le,u()||void 0),_e(Me,"aria-label",e(a).weekAhead)}),ae("pointerdown",le,nt),ae("pointerup",le,Je),_(n,le),mn()}Yn(["click","keydown","pointerdown","pointerup"]);function Vs(n,t){let r=we(t,"mode",3,"day"),a=da(t,["$$slots","$$events","$$legacy","mode"]);var s=Dt(),o=lt(s);{var i=l=>{wc(l,zn(()=>a))},u=l=>{nd(l,zn(()=>a))};W(o,l=>{r()==="day"?l(i):l(u,-1)})}_(n,s)}var rd=D('<span class="mb-allday-span svelte-zbkzcp"> </span>'),ad=D('<button><span class="mb-allday-dot svelte-zbkzcp"></span> <span class="mb-allday-title svelte-zbkzcp"> </span> <!></button>'),sd=D('<span class="mb-allday-more svelte-zbkzcp"> </span>'),od=D('<div class="mb-allday svelte-zbkzcp"><!> <!></div>'),id=D('<span class="mb-blocked-label svelte-zbkzcp"> </span>'),ld=D('<div><div class="mb-hour-label svelte-zbkzcp"> </div> <div class="mb-hour-line svelte-zbkzcp"></div> <!></div>'),cd=D('<div class="mb-now svelte-zbkzcp"><span class="mb-now-label svelte-zbkzcp"> </span> <div class="mb-now-line svelte-zbkzcp"></div></div>'),dd=D('<span class="mb-ev-time svelte-zbkzcp"> </span>'),ud=D('<span class="mb-ev-sub svelte-zbkzcp"> </span>'),vd=D('<span class="mb-ev-loc svelte-zbkzcp"> </span>'),fd=D('<span class="mb-ev-tag svelte-zbkzcp"> </span>'),hd=D('<div class="mb-ev-tags svelte-zbkzcp"></div>'),gd=D('<span class="mb-ev-live svelte-zbkzcp"></span>'),_d=D('<span class="mb-ev-next-badge svelte-zbkzcp"> </span>'),md=D('<button><div class="mb-ev-stripe svelte-zbkzcp"></div> <div class="mb-ev-body svelte-zbkzcp"><span class="mb-ev-title svelte-zbkzcp"> </span> <!> <!> <!> <!></div> <!></button>'),pd=D('<div role="region"><!> <div class="mb-grid svelte-zbkzcp" role="grid" tabindex="-1"><div class="mb-grid-inner svelte-zbkzcp"><!> <!> <!></div></div></div>');function wd(n,t){_n(t,!0);const r=m(An);let a=we(t,"height",3,null),s=we(t,"events",19,()=>[]),o=we(t,"style",3,""),i=we(t,"selectedEventId",3,null),u=we(t,"readOnly",3,!1);const l=tr(),c=m(()=>l.viewState),v=m(()=>l.autoHeight),E=m(()=>l.oneventhover),T=m(()=>l.disabledSet),B=m(()=>l.loadRange),L=m(()=>l.minDuration),q=m(()=>l.blockedSlots),R=nr(),G=64,Z=40,se=m(()=>t.visibleHours?.[0]??0),De=m(()=>t.visibleHours?.[1]??24),Ke=m(()=>Math.max(1,e(De)-e(se))),ce=m(()=>e(Ke)*G),de=m(()=>t.focusDate?Ct(t.focusDate.getTime()):R.today),nt=m(()=>e(de)+Ye),Je=m(()=>e(de)===R.today),ne=m(()=>e(T).has(e(de)));Gt(()=>{if(!e(B))return;const h=new Date(e(de)-2*Ye),g=new Date(e(de)+3*Ye);return e(B).set({start:h,end:g}),()=>e(B).set(null)});const $=m(()=>s().filter(h=>!zt(h)&&!Bt(h)&&h.start.getTime()<e(nt)&&h.end.getTime()>e(de)).sort((h,g)=>h.start.getTime()-g.start.getTime())),qe=m(()=>{const h=[];for(const g of s()){if(!zt(g)&&!Bt(g))continue;const F=Rr(g,e(de));F&&h.push(F)}return h}),ut=m(()=>{const h=R.tick,g=[...e($)];let F=null;if(e(Je)){for(const p of[...g].sort((V,ve)=>V.start.getTime()-ve.start.getTime()))if(p.start.getTime()>h){F=p.id;break}}const A=g.map(p=>{const V=Math.max(p.start.getTime(),e(de)+e(se)*hn),ve=Math.min(p.end.getTime(),e(de)+e(De)*hn),Te=(V-e(de))/hn-e(se),ye=(ve-e(de))/hn-e(se);return{ev:p,top:Te*G,height:Math.max(24,(ye-Te)*G),isCurrent:p.start.getTime()<=h&&p.end.getTime()>h,isNext:p.id===F,startMs:V,endMs:ve,col:0,totalCols:1}}),O=A.map((p,V)=>V);function j(p){for(;O[p]!==p;)O[p]=O[O[p]],p=O[p];return p}for(let p=0;p<A.length;p++)for(let V=p+1;V<A.length&&A[V].startMs<A[p].endMs;V++)O[j(p)]=j(V);const U=new Map;for(let p=0;p<A.length;p++){const V=j(p);U.has(V)||U.set(V,[]),U.get(V).push(p)}for(const[,p]of U){const V=[];for(const ve of p){let Te=0;for(let ye=0;ye<V.length;ye++){if(V[ye]<=A[ve].startMs){Te=ye,V[ye]=A[ve].endMs;break}Te=ye+1}Te>=V.length&&V.push(A[ve].endMs),A[ve].col=Te}for(const ve of p)A[ve].totalCols=V.length}return A.map(p=>({ev:p.ev,top:p.top,height:p.height,left:`calc(${Z}px + ${p.col/p.totalCols*100}% - ${Z*p.col/p.totalCols}px)`,width:`calc(${100/p.totalCols}% - ${Z/p.totalCols+2}px)`,isCurrent:p.isCurrent,isNext:p.isNext,col:p.col,totalCols:p.totalCols}))}),vt=m(()=>{if(!e(Je))return-1;const h=(R.tick-e(de))/hn-e(se);return h<0||h>e(Ke)?-1:h*G});function Tt(h){if(!e(q)?.length)return!1;const g=new Date(e(de)).getDay(),F=g===0?7:g;return e(q).some(A=>A.day&&A.day!==F?!1:h>=A.start&&h<A.end)}let Rt=0,ft=0,ht=!1,le=Re(0);const Ue=50;function Me(h){const g=h.touches[0];Rt=g.clientX,ft=g.clientY,ht=!0,P(le,0)}function pt(h){if(!ht)return;const g=h.touches[0],F=g.clientX-Rt,A=g.clientY-ft;if(Math.abs(A)>Math.abs(F)*.8){ht=!1;return}P(le,F)}function Ee(){if(!ht){P(le,0);return}Math.abs(e(le))>Ue&&(e(le)>0?e(c)?.prev():e(c)?.next()),P(le,0),ht=!1}function X(h){if(!t.oneventcreate||u()||e(ne)||h.target.closest(".mb-event"))return;const g=h.currentTarget,F=g.getBoundingClientRect(),A=h.clientY-F.top+g.scrollTop,O=e(se)+A/G;if(Tt(O))return;const j=Math.floor(O),U=e(L)?Math.max(60,e(L)):60,p=new Date(e(de)+j*hn),V=new Date(p.getTime()+U*6e4);t.oneventcreate({start:p,end:V})}let I;hr(()=>{if(e(vt)>0&&I){const h=Math.max(0,e(vt)-120);I.scrollTop=h}});var oe=pd();let ze,Fe;var Ie=f(oe);{var ct=h=>{var g=od(),F=f(g);Le(F,17,()=>e(qe).slice(0,3),j=>j.ev.id,(j,U)=>{var p=ad();let V,ve;var Te=x(f(p),2),ye=f(Te,!0);d(Te);var ue=x(Te,2);{var ie=ke=>{var ee=rd(),M=f(ee);d(ee),S(()=>C(M,`${e(U).dayIndex??""}/${e(U).totalDays??""}`)),_(ke,ee)};W(ue,ke=>{e(U).totalDays>1&&ke(ie)})}d(p),S(()=>{V=xe(p,1,"mb-allday-chip svelte-zbkzcp",null,V,{"mb-allday-chip--selected":i()===e(U).ev.id}),ve=je(p,"",ve,{"--ev-color":e(U).ev.color??"var(--dt-accent)"}),C(ye,e(U).ev.title)}),ae("click",p,()=>t.oneventclick?.(e(U).ev)),_(j,p)});var A=x(F,2);{var O=j=>{var U=sd(),p=f(U,!0);d(U),S(V=>C(p,V),[()=>e(r).nMore(e(qe).length-3)]),_(j,U)};W(A,j=>{e(qe).length>3&&j(O)})}d(g),_(h,g)};W(Ie,h=>{e(qe).length>0&&h(ct)})}var rt=x(Ie,2),Pe=f(rt);let Be;var gt=f(Pe);Le(gt,17,()=>({length:e(Ke)}),Jt,(h,g,F)=>{const A=m(()=>e(se)+F),O=m(()=>Tt(e(A)));var j=ld();let U;je(j,"",{},{top:`${F*G}px`,height:"64px"});var p=f(j),V=f(p,!0);d(p);var ve=x(p,4);{var Te=ye=>{const ue=m(()=>e(q).find(M=>(!M.day||M.day===(new Date(e(de)).getDay()===0?7:new Date(e(de)).getDay()))&&e(A)>=M.start&&e(A)<M.end));var ie=Dt(),ke=lt(ie);{var ee=M=>{var Y=id(),Q=f(Y,!0);d(Y),S(()=>C(Q,e(ue).label)),_(M,Y)};W(ke,M=>{e(ue)?.label&&M(ee)})}_(ye,ie)};W(ve,ye=>{e(O)&&e(q)&&ye(Te)})}d(j),S(ye=>{U=xe(j,1,"mb-hour svelte-zbkzcp",null,U,{"mb-hour--blocked":e(O)}),C(V,ye)},[()=>Os(e(A),t.locale)]),_(h,j)});var We=x(gt,2);{var z=h=>{var g=cd();let F;var A=f(g),O=f(A,!0);d(A),yr(2),d(g),S(()=>{F=je(g,"",F,{top:`${e(vt)??""}px`}),C(O,R.hm)}),_(h,g)};W(We,h=>{e(vt)>=0&&h(z)})}var te=x(We,2);Le(te,17,()=>e(ut),h=>h.ev.id,(h,g)=>{var F=md();let A,O;var j=x(f(F),2),U=f(j),p=f(U,!0);d(U);var V=x(U,2);{var ve=y=>{var b=dd(),k=f(b);d(b),S((H,re)=>C(k,`${H??""} – ${re??""}`),[()=>En(e(g).ev.start,t.locale),()=>En(e(g).ev.end,t.locale)]),_(y,b)};W(V,y=>{e(g).height>32&&y(ve)})}var Te=x(V,2);{var ye=y=>{var b=ud(),k=f(b,!0);d(b),S(()=>C(k,e(g).ev.subtitle)),_(y,b)};W(Te,y=>{e(g).ev.subtitle&&e(g).height>48&&y(ye)})}var ue=x(Te,2);{var ie=y=>{var b=vd(),k=f(b,!0);d(b),S(()=>C(k,e(g).ev.location)),_(y,b)};W(ue,y=>{e(g).ev.location&&e(g).height>56&&y(ie)})}var ke=x(ue,2);{var ee=y=>{var b=hd();Le(b,21,()=>e(g).ev.tags,Jt,(k,H)=>{var re=fd(),he=f(re,!0);d(re),S(()=>C(he,e(H))),_(k,re)}),d(b),_(y,b)};W(ke,y=>{e(g).ev.tags?.length&&e(g).height>56&&y(ee)})}d(j);var M=x(j,2);{var Y=y=>{var b=gd();_(y,b)},Q=y=>{var b=_d(),k=f(b,!0);d(b),S(()=>C(k,e(r).upNext)),_(y,b)};W(M,y=>{e(g).isCurrent?y(Y):e(g).isNext&&y(Q,1)})}d(F),S(()=>{A=xe(F,1,"mb-event svelte-zbkzcp",null,A,{"mb-event--selected":i()===e(g).ev.id,"mb-event--current":e(g).isCurrent,"mb-event--next":e(g).isNext,"mb-event--cancelled":e(g).ev.status==="cancelled","mb-event--tentative":e(g).ev.status==="tentative","mb-event--full":e(g).ev.status==="full","mb-event--limited":e(g).ev.status==="limited"}),_e(F,"aria-label",`${e(g).ev.title??""}${e(g).ev.status==="cancelled"?" (cancelled)":""}${e(g).ev.status==="tentative"?" (tentative)":""}${e(g).ev.status==="full"?" (full)":""}${e(g).ev.status==="limited"?" (limited)":""}${e(g).isCurrent?`, ${e(r).inProgress}`:""}${e(g).isNext?`, ${e(r).upNext}`:""}`),O=je(F,"",O,{top:`${e(g).top??""}px`,height:`${e(g).height??""}px`,left:e(g).left,width:e(g).width,"--ev-color":e(g).ev.color??"var(--dt-accent)"}),C(p,e(g).ev.title)}),ae("click",F,y=>{y.stopPropagation(),t.oneventclick?.(e(g).ev)}),Yt("pointerenter",F,()=>e(E)?.(e(g).ev)),_(h,F)}),d(Pe),d(rt),Sr(rt,h=>I=h,()=>I),d(oe),S(()=>{ze=xe(oe,1,"mb svelte-zbkzcp",null,ze,{"mb--auto":e(v)}),Fe=je(oe,o()||void 0,Fe,{height:e(v)?void 0:a()?`${a()}px`:"100%"}),_e(oe,"aria-label",e(r).dayPlanner),Be=je(Pe,"",Be,{height:`${e(ce)??""}px`})}),ae("touchstart",oe,Me),ae("touchmove",oe,pt),ae("touchend",oe,Ee),ae("click",rt,X),ae("keydown",rt,h=>{(h.key==="Enter"||h.key===" ")&&X(h)}),_(n,oe),mn()}Yn(["touchstart","touchmove","touchend","click","keydown"]);var yd=D("<span> </span>"),bd=D('<span class="mw-empty svelte-1d18hkf"> </span>'),Ed=D('<span class="mw-ev-time svelte-1d18hkf"> </span>'),Dd=D('<span class="mw-ev-time svelte-1d18hkf"> </span>'),Td=D('<button type="button"><span class="mw-ev-stripe svelte-1d18hkf"></span> <div class="mw-ev-body svelte-1d18hkf"><span class="mw-ev-title svelte-1d18hkf"> </span> <!></div></button>'),xd=D('<span class="mw-ev-more svelte-1d18hkf"> </span>'),kd=D("<!> <!>",1),Sd=D('<div role="listitem"><button class="mw-row-target svelte-1d18hkf"></button> <div class="mw-date svelte-1d18hkf"><span> </span> <!></div> <div class="mw-events svelte-1d18hkf"><!></div> <svg class="mw-chevron svelte-1d18hkf" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></div>'),Cd=D('<div role="region"><div class="mw-list svelte-1d18hkf" role="list"></div></div>');function Rd(n,t){_n(t,!0);const r=m(An);let a=we(t,"mondayStart",3,!0),s=we(t,"height",3,null),o=we(t,"events",19,()=>[]),i=we(t,"style",3,""),u=we(t,"selectedEventId",3,null);we(t,"readOnly",3,!1);const l=tr(),c=m(()=>l.viewState),v=m(()=>l.equalDays),E=m(()=>l.showDates),T=m(()=>l.hideDays),B=m(()=>l.autoHeight),L=m(()=>l.oneventhover),q=m(()=>l.disabledSet),R=m(()=>l.loadRange),G=nr(),Z=3,se=m(()=>e(c)?.dayCount??7),De=m(()=>G.today),Ke=m(()=>t.focusDate?Ct(t.focusDate.getTime()):e(De)),ce=m(()=>e(se)===7?er(e(Ke),a()):Ct(e(Ke)));Gt(()=>{if(!e(R))return;const Ee=new Date(e(ce)-7*Ye),X=new Date(e(ce)+(e(se)+7)*Ye);return e(R).set({start:Ee,end:X}),()=>e(R).set(null)});const de=m(()=>{const Ee=[],X=new Set(e(T)??[]);for(let I=0;I<e(se);I++){const oe=e(ce)+I*Ye,ze=new Date(oe),Fe=ze.getDay(),Ie=Fe===0?7:Fe;if(X.has(Ie))continue;const ct=oe===e(De),rt=e(v)?!1:oe<e(De),Pe=Fe===0||Fe===6,Be=e(q).has(oe),gt=oe+Ye,We=o().filter(te=>te.start.getTime()<gt&&te.end.getTime()>oe).sort((te,h)=>te.start.getTime()-h.start.getTime()),z=We.filter(te=>zt(te)||Bt(te)).length;Ee.push({ms:oe,dayNum:ze.getDate(),dayName:Nr(oe,t.locale),isToday:ct,isPast:rt,isDisabled:Be,isWeekend:Pe,events:We,allDayCount:z,totalCount:We.length})}return Ee});function nt(Ee){return En(Ee,t.locale)}let Je=0,ne=0,$=!1,qe=Re(0);const ut=60;function vt(Ee){const X=Ee.touches[0];Je=X.clientX,ne=X.clientY,$=!0,P(qe,0)}function Tt(Ee){if(!$)return;const X=Ee.touches[0],I=X.clientX-Je,oe=X.clientY-ne;if(Math.abs(oe)>Math.abs(I)*.8){$=!1;return}P(qe,I)}function Rt(){if(!$){P(qe,0);return}Math.abs(e(qe))>ut&&(e(qe)>0?e(c)?.prev():e(c)?.next()),P(qe,0),$=!1}function ft(Ee){if(e(c)){e(c).setFocusDate(new Date(Ee));const I=e(c).view.replace("week","day");e(c).setView(I)}}function ht(Ee,X){Ee.key!=="Enter"&&Ee.key!==" "||(Ee.preventDefault(),ft(X))}var le=Cd();let Ue,Me;var pt=f(le);Le(pt,21,()=>e(de),Ee=>Ee.ms,(Ee,X)=>{var I=Sd();let oe;var ze=f(I),Fe=x(ze,2),Ie=f(Fe);let ct;var rt=f(Ie,!0);d(Ie);var Pe=x(Ie,2);{var Be=h=>{var g=yd();let F;var A=f(g,!0);d(g),S(()=>{F=xe(g,1,"mw-day-num svelte-1d18hkf",null,F,{"mw-day-num--today":e(X).isToday}),C(A,e(X).dayNum)}),_(h,g)};W(Pe,h=>{e(E)&&h(Be)})}d(Fe);var gt=x(Fe,2),We=f(gt);{var z=h=>{var g=bd(),F=f(g,!0);d(g),S(()=>C(F,e(r).noEvents)),_(h,g)},te=h=>{var g=kd(),F=lt(g);Le(F,17,()=>e(X).events.slice(0,Z),j=>j.id,(j,U)=>{var p=Td();let V,ve;var Te=x(f(p),2),ye=f(Te),ue=f(ye,!0);d(ye);var ie=x(ye,2);{var ke=Y=>{var Q=Ed(),y=f(Q,!0);d(Q),S(()=>C(y,e(r).allDay)),_(Y,Q)},ee=m(()=>zt(e(U))||Bt(e(U))),M=Y=>{var Q=Dd(),y=f(Q,!0);d(Q),S(b=>C(y,b),[()=>nt(e(U).start)]),_(Y,Q)};W(ie,Y=>{e(ee)?Y(ke):Y(M,-1)})}d(Te),d(p),S(Y=>{V=xe(p,1,"mw-ev svelte-1d18hkf",null,V,Y),ve=je(p,"",ve,{"--ev-color":e(U).color??"var(--dt-accent)"}),C(ue,e(U).title)},[()=>({"mw-ev--selected":u()===e(U).id,"mw-ev--allday":zt(e(U))||Bt(e(U)),"mw-ev--current":!zt(e(U))&&!Bt(e(U))&&e(U).start.getTime()<=G.tick&&e(U).end.getTime()>G.tick,"mw-ev--cancelled":e(U).status==="cancelled","mw-ev--tentative":e(U).status==="tentative","mw-ev--full":e(U).status==="full","mw-ev--limited":e(U).status==="limited"})]),ae("click",p,Y=>{Y.stopPropagation(),t.oneventclick?.(e(U))}),ae("keydown",p,Y=>{(Y.key==="Enter"||Y.key===" ")&&(Y.preventDefault(),Y.stopPropagation(),t.oneventclick?.(e(U)))}),Yt("pointerenter",p,()=>e(L)?.(e(U))),_(j,p)});var A=x(F,2);{var O=j=>{var U=xd(),p=f(U,!0);d(U),S(V=>C(p,V),[()=>e(r).nMore(e(X).totalCount-Z)]),_(j,U)};W(A,j=>{e(X).totalCount>Z&&j(O)})}_(h,g)};W(We,h=>{e(X).events.length===0?h(z):h(te,-1)})}d(gt),yr(2),d(I),S(()=>{oe=xe(I,1,"mw-row svelte-1d18hkf",null,oe,{"mw-row--today":e(X).isToday,"mw-row--past":e(X).isPast,"mw-row--weekend":e(X).isWeekend,"mw-row--disabled":e(X).isDisabled}),ze.disabled=e(X).isDisabled,_e(ze,"aria-label",`${e(X).dayName??""} ${e(X).dayNum??""}`),ct=xe(Ie,1,"mw-day-name svelte-1d18hkf",null,ct,{"mw-day-name--today":e(X).isToday}),C(rt,e(X).dayName)}),ae("click",ze,()=>ft(e(X).ms)),ae("keydown",ze,h=>ht(h,e(X).ms)),_(Ee,I)}),d(pt),d(le),S(()=>{Ue=xe(le,1,"mw svelte-1d18hkf",null,Ue,{"mw--auto":e(B)}),Me=je(le,i()||void 0,Me,{height:e(B)?void 0:s()?`${s()}px`:"100%"}),_e(le,"aria-label",e(r).weekAhead)}),ae("touchstart",le,vt),ae("touchmove",le,Tt),ae("touchend",le,Rt),_(n,le),mn()}Yn(["touchstart","touchmove","touchend","click","keydown"]);function Bs(n,t){let r=we(t,"mode",3,"day"),a=da(t,["$$slots","$$events","$$legacy","mode"]);var s=Dt(),o=lt(s);{var i=l=>{wd(l,zn(()=>a))},u=l=>{Rd(l,zn(()=>a))};W(o,l=>{r()==="day"?l(i):l(u,-1)})}_(n,s)}var Md=D('<button class="cal-m-nav svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M10 3 5 8l5 5" class="svelte-1b53e7w"></path></svg></button>'),Nd=D("<button> </button>"),Ad=D('<div class="cal-m-pills svelte-1b53e7w" role="group"></div>'),Fd=D('<button class="cal-m-nav svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M6 3l5 5-5 5" class="svelte-1b53e7w"></path></svg></button>'),Id=D('<div class="cal-m-today-bar svelte-1b53e7w"><button class="cal-m-today svelte-1b53e7w"> </button></div>'),Od=D('<div class="cal-m-hd svelte-1b53e7w"><div class="cal-m-left svelte-1b53e7w"><!> <!></div> <span class="cal-m-title svelte-1b53e7w"> </span> <div class="cal-m-right svelte-1b53e7w"><!></div></div> <!>',1),Ld=D("<button> </button>"),Hd=D('<div class="cal-pills svelte-1b53e7w" role="group"></div>'),Pd=D('<div class="cal-empty svelte-1b53e7w">No views registered.</div>'),jd=D('<div class="cal-loading svelte-1b53e7w"></div>'),Yd=D('<div role="region"><!> <div class="cal-body svelte-1b53e7w"><!></div> <!></div>');function zd(n,t){_n(t,!0);const r=768;let s=we(t,"views",3,[{id:"day-planner",label:"Planner",mode:"day",component:Ps},{id:"week-planner",label:"Planner",mode:"week",component:Ps},{id:"day-agenda",label:"Agenda",mode:"day",component:Vs},{id:"week-agenda",label:"Agenda",mode:"week",component:Vs},{id:"day-mobile",label:"Mobile",mode:"day",component:Bs},{id:"week-mobile",label:"Mobile",mode:"week",component:Bs}]),o=we(t,"theme",3,Ar),i=we(t,"mondayStart",3,!0),u=we(t,"height",3,600),l=we(t,"borderRadius",3,12),c=we(t,"readOnly",3,!1),v=we(t,"snapInterval",3,15),E=we(t,"showModePills",3,!0),T=we(t,"showNavigation",3,!0),B=we(t,"equalDays",3,!1),L=we(t,"showDates",3,!0),q=we(t,"compact",3,!1),R=we(t,"mobile",3,"auto");const G=m(()=>c()?void 0:t.oneventcreate),Z=m(()=>c()?void 0:t.oneventmove);let se=Re(0);const De=m(()=>e(se)>0&&e(se)<r),Ke=m(()=>R()==="auto"?e(De):!!R());let ce=Re(void 0),de=Re("");const nt=m(()=>o()===Ar&&t.autoTheme!==!1);hr(()=>{if(!e(ce))return;P(se,e(ce).clientWidth,!0);const h=new ResizeObserver(A=>{P(se,Math.round(A[0].contentRect.width),!0)});if(h.observe(e(ce)),!e(nt))return()=>h.disconnect();const g=typeof t.autoTheme=="object"?t.autoTheme:{},F=Zi(e(ce),A=>{P(de,A,!0)},g);return()=>{h.disconnect(),F?.()}});const Je=m(()=>o()===Ar&&t.autoTheme!==!1?e(de):o()),ne=m(()=>Oi(t.adapter)),$=Pi(Rn(()=>({view:t.view??s()[0]?.id,mondayStart:i(),initialDate:t.initialDate,dayCount:t.days,modeForView:h=>s().find(g=>g.id===h)?.mode}))),qe=ji(),ut=Yi();async function vt(){if(c()){ut.cancel();return}const h=ut.mode,g=ut.commit();if(!g)return;let{start:F,end:A}=g;if(h==="create"||h==="resize-start"||h==="resize-end"){const j=(A.getTime()-F.getTime())/6e4;t.minDuration&&j<t.minDuration&&(h==="resize-start"?F=new Date(A.getTime()-t.minDuration*6e4):A=new Date(F.getTime()+t.minDuration*6e4)),t.maxDuration&&j>t.maxDuration&&(h==="resize-start"?F=new Date(A.getTime()-t.maxDuration*6e4):A=new Date(F.getTime()+t.maxDuration*6e4))}if(t.disabledDates?.length){const O=new Date(F);O.setHours(0,0,0,0);const j=new Date(A.getTime()-1);j.setHours(0,0,0,0);for(const U of t.disabledDates){const p=new Date(U);p.setHours(0,0,0,0);const V=p.getTime();if(V>=O.getTime()&&V<=j.getTime())return}}if(t.blockedSlots?.length){const O=F.getHours()+F.getMinutes()/60,j=A.getHours()+A.getMinutes()/60+(A.getDate()!==F.getDate()?24:0),U=F.getDay(),p=U===0?7:U;for(const V of t.blockedSlots)if(!(V.day&&V.day!==p)&&O<V.end&&j>V.start)return}if((h==="move"||h==="resize-start"||h==="resize-end")&&g.eventId)try{await e(ne).move(g.eventId,F,A);const O=e(ne).byId(g.eventId);O&&e(Z)?.(O,F,A)}catch(O){const j=O instanceof Error?O.message:"";!j.includes("read-only")&&!j.includes("not found")&&console.warn("[calendar] drag commit failed:",O)}else h==="create"&&e(G)?.({start:F,end:A})}let Tt=Re(null);To("calendar",{get store(){return e(ne)},viewState:$,selection:qe,drag:ut,commitDrag:vt,get oneventclick(){return t.oneventclick},get oneventcreate(){return e(G)},get oneventmove(){return e(Z)},get oneventhover(){return t.oneventhover},get readOnly(){return c()},get visibleHours(){return t.visibleHours},get snapInterval(){return v()},get eventSnippet(){return t.event},get emptySnippet(){return t.empty},get showNavigation(){return T()},get equalDays(){return B()},get showDates(){return L()},get hideDays(){return t.hideDays},get blockedSlots(){return t.blockedSlots},get dayHeaderSnippet(){return t.dayHeader},get minDuration(){return t.minDuration},get maxDuration(){return t.maxDuration},get disabledDates(){return t.disabledDates},get mobile(){return e(Ke)},get autoHeight(){return u()==="auto"},get compact(){return q()},get loadRange(){return e(Tt)},setLoadRange(h){P(Tt,h,!0)}}),Gt(()=>{const h=e(Tt)??$.range;e(ne).load({start:h.start,end:h.end})}),Rn(()=>e(ne).load({start:$.range.start,end:$.range.end})),Gt(()=>{t.view&&$.setView(t.view)}),Gt(()=>{t.currentDate&&$.setFocusDate(t.currentDate)}),Gt(()=>{t.days!==void 0&&$.dayCount!==t.days&&$.setDayCount(t.days)}),Gt(()=>{const h=$.focusDate;t.ondatechange?.(h)}),Gt(()=>{$.mondayStart!==i()&&$.setMondayStart(i())}),Gt(()=>{t.onviewchange?.($.view)});const Rt=m(()=>{const h=s().find(F=>F.id===$.view)??s()[0];return!e(Ke)||!h||h.id.endsWith("-mobile")||h.label==="Agenda"?h:s().find(F=>F.id===`${h.mode}-mobile`)??h}),ft=m(()=>e(Rt)),ht=m(()=>s().filter(h=>!h.id.endsWith("-mobile"))),le=m(()=>L()?$.mode==="day"?$.focusDate.toLocaleDateString(t.locale,{weekday:"long",month:"short",day:"numeric"}):$.focusDate.toLocaleDateString(t.locale,{month:"long",year:"numeric"}):$.mode==="day"?$.focusDate.toLocaleDateString(t.locale,{weekday:"long"}):""),Ue=m(()=>{const h=new Set(e(ht).map(g=>g.mode));return["day","week"].filter(g=>h.has(g))}),Me=m(An);function pt(h){const g=e(ht).find(j=>j.id===$.view)?.label??e(ft)?.label,F=e(ht).find(j=>j.mode===h&&j.label===g),A=e(ht).find(j=>j.mode===h),O=F??A;O&&$.setView(O.id)}const Ee=m(()=>{const h=Date.now(),{start:g,end:F}=$.range;return h>=g.getTime()&&h<F.getTime()}),X=m(()=>({dateLabel:e(le),mode:$.mode,modes:e(Ue),switchMode:pt,prev:()=>$.prev(),next:()=>$.next(),goToday:()=>$.goToday(),isViewOnToday:e(Ee),focusDate:$.focusDate})),I=m(()=>({prev:()=>$.prev(),next:()=>$.next(),goToday:()=>$.goToday(),isViewOnToday:e(Ee),focusDate:$.focusDate,mode:$.mode}));var oe=Yd();let ze;var Fe=f(oe);{var Ie=h=>{var g=Dt(),F=lt(g);$n(F,()=>t.header,()=>e(X)),_(h,g)},ct=h=>{var g=Od(),F=lt(g),A=f(F),O=f(A);{var j=M=>{var Y=Dt(),Q=lt(Y);$n(Q,()=>t.navigation,()=>e(I)),_(M,Y)},U=M=>{var Y=Md();S(()=>_e(Y,"aria-label",$.mode==="day"?e(Me).previousDay:e(Me).previousWeek)),ae("click",Y,()=>$.prev()),_(M,Y)};W(O,M=>{t.navigation?M(j):T()&&M(U,1)})}var p=x(O,2);{var V=M=>{var Y=Ad();Le(Y,21,()=>e(Ue),Jt,(Q,y)=>{var b=Nd();let k;var H=f(b,!0);d(b),S(()=>{k=xe(b,1,"cal-m-pill svelte-1b53e7w",null,k,{"cal-m-pill--active":$.mode===e(y)}),_e(b,"aria-pressed",$.mode===e(y)),C(H,e(y)==="day"?e(Me).day:e(Me).week)}),ae("click",b,()=>pt(e(y))),_(Q,b)}),d(Y),S(()=>_e(Y,"aria-label",e(Me).viewMode)),_(M,Y)};W(p,M=>{E()&&e(Ue).length>1&&M(V)})}d(A);var ve=x(A,2),Te=f(ve,!0);d(ve);var ye=x(ve,2),ue=f(ye);{var ie=M=>{var Y=Fd();S(()=>_e(Y,"aria-label",$.mode==="day"?e(Me).nextDay:e(Me).nextWeek)),ae("click",Y,()=>$.next()),_(M,Y)};W(ue,M=>{!t.navigation&&T()&&M(ie)})}d(ye),d(F);var ke=x(F,2);{var ee=M=>{var Y=Id(),Q=f(Y),y=f(Q,!0);d(Q),d(Y),S(()=>C(y,e(Me).today)),ae("click",Q,()=>$.goToday()),_(M,Y)};W(ke,M=>{!t.navigation&&T()&&!e(Ee)&&M(ee)})}S(()=>C(Te,e(le))),_(h,g)},rt=h=>{var g=Dt(),F=lt(g);{var A=O=>{var j=Hd();Le(j,21,()=>e(Ue),Jt,(U,p)=>{var V=Ld();let ve;var Te=f(V,!0);d(V),S(()=>{ve=xe(V,1,"cal-pill svelte-1b53e7w",null,ve,{"cal-pill--active":$.mode===e(p)}),_e(V,"aria-pressed",$.mode===e(p)),C(Te,e(p)==="day"?e(Me).day:e(Me).week)}),ae("click",V,()=>pt(e(p))),_(U,V)}),d(j),S(()=>_e(j,"aria-label",e(Me).viewMode)),_(O,j)};W(F,O=>{E()&&e(Ue).length>1&&e(ft)?.label!=="Agenda"&&O(A)})}_(h,g)};W(Fe,h=>{t.header?h(Ie):e(Ke)?h(ct,1):h(rt,-1)})}var Pe=x(Fe,2),Be=f(Pe);{var gt=h=>{const g=m(()=>e(ft).component);var F=Dt(),A=lt(F);fi(A,()=>e(g),(O,j)=>{j(O,zn({get events(){return e(ne).events},get style(){return e(Je)},height:null,get mode(){return e(ft).mode},get mondayStart(){return $.mondayStart},get locale(){return t.locale},get focusDate(){return $.focusDate},get oneventclick(){return t.oneventclick},get oneventcreate(){return e(G)},get readOnly(){return c()},get visibleHours(){return t.visibleHours},get selectedEventId(){return qe.selectedId}},()=>e(ft).props??{}))}),_(h,F)},We=h=>{var g=Pd();_(h,g)};W(Be,h=>{e(ft)?h(gt):h(We,-1)})}d(Pe);var z=x(Pe,2);{var te=h=>{var g=jd();_(h,g)};W(z,h=>{e(ne).loading&&h(te)})}d(oe),Sr(oe,h=>P(ce,h),()=>e(ce)),S(()=>{ze=xe(oe,1,"cal svelte-1b53e7w",null,ze,{"cal--auto":u()==="auto"}),je(oe,`${e(Je)??""}; ${u()==="auto"?"":`--cal-h: ${u()}px;`} --cal-r: ${l()??""}px`),_e(oe,"aria-label",e(Me).calendar),_e(oe,"dir",t.dir),_e(oe,"lang",t.locale),oe.dir=oe.dir}),_(n,oe),mn()}Yn(["click"]);function Vd(n){const{baseUrl:t,headers:r={}}=n,a=n.mapEvents??(i=>i),s=n.mapEvent??(i=>i);async function o(i,u){const l=await fetch(`${t}${i}`,{...u,headers:{"Content-Type":"application/json",...r,...u?.headers??{}}});if(!l.ok)throw new Error(`Calendar API error: ${l.status} ${l.statusText}`);if(l.status!==204)try{return await l.json()}catch{throw new Error(`Calendar API error: invalid JSON response from ${i}`)}}return{async fetchEvents(i){const u=new URLSearchParams({start:i.start.toISOString(),end:i.end.toISOString()}),l=await o(`/events?${u}`);return a(l)},async createEvent(i){const u=await o("/events",{method:"POST",body:JSON.stringify(i)});return s(u)},async updateEvent(i,u){const l=await o(`/events/${i}`,{method:"PATCH",body:JSON.stringify(u)});return s(l)},async deleteEvent(i){await o(`/events/${i}`,{method:"DELETE"})}}}const Bd=["#ef4444","#f97316","#eab308","#22c55e","#14b8a6","#3b82f6","#6366f1","#a855f7","#ec4899","#f43f5e","#06b6d4","#84cc16","#d946ef","#0ea5e9","#10b981"];let Wd=0;function qd(){return`mem-${Date.now()}-${++Wd}`}function Ud(n=[],t){const r=[...n],a=Bd,s=new Map;let o=0;function i(c){if(c.color)return c.color;const v=c.category??c.title;return s.has(v)||(s.set(v,a[o%a.length]),o++),s.get(v)}function u(c){const v=i(c);return v?{...c,color:v}:c}function l(c,v){return c.start<v.end&&c.end>v.start}return{async fetchEvents(c){return r.filter(v=>l(v,c)).map(u)},async createEvent(c){const v={...c,id:qd()};return r.push(v),u(v)},async updateEvent(c,v){const E=r.findIndex(T=>T.id===c);if(E<0)throw new Error(`Event not found: ${c}`);return r[E]={...r[E],...v,id:c},u(r[E])},async deleteEvent(c){const v=r.findIndex(E=>E.id===c);if(v<0)throw new Error(`Event not found: ${c}`);r.splice(v,1)}}}function Xd(n,t){_n(t,!0);let r=we(t,"theme",3,"neutral"),a=we(t,"view",3,"week-planner"),s=we(t,"height",3,"600"),o=we(t,"mondaystart",3,"true");const i=m(()=>parseInt(s(),10)||600),u=m(()=>o()!=="false"),l=m(()=>Ls[r()]||Ls.neutral),c=m(()=>t.dir==="rtl"||t.dir==="ltr"||t.dir==="auto"?t.dir:void 0);function v(L){if(L)try{const q=JSON.parse(L),R={};for(const[G,Z]of Object.entries(q))R[G]=String(Z);return R}catch{console.warn("[day-calendar] Failed to parse headers JSON:",L);return}}function E(L,q){const R=new Date(String(L.start??"")),G=new Date(String(L.end??""));return Number.isNaN(R.getTime())||Number.isNaN(G.getTime())||G<=R?null:{id:String(L.id??q),title:String(L.title??"Untitled"),start:R,end:G,color:L.color?String(L.color):void 0}}function T(L){if(!L)return[];try{const q=JSON.parse(L),R=q.map((G,Z)=>E(G,`inline-${Z}`)).filter(G=>G!==null);return R.length!==q.length&&console.warn(`[day-calendar] Ignored ${q.length-R.length} invalid event(s) from events JSON.`),R}catch{return console.warn("[day-calendar] Failed to parse events JSON:",L),[]}}const B=m(()=>{if(t.api){const L=v(t.headers);return Vd({baseUrl:t.api,headers:L,mapEvents:q=>(Array.isArray(q)?q:q.events??[]).map((G,Z)=>E(G,`api-${Z}`)).filter(G=>G!==null)})}return Ud(T(t.events))});zd(n,{get adapter(){return e(B)},get view(){return a()},get theme(){return e(l)},get height(){return e(i)},get mondayStart(){return e(u)},get dir(){return e(c)},get locale(){return t.locale}}),mn()}const Gd=ii(Xd);class Kd extends HTMLElement{instance=null;static get observedAttributes(){return["api","events","theme","view","height","locale","dir","mondaystart","headers"]}connectedCallback(){this.instance||(this.instance=new Gd({target:this,props:this.readProps()}))}disconnectedCallback(){this.instance?.$destroy(),this.instance=null}attributeChangedCallback(t,r,a){this.instance&&this.instance.$set({[t]:a??void 0})}readProps(){return{api:this.getAttribute("api")??void 0,events:this.getAttribute("events")??void 0,theme:this.getAttribute("theme")??void 0,view:this.getAttribute("view")??void 0,height:this.getAttribute("height")??void 0,locale:this.getAttribute("locale")??void 0,dir:this.getAttribute("dir")??void 0,mondaystart:this.getAttribute("mondaystart")??void 0,headers:this.getAttribute("headers")??void 0}}}customElements.get("day-calendar")||customElements.define("day-calendar",Kd)})();
+`;
+  const presets = { auto, neutral, midnight };
+  function parseColor(raw) {
+    if (!raw || raw === "transparent" || raw === "rgba(0, 0, 0, 0)") return null;
+    const rgba2 = raw.match(
+      /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/
+    );
+    if (rgba2) return [+rgba2[1], +rgba2[2], +rgba2[3]];
+    if (raw.startsWith("#")) {
+      const h = raw.replace("#", "");
+      const n = h.length === 3 ? parseInt(h[0] + h[0] + h[1] + h[1] + h[2] + h[2], 16) : parseInt(h, 16);
+      return [n >> 16 & 255, n >> 8 & 255, n & 255];
+    }
+    return null;
+  }
+  function luminance([r, g, b]) {
+    const lin = (c) => {
+      const s = c / 255;
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  }
+  function rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    if (max === min) return [0, 0, l];
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h = 0;
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+    return [h, s, l];
+  }
+  function hslToRgb(h, s, l) {
+    h = (h % 1 + 1) % 1;
+    const hue2rgb = (p2, q2, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p2 + (q2 - p2) * 6 * t;
+      if (t < 1 / 2) return q2;
+      if (t < 2 / 3) return p2 + (q2 - p2) * (2 / 3 - t) * 6;
+      return p2;
+    };
+    if (s === 0) {
+      const v = Math.round(l * 255);
+      return [v, v, v];
+    }
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    return [
+      Math.round(hue2rgb(p, q, h + 1 / 3) * 255),
+      Math.round(hue2rgb(p, q, h) * 255),
+      Math.round(hue2rgb(p, q, h - 1 / 3) * 255)
+    ];
+  }
+  function rgbStr(r, g, b) {
+    return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+  }
+  function rgba(r, g, b, a) {
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  }
+  function mix(c1, c2, t) {
+    return [
+      Math.round(c1[0] + (c2[0] - c1[0]) * t),
+      Math.round(c1[1] + (c2[1] - c1[1]) * t),
+      Math.round(c1[2] + (c2[2] - c1[2]) * t)
+    ];
+  }
+  const TEXT_VAR_CANDIDATES = [
+    // Generic
+    "--text",
+    "--text-color",
+    "--color-text",
+    "--foreground",
+    // Shadcn/ui
+    "--color-foreground",
+    // Bootstrap
+    "--bs-body-color",
+    // Chakra
+    "--chakra-colors-text",
+    "--chakra-colors-gray-800",
+    // Material
+    "--md-sys-color-on-background",
+    "--mdc-theme-on-surface",
+    // DaisyUI
+    "--bc",
+    // DaisyUI base-content
+    // Radix
+    "--gray-12",
+    // Open Props
+    "--text-1"
+  ];
+  function probeTextColor(el, bg) {
+    const candidates = [];
+    try {
+      const rootCs = getComputedStyle(document.documentElement);
+      for (const name of TEXT_VAR_CANDIDATES) {
+        const val = rootCs.getPropertyValue(name).trim();
+        if (val) {
+          const rgb = parseColor(val);
+          if (rgb) {
+            candidates.push(rgb);
+            break;
+          }
+        }
+      }
+    } catch {
+    }
+    let node = el;
+    while (node) {
+      const raw = node.style.color;
+      if (raw) {
+        const rgb = parseColor(raw);
+        if (rgb) {
+          candidates.push(rgb);
+          break;
+        }
+      }
+      node = node.parentElement;
+    }
+    node = el;
+    while (node) {
+      try {
+        const raw = getComputedStyle(node).color;
+        const rgb = parseColor(raw);
+        if (rgb) {
+          candidates.push(rgb);
+          break;
+        }
+      } catch {
+      }
+      node = node.parentElement;
+    }
+    const bgLum = luminance(bg);
+    for (const c of candidates) {
+      const cLum = luminance(c);
+      const ratio = (Math.max(bgLum, cLum) + 0.05) / (Math.min(bgLum, cLum) + 0.05);
+      if (ratio >= 3) return c;
+    }
+    return null;
+  }
+  const ACCENT_VAR_CANDIDATES = [
+    // Generic
+    "--accent",
+    "--accent-color",
+    "--primary",
+    "--primary-color",
+    "--brand",
+    "--brand-color",
+    "--theme-color",
+    "--color-primary",
+    "--color-accent",
+    // Tailwind / DaisyUI
+    "--p",
+    // DaisyUI primary
+    "--color-primary",
+    // Shadcn/ui
+    "--primary",
+    // MUI / Material
+    "--md-sys-color-primary",
+    "--mdc-theme-primary",
+    // Bootstrap
+    "--bs-primary",
+    "--bs-primary-rgb",
+    // Chakra
+    "--chakra-colors-brand-500",
+    "--chakra-colors-primary",
+    // Open Props
+    "--blue-6",
+    // Radix
+    "--accent-9",
+    // Generic numbered
+    "--color-primary-500",
+    "--primary-500"
+  ];
+  function probeAccent(root2) {
+    let cs;
+    try {
+      cs = getComputedStyle(root2);
+    } catch {
+      return null;
+    }
+    for (const name of ACCENT_VAR_CANDIDATES) {
+      const val = cs.getPropertyValue(name).trim();
+      if (val) {
+        const rgb = parseColor(val);
+        if (rgb) {
+          const [, s] = rgbToHsl(...rgb);
+          if (s > 0.15) return rgb;
+        }
+      }
+    }
+    const link2 = root2.querySelector("a[href]");
+    if (link2) {
+      const lc = parseColor(getComputedStyle(link2).color);
+      if (lc) {
+        const [, s] = rgbToHsl(...lc);
+        if (s > 0.2) return lc;
+      }
+    }
+    const accent = cs.getPropertyValue("accent-color").trim();
+    if (accent && accent !== "auto") {
+      const rgb = parseColor(accent);
+      if (rgb) return rgb;
+    }
+    const btn = root2.querySelector('button:not([class*="cal-"])');
+    if (btn) {
+      const bg = parseColor(getComputedStyle(btn).backgroundColor);
+      if (bg) {
+        const [, s] = rgbToHsl(...bg);
+        if (s > 0.25) return bg;
+      }
+    }
+    return null;
+  }
+  const BG_VAR_CANDIDATES = [
+    "--bg",
+    "--background",
+    "--color-bg",
+    "--color-background",
+    "--body-bg",
+    "--bs-body-bg",
+    // Bootstrap
+    "--chakra-colors-bg",
+    // Chakra
+    "--md-sys-color-background",
+    // Material
+    "--b1",
+    // DaisyUI base
+    "--background",
+    // Shadcn/ui
+    "--color-background"
+    // Radix / generic
+  ];
+  function probeBackground(el) {
+    const result = (rgb) => ({ bg: rgb, isDark: luminance(rgb) < 0.4 });
+    try {
+      const rootCs = getComputedStyle(document.documentElement);
+      for (const name of BG_VAR_CANDIDATES) {
+        const val = rootCs.getPropertyValue(name).trim();
+        if (val) {
+          const rgb = parseColor(val);
+          if (rgb) return result(rgb);
+        }
+      }
+    } catch {
+    }
+    let node = el;
+    while (node) {
+      const raw = node.style.backgroundColor || node.style.background;
+      if (raw) {
+        const rgb = parseColor(raw);
+        if (rgb) return result(rgb);
+      }
+      node = node.parentElement;
+    }
+    node = el;
+    while (node) {
+      try {
+        const raw = getComputedStyle(node).backgroundColor;
+        const rgb = parseColor(raw);
+        if (rgb) return result(rgb);
+      } catch {
+      }
+      node = node.parentElement;
+    }
+    if (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return { bg: [18, 18, 18], isDark: true };
+    }
+    return { bg: [255, 255, 255], isDark: false };
+  }
+  function probeHostTheme(el, options = {}) {
+    const host = el.parentElement ?? el;
+    const htmlRoot = (host.closest("body") ?? host) instanceof HTMLElement ? host.closest("body") ?? host : document.body;
+    const { bg, isDark: autoDark } = probeBackground(host);
+    const isDark = options.mode === "auto" || !options.mode ? autoDark : options.mode === "dark";
+    let accent;
+    if (options.accent) {
+      accent = parseColor(options.accent) ?? [37, 99, 235];
+    } else {
+      accent = probeAccent(htmlRoot) ?? (isDark ? [239, 68, 68] : [37, 99, 235]);
+    }
+    const [aH, aS, aL] = rgbToHsl(...accent);
+    const fonts = options.font ? { sans: options.font, mono: "ui-monospace, 'SFMono-Regular', monospace" } : { sans: "inherit", mono: "ui-monospace, 'SFMono-Regular', monospace" };
+    const probedText = probeTextColor(host, bg);
+    const textBase = probedText ?? (isDark ? [226, 232, 240] : [30, 30, 46]);
+    const calBg = isDark ? mix(bg, [255, 255, 255], 0.02) : mix(bg, [0, 0, 0], 5e-3);
+    const stageBg = bg;
+    const surface = isDark ? mix(calBg, [255, 255, 255], 0.04) : mix(calBg, [0, 0, 0], 0.02);
+    const borderAlpha = isDark ? 0.07 : 0.08;
+    const borderDayAlpha = isDark ? 0.14 : 0.14;
+    const borderRgb = isDark ? [148, 163, 184] : [0, 0, 0];
+    const accentDim = isDark ? 0.15 : 0.12;
+    const glow = isDark ? 0.3 : 0.25;
+    const todayBg = isDark ? 0.03 : 0.04;
+    const accentL = isDark ? Math.max(aL, 0.45) : Math.min(aL, 0.48);
+    const accentAdj = hslToRgb(aH, Math.max(aS, 0.5), accentL);
+    const accentLum = luminance(accentAdj);
+    const btnText = accentLum < 0.4 ? "#ffffff" : "#1a1a2e";
+    const scrollAlpha = isDark ? 0.12 : 0.1;
+    const successRgb = isDark ? [74, 222, 128] : [22, 163, 74];
+    const vars = [
+      `--dt-stage-bg: ${rgbStr(...stageBg)}`,
+      `--dt-bg: ${rgbStr(...calBg)}`,
+      `--dt-surface: ${rgbStr(...surface)}`,
+      `--dt-border: ${rgba(...borderRgb, borderAlpha)}`,
+      `--dt-border-day: ${rgba(...borderRgb, borderDayAlpha)}`,
+      `--dt-text: ${rgba(...textBase, isDark ? 0.87 : 0.87)}`,
+      `--dt-text-2: ${rgba(...textBase, isDark ? 0.55 : 0.54)}`,
+      `--dt-text-3: ${rgba(...textBase, isDark ? 0.38 : 0.38)}`,
+      `--dt-accent: ${rgbStr(...accentAdj)}`,
+      `--dt-accent-dim: ${rgba(...accentAdj, accentDim)}`,
+      `--dt-glow: ${rgba(...accentAdj, glow)}`,
+      `--dt-today-bg: ${rgba(...accentAdj, todayBg)}`,
+      `--dt-btn-text: ${btnText}`,
+      `--dt-scrollbar: ${rgba(...borderRgb, scrollAlpha)}`,
+      `--dt-success: ${rgba(...successRgb, 0.7)}`,
+      `--dt-sans: ${fonts.sans}`,
+      `--dt-mono: ${fonts.mono}`
+    ];
+    return vars.map((v) => `	${v}`).join(";\n") + ";";
+  }
+  function observeHostTheme(el, callback, options = {}) {
+    let last = "";
+    const update = () => {
+      const next2 = probeHostTheme(el, options);
+      if (next2 !== last) {
+        last = next2;
+        callback(next2);
+      }
+    };
+    const hasMQL = typeof window.matchMedia === "function";
+    const mql = hasMQL ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+    const onScheme = () => update();
+    mql?.addEventListener("change", onScheme);
+    let rafId = 0;
+    const scheduleUpdate = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        rafId = requestAnimationFrame(update);
+      });
+    };
+    const observer = new MutationObserver(scheduleUpdate);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style", "data-theme", "data-mode", "color-scheme"]
+    });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class", "style", "data-theme", "data-mode", "color-scheme"]
+    });
+    update();
+    return () => {
+      cancelAnimationFrame(rafId);
+      mql?.removeEventListener("change", onScheme);
+      observer.disconnect();
+    };
+  }
+  function useCalendarContext() {
+    const raw = getContext("calendar");
+    return {
+      get viewState() {
+        return raw?.viewState;
+      },
+      get drag() {
+        return raw?.drag;
+      },
+      get commitDrag() {
+        return raw?.commitDrag;
+      },
+      get snapInterval() {
+        return raw?.snapInterval ?? 15;
+      },
+      get showNav() {
+        return raw?.showNavigation ?? true;
+      },
+      get equalDays() {
+        return raw?.equalDays ?? false;
+      },
+      get showDates() {
+        return raw?.showDates ?? true;
+      },
+      get hideDays() {
+        return raw?.hideDays;
+      },
+      get isMobile() {
+        return raw?.mobile ?? false;
+      },
+      get autoHeight() {
+        return raw?.autoHeight ?? false;
+      },
+      get compact() {
+        return raw?.compact ?? false;
+      },
+      get readOnly() {
+        return raw?.readOnly ?? false;
+      },
+      get blockedSlots() {
+        return raw?.blockedSlots;
+      },
+      get dayHeaderSnippet() {
+        return raw?.dayHeaderSnippet;
+      },
+      get minDuration() {
+        return raw?.minDuration;
+      },
+      get maxDuration() {
+        return raw?.maxDuration;
+      },
+      get oneventhover() {
+        return raw?.oneventhover;
+      },
+      get disabledDates() {
+        return raw?.disabledDates;
+      },
+      get disabledSet() {
+        return new Set(raw?.disabledDates?.map((d) => sod(d.getTime())) ?? []);
+      },
+      get loadRange() {
+        if (!raw) return void 0;
+        return {
+          get current() {
+            return raw.loadRange;
+          },
+          set: (r) => raw.setLoadRange(r)
+        };
+      },
+      get eventSnippet() {
+        return raw?.eventSnippet;
+      },
+      get emptySnippet() {
+        return raw?.emptySnippet;
+      }
+    };
+  }
+  function createClock() {
+    let tick2 = /* @__PURE__ */ state(proxy(Date.now()));
+    let today = /* @__PURE__ */ state(proxy(sod(Date.now())));
+    let intervalId = null;
+    function start() {
+      intervalId = setInterval(
+        () => {
+          set(tick2, Date.now(), true);
+          const sd = sod(get(tick2));
+          if (sd !== get(today)) set(today, sd, true);
+        },
+        1e3
+      );
+    }
+    function destroy() {
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+    onMount(() => {
+      start();
+      return destroy;
+    });
+    return {
+      get tick() {
+        return get(tick2);
+      },
+      get today() {
+        return get(today);
+      },
+      get hm() {
+        return fmtHM(get(tick2));
+      },
+      get s() {
+        return fmtS(get(tick2));
+      },
+      get fractionalHour() {
+        return fractionalHour(get(tick2));
+      },
+      destroy
+    };
+  }
+  const DEFAULTS = {
+    titleFont: "500 12px system-ui, sans-serif",
+    secondaryFont: "400 10px system-ui, sans-serif",
+    tagFont: "500 8px system-ui, sans-serif",
+    titleLineHeight: 16,
+    secondaryLineHeight: 13,
+    contentGap: 3
+  };
+  function createTextMeasure(opts = {}) {
+    const config = { ...DEFAULTS, ...opts };
+    let pretext = null;
+    let loadAttempted = false;
+    let pretextAvailable = false;
+    const cache = /* @__PURE__ */ new Map();
+    function tryLoadPretext() {
+      if (loadAttempted) return pretextAvailable;
+      loadAttempted = true;
+      try {
+        const mod = globalThis.__pretextModule;
+        if (mod) {
+          pretext = mod;
+          pretextAvailable = true;
+        }
+      } catch {
+      }
+      return pretextAvailable;
+    }
+    function getPrepared(text2, font) {
+      const key = `${font}\0${text2}`;
+      let prepared = cache.get(key);
+      if (!prepared) {
+        prepared = pretext.prepare(text2, font);
+        cache.set(key, prepared);
+      }
+      return prepared;
+    }
+    function heuristicMeasure(text2, maxWidth, lineHeight, font) {
+      const sizeMatch = font.match(/(\d+)px/);
+      const fontSize = sizeMatch ? parseInt(sizeMatch[1]) : 12;
+      const avgCharWidth = fontSize * 0.55;
+      const charsPerLine = Math.max(1, Math.floor(maxWidth / avgCharWidth));
+      const lineCount = Math.max(1, Math.ceil(text2.length / charsPerLine));
+      return { height: lineCount * lineHeight, lineCount };
+    }
+    function measureOne(text2, maxWidth, lineHeight, font) {
+      if (!text2) return { height: 0, lineCount: 0 };
+      if (pretextAvailable && pretext) {
+        const prepared = getPrepared(text2, font);
+        return pretext.layout(prepared, maxWidth, lineHeight);
+      }
+      return heuristicMeasure(text2, maxWidth, lineHeight, font);
+    }
+    return {
+      get available() {
+        tryLoadPretext();
+        return pretextAvailable;
+      },
+      measure(text2, maxWidth, lineHeight) {
+        tryLoadPretext();
+        return measureOne(text2, maxWidth, lineHeight, config.titleFont);
+      },
+      fits(text2, maxWidth, lineHeight) {
+        tryLoadPretext();
+        const { lineCount } = measureOne(text2, maxWidth, lineHeight, config.titleFont);
+        return lineCount <= 1;
+      },
+      measureStack(items, maxWidth, gap = config.contentGap) {
+        tryLoadPretext();
+        const breakdown = [];
+        let totalHeight = 0;
+        for (const item of items) {
+          if (!item.text) {
+            breakdown.push({ height: 0, lineCount: 0 });
+            continue;
+          }
+          const font = item.font ?? config.secondaryFont;
+          const lh = item.lineHeight ?? config.secondaryLineHeight;
+          const result = measureOne(item.text, maxWidth, lh, font);
+          breakdown.push(result);
+          if (result.height > 0) {
+            totalHeight += (totalHeight > 0 ? gap : 0) + result.height;
+          }
+        }
+        return { height: totalHeight, breakdown };
+      },
+      fitContent(opts2) {
+        tryLoadPretext();
+        const { title, subtitle, location, time, tags, maxWidth, maxHeight } = opts2;
+        const gap = config.contentGap;
+        const titleResult = measureOne(title, maxWidth, config.titleLineHeight, config.titleFont);
+        let used = titleResult.height;
+        const result = {
+          title: true,
+          titleLines: titleResult.lineCount,
+          subtitle: false,
+          location: false,
+          time: false,
+          tags: false,
+          totalHeight: used
+        };
+        if (time) {
+          const h = measureOne(time, maxWidth, config.secondaryLineHeight, config.secondaryFont);
+          if (used + gap + h.height <= maxHeight) {
+            result.time = true;
+            used += gap + h.height;
+          }
+        }
+        if (subtitle) {
+          const h = measureOne(subtitle, maxWidth, config.secondaryLineHeight, config.secondaryFont);
+          if (used + gap + h.height <= maxHeight) {
+            result.subtitle = true;
+            used += gap + h.height;
+          }
+        }
+        if (location) {
+          const h = measureOne(location, maxWidth, config.secondaryLineHeight, config.secondaryFont);
+          if (used + gap + h.height <= maxHeight) {
+            result.location = true;
+            used += gap + h.height;
+          }
+        }
+        if (tags?.length) {
+          const tagText = tags.join("  ");
+          const h = measureOne(tagText, maxWidth, config.secondaryLineHeight, config.tagFont);
+          if (used + gap + h.height <= maxHeight) {
+            result.tags = true;
+            used += gap + h.height;
+          }
+        }
+        result.totalHeight = used;
+        return result;
+      },
+      clear() {
+        cache.clear();
+        if (pretextAvailable && pretext) {
+          pretext.clearCache();
+        }
+      }
+    };
+  }
+  var root_3$5 = /* @__PURE__ */ from_html(`<div class="fs-tick svelte-mrwdy7"><span class="fs-tick-lb svelte-mrwdy7"> </span></div> <div class="fs-tick fs-tick--half svelte-mrwdy7"></div>`, 1);
+  var root_8$5 = /* @__PURE__ */ from_html(`<span class="fs-blocked-label svelte-mrwdy7"> </span>`);
+  var root_7$5 = /* @__PURE__ */ from_html(`<div class="fs-blocked svelte-mrwdy7"><!></div>`);
+  var root_9$4 = /* @__PURE__ */ from_html(`<div class="fs-day-header-custom svelte-mrwdy7"><!></div>`);
+  var root_2$6 = /* @__PURE__ */ from_html(`<div><!> <!> <!></div>`);
+  var root_11$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-live svelte-mrwdy7" aria-hidden="true"></span>`);
+  var root_12$3 = /* @__PURE__ */ from_html(`<span class="fs-ev-next-badge svelte-mrwdy7" aria-hidden="true"> </span>`);
+  var root_13$3 = /* @__PURE__ */ from_html(`<span class="fs-ev-time svelte-mrwdy7"> </span>`);
+  var root_14$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-sub svelte-mrwdy7"> </span>`);
+  var root_15$4 = /* @__PURE__ */ from_html(`<span class="fs-ev-loc svelte-mrwdy7"> </span>`);
+  var root_17$3 = /* @__PURE__ */ from_html(`<span class="fs-ev-tag svelte-mrwdy7"> </span>`);
+  var root_16$4 = /* @__PURE__ */ from_html(`<span class="fs-ev-tags svelte-mrwdy7"></span>`);
+  var root_10$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="fs-ev-inner svelte-mrwdy7"><!> <!> <span class="fs-ev-title svelte-mrwdy7"> </span> <!> <!> <!></div></div>`);
+  var root_20$3 = /* @__PURE__ */ from_html(`<span class="fs-ad-span svelte-mrwdy7"> </span>`);
+  var root_21$3 = /* @__PURE__ */ from_html(`<span class="fs-ad-span svelte-mrwdy7"> </span>`);
+  var root_19$3 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="fs-ad-dot svelte-mrwdy7" aria-hidden="true"></span> <span class="fs-ad-title svelte-mrwdy7"> </span> <!></div>`);
+  var root_18$3 = /* @__PURE__ */ from_html(`<div class="fs-allday svelte-mrwdy7"></div>`);
+  var root_22$3 = /* @__PURE__ */ from_html(`<nav class="fs-nav svelte-mrwdy7"><button> </button> <button class="fs-nav-pill svelte-mrwdy7"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></button> <button class="fs-nav-pill svelte-mrwdy7"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></button></nav>`);
+  var root_1$5 = /* @__PURE__ */ from_html(`<div role="region"><div role="application"><div class="fs-track svelte-mrwdy7" role="none"><!> <div class="fs-now svelte-mrwdy7"><span class="fs-now-tag svelte-mrwdy7"> <span class="fs-now-sec svelte-mrwdy7"> </span></span> <div class="fs-now-line svelte-mrwdy7"></div></div> <!></div></div> <!> <div class="fs-date-label svelte-mrwdy7"> </div> <!></div>`);
+  function PlannerDay($$anchor, $$props) {
+    push($$props, true);
+    const L = /* @__PURE__ */ user_derived(getLabels);
+    let height = prop($$props, "height", 3, 520), events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null), readOnly = prop($$props, "readOnly", 3, false);
+    const ctx = useCalendarContext();
+    const clock = createClock();
+    const drag = /* @__PURE__ */ user_derived(() => ctx.drag);
+    const commitDragCtx = /* @__PURE__ */ user_derived(() => ctx.commitDrag);
+    const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
+    const loadRangeCtx = /* @__PURE__ */ user_derived(() => ctx.loadRange);
+    const showNav = /* @__PURE__ */ user_derived(() => ctx.showNav);
+    const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
+    const blockedSlots = /* @__PURE__ */ user_derived(() => ctx.blockedSlots);
+    const dayHeaderSnippet = /* @__PURE__ */ user_derived(() => ctx.dayHeaderSnippet);
+    const minDuration = /* @__PURE__ */ user_derived(() => ctx.minDuration);
+    const autoHeight = /* @__PURE__ */ user_derived(() => ctx.autoHeight);
+    const oneventhover = /* @__PURE__ */ user_derived(() => ctx.oneventhover);
+    const disabledSet = /* @__PURE__ */ user_derived(() => ctx.disabledSet);
+    const SNAP_MS = /* @__PURE__ */ user_derived(() => ctx.snapInterval * 6e4);
+    let following = /* @__PURE__ */ state(true);
+    let scrollDragging = /* @__PURE__ */ state(false);
+    let wasDragging = false;
+    let el;
+    let containerW = /* @__PURE__ */ state(0);
+    let containerH = /* @__PURE__ */ state(520);
+    let dragStartX = 0;
+    let dragScrollStart = 0;
+    let rafId = 0;
+    const BUFFER_DAYS = 7;
+    const EDGE_DAYS = 2;
+    const SHIFT_DAYS = 5;
+    const _initMs = untrack(() => sod($$props.focusDate?.getTime() ?? Date.now()));
+    let internalCenterMs = /* @__PURE__ */ state(proxy(_initMs));
+    let lastExternalMs = _initMs;
+    let rebasing = false;
+    let visibleDayMs = /* @__PURE__ */ state(proxy(_initMs));
+    const startHour = /* @__PURE__ */ user_derived(() => $$props.visibleHours?.[0] ?? 0);
+    const endHour = /* @__PURE__ */ user_derived(() => $$props.visibleHours?.[1] ?? 24);
+    const hourCount = /* @__PURE__ */ user_derived(() => Math.max(1, get(endHour) - get(startHour)));
+    const DAY_GAP = 2;
+    const dateLabel = /* @__PURE__ */ user_derived(() => get(showDates) ? new Date(get(visibleDayMs)).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long", month: "long", day: "numeric" }) : new Date(get(visibleDayMs)).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long" }));
+    const count = 1 + 2 * BUFFER_DAYS;
+    const origin = /* @__PURE__ */ user_derived(() => get(internalCenterMs) - BUFFER_DAYS * DAY_MS);
+    user_effect(() => {
+      if (!get(loadRangeCtx)) return;
+      const rangeStart = new Date(get(internalCenterMs) - BUFFER_DAYS * DAY_MS);
+      const rangeEnd = new Date(get(internalCenterMs) + (BUFFER_DAYS + 1) * DAY_MS);
+      get(loadRangeCtx).set({ start: rangeStart, end: rangeEnd });
+      return () => get(loadRangeCtx).set(null);
+    });
+    const MIN_HOUR_W = 60;
+    const hourWidth = /* @__PURE__ */ user_derived(() => get(containerW) > 0 ? Math.max(MIN_HOUR_W, get(containerW) / get(hourCount)) : 110);
+    const dayWidth = /* @__PURE__ */ user_derived(() => get(hourCount) * get(hourWidth));
+    const totalWidth = /* @__PURE__ */ user_derived(() => count * (get(dayWidth) + DAY_GAP));
+    const days = /* @__PURE__ */ user_derived(() => {
+      const result = [];
+      for (let i = 0; i < count; i++) {
+        const ms = get(origin) + i * DAY_MS;
+        result.push({
+          ms,
+          today: ms === clock.today,
+          past: ms < clock.today,
+          x: i * (get(dayWidth) + DAY_GAP)
+        });
+      }
+      return result;
+    });
+    function timeToPx(ms) {
+      const elapsed = ms - get(origin);
+      const dayIndex = Math.floor(elapsed / DAY_MS);
+      const hourInDay = (elapsed - dayIndex * DAY_MS) / HOUR_MS;
+      const hourOffset = hourInDay - get(startHour);
+      return dayIndex * (get(dayWidth) + DAY_GAP) + hourOffset * get(hourWidth);
+    }
+    function pxToTime(px) {
+      const dayStride = get(dayWidth) + DAY_GAP;
+      const dayIndex = Math.max(0, Math.min(count - 1, Math.floor(px / dayStride)));
+      const localPx = px - dayIndex * dayStride;
+      const hour = get(startHour) + localPx / get(hourWidth);
+      return get(origin) + dayIndex * DAY_MS + hour * HOUR_MS;
+    }
+    const nowPx = /* @__PURE__ */ user_derived(() => timeToPx(clock.tick));
+    const timedEvents = /* @__PURE__ */ user_derived(() => events().filter((ev) => !isAllDay(ev) && !isMultiDay(ev)));
+    const allDayEvents = /* @__PURE__ */ user_derived(() => {
+      const segs = [];
+      for (const ev of events()) {
+        if (!isAllDay(ev) && !isMultiDay(ev)) continue;
+        const seg = segmentForDay(ev, get(visibleDayMs));
+        if (seg) segs.push(seg);
+      }
+      return segs;
+    });
+    const CONTENT_TOP = 56;
+    const ALLDAY_H = 24;
+    const contentTop = /* @__PURE__ */ user_derived(() => CONTENT_TOP + (get(allDayEvents).length > 0 ? ALLDAY_H + 4 : 0));
+    const EVENT_GAP = 5;
+    const MIN_EVENT_H = 32;
+    const measure = createTextMeasure({
+      titleFont: "600 13px system-ui, sans-serif",
+      secondaryFont: "400 10px system-ui, sans-serif",
+      tagFont: "500 8px system-ui, sans-serif",
+      titleLineHeight: 16,
+      secondaryLineHeight: 13,
+      contentGap: 6
+    });
+    const positionedEvents = /* @__PURE__ */ user_derived(() => {
+      const now = clock.tick;
+      const dragP = get(drag)?.active && get(drag).mode === "move" ? get(drag).payload : null;
+      const staticEvents = [];
+      let draggedEv = null;
+      for (const ev of get(timedEvents)) {
+        if (dragP?.eventId === ev.id) draggedEv = ev;
+        else staticEvents.push(ev);
+      }
+      const sorted = [...staticEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
+      const todayStart = sod(now);
+      const todayEnd = todayStart + DAY_MS;
+      let nextEventId = null;
+      for (const ev of sorted) {
+        const s = ev.start.getTime();
+        const e = ev.end.getTime();
+        if (s >= todayStart && s < todayEnd && s > now && !(s <= now && e > now)) {
+          nextEventId = ev.id;
+          break;
+        }
+      }
+      const infos = sorted.map((ev) => {
+        const s = ev.start.getTime();
+        const e = ev.end.getTime();
+        const x = timeToPx(s);
+        const xEnd = timeToPx(e);
+        return {
+          ev,
+          x,
+          width: Math.max(xEnd - x, 28),
+          row: 0,
+          groupMaxRow: 1,
+          isCurrent: s <= now && e > now,
+          isNext: ev.id === nextEventId,
+          isDragged: false,
+          startMs: s,
+          endMs: e
+        };
+      });
+      const par = infos.map((_, i) => i);
+      function find(i) {
+        while (par[i] !== i) {
+          par[i] = par[par[i]];
+          i = par[i];
+        }
+        return i;
+      }
+      for (let i = 0; i < infos.length; i++) {
+        for (let j = i + 1; j < infos.length; j++) {
+          if (infos[j].startMs < infos[i].endMs) par[find(i)] = find(j);
+          else break;
+        }
+      }
+      const groups = /* @__PURE__ */ new Map();
+      for (let i = 0; i < infos.length; i++) {
+        const root2 = find(i);
+        if (!groups.has(root2)) groups.set(root2, []);
+        groups.get(root2).push(i);
+      }
+      for (const [, indices] of groups) {
+        const rows = [];
+        for (const idx of indices) {
+          const inf = infos[idx];
+          let row = 0;
+          for (let r = 0; r < rows.length; r++) {
+            if (rows[r] <= inf.startMs) {
+              row = r;
+              rows[r] = inf.endMs;
+              break;
+            }
+            row = r + 1;
+          }
+          if (row >= rows.length) rows.push(inf.endMs);
+          infos[idx].row = row;
+        }
+        for (const idx of indices) infos[idx].groupMaxRow = rows.length;
+      }
+      const availH = get(containerH) - get(contentTop) - 8;
+      const result = infos.map(({ startMs: _s, endMs: _e, ...info }) => {
+        const laneH = Math.max(MIN_EVENT_H, availH / info.groupMaxRow - EVENT_GAP);
+        const topPx = get(contentTop) + info.row * (availH / info.groupMaxRow);
+        const fit = measure.fitContent({
+          title: info.ev.title,
+          subtitle: info.ev.subtitle,
+          location: info.ev.location,
+          time: `${fmtTime$1(info.ev.start, $$props.locale)} – ${fmtTime$1(info.ev.end, $$props.locale)}`,
+          tags: info.ev.tags,
+          maxWidth: laneH - 16,
+          maxHeight: info.width - 16
+        });
+        return { ...info, topPx, heightPx: laneH, isNext: info.isNext, fit };
+      });
+      if (draggedEv && dragP) {
+        const x = timeToPx(dragP.start.getTime());
+        const xEnd = timeToPx(dragP.end.getTime());
+        const dragH = Math.max(MIN_EVENT_H, availH - EVENT_GAP);
+        const dragW = Math.max(xEnd - x, 28);
+        result.push({
+          ev: draggedEv,
+          x,
+          width: dragW,
+          row: 0,
+          groupMaxRow: 1,
+          topPx: get(contentTop),
+          heightPx: dragH,
+          isCurrent: draggedEv.start.getTime() <= now && draggedEv.end.getTime() > now,
+          isNext: false,
+          isDragged: true,
+          fit: measure.fitContent({
+            title: draggedEv.title,
+            subtitle: draggedEv.subtitle,
+            location: draggedEv.location,
+            tags: draggedEv.tags,
+            maxWidth: dragH - 16,
+            maxHeight: dragW - 16
+          })
+        });
+      }
+      return result;
+    });
+    user_effect(() => {
+      const ext = $$props.focusDate ? sod($$props.focusDate.getTime()) : clock.today;
+      if (ext !== lastExternalMs && !rebasing) {
+        lastExternalMs = ext;
+        set(internalCenterMs, ext, true);
+        set(visibleDayMs, ext, true);
+        set(following, false);
+        tick().then(() => {
+          if (el) {
+            const focusX = BUFFER_DAYS * (get(dayWidth) + DAY_GAP);
+            el.scrollLeft = focusX + get(dayWidth) / 2 - el.clientWidth / 2;
+          }
+        });
+      }
+    });
+    function checkEdges() {
+      if (!el || !get(viewState) || rebasing) return;
+      const stride = get(dayWidth) + DAY_GAP;
+      const threshold = stride * EDGE_DAYS;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (el.scrollLeft < threshold) {
+        rebase(-1);
+      } else if (maxScroll > 0 && maxScroll - el.scrollLeft < threshold) {
+        rebase(1);
+      }
+    }
+    function rebase(direction) {
+      if (rebasing) return;
+      rebasing = true;
+      const shift = SHIFT_DAYS * direction;
+      const stride = get(dayWidth) + DAY_GAP;
+      const adj = -shift * stride;
+      if (el) el.scrollLeft += adj;
+      dragScrollStart += adj;
+      set(internalCenterMs, get(internalCenterMs) + shift * DAY_MS);
+      lastExternalMs = get(internalCenterMs);
+      get(viewState)?.setFocusDate(new Date(get(internalCenterMs)));
+      tick().then(() => {
+        rebasing = false;
+      });
+    }
+    function syncFocusFromScroll() {
+      if (!el || !get(viewState) || get(following) || rebasing) return;
+      const centerX = el.scrollLeft + el.clientWidth / 2;
+      const centerDayMs = sod(pxToTime(centerX));
+      set(visibleDayMs, centerDayMs, true);
+      if (centerDayMs !== lastExternalMs) {
+        lastExternalMs = centerDayMs;
+        get(viewState).setFocusDate(new Date(centerDayMs));
+      }
+    }
+    onMount(() => {
+      const ro = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          set(containerW, entry.contentRect.width, true);
+          set(containerH, entry.contentRect.height, true);
+        }
+      });
+      ro.observe(el);
+      function frame() {
+        if (get(following) && el && !get(scrollDragging)) {
+          if (get(internalCenterMs) !== clock.today) {
+            set(internalCenterMs, clock.today, true);
+            lastExternalMs = clock.today;
+            get(viewState)?.goToday();
+          }
+          set(visibleDayMs, clock.today, true);
+          const todayD = get(days).find((d) => d.today);
+          if (todayD) {
+            el.scrollLeft = todayD.x + get(dayWidth) / 2 - el.clientWidth / 2;
+          }
+        } else if (el && !rebasing) {
+          checkEdges();
+          syncFocusFromScroll();
+        }
+        rafId = requestAnimationFrame(frame);
+      }
+      rafId = requestAnimationFrame(frame);
+      return () => {
+        cancelAnimationFrame(rafId);
+        ro.disconnect();
+      };
+    });
+    const SCROLL_THRESHOLD = 3;
+    function onPointerDown(e) {
+      if (e.button !== 0) return;
+      if (!readOnly()) return;
+      if (e.target.closest(".fs-event")) return;
+      dragStartX = e.clientX;
+      dragScrollStart = el.scrollLeft;
+      window.addEventListener("pointermove", onScrollMove);
+      window.addEventListener("pointerup", onScrollUp, { once: true });
+      window.addEventListener("pointercancel", onScrollUp, { once: true });
+    }
+    function onScrollMove(e) {
+      const dx = e.clientX - dragStartX;
+      if (!get(scrollDragging) && Math.abs(dx) >= SCROLL_THRESHOLD) {
+        set(scrollDragging, true);
+        wasDragging = true;
+        set(following, false);
+      }
+      if (get(scrollDragging)) el.scrollLeft = dragScrollStart - dx;
+    }
+    function onScrollUp() {
+      window.removeEventListener("pointermove", onScrollMove);
+      window.removeEventListener("pointerup", onScrollUp);
+      window.removeEventListener("pointercancel", onScrollUp);
+      set(scrollDragging, false);
+    }
+    function isBlockedAt(dayMs, hour) {
+      if (!get(blockedSlots)?.length) return false;
+      const jsDay = new Date(dayMs).getDay();
+      const isoDay = jsDay === 0 ? 7 : jsDay;
+      return get(blockedSlots).some((slot) => {
+        if (slot.day && slot.day !== isoDay) return false;
+        return hour >= slot.start && hour < slot.end;
+      });
+    }
+    function handleTrackClick(e) {
+      if (wasDragging) {
+        wasDragging = false;
+        return;
+      }
+      if (!$$props.oneventcreate || readOnly()) return;
+      if (e.target.closest(".fs-event")) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left + el.scrollLeft;
+      for (const d of get(days)) {
+        if (clickX >= d.x && clickX < d.x + get(dayWidth)) {
+          if (get(disabledSet).has(d.ms)) return;
+          const frac = (clickX - d.x) / get(dayWidth);
+          const clickHour = get(startHour) + frac * get(hourCount);
+          if (isBlockedAt(d.ms, clickHour)) return;
+          const hour = Math.floor(clickHour);
+          const durMin = get(minDuration) ? Math.max(60, get(minDuration)) : 60;
+          const start = new Date(d.ms + hour * HOUR_MS);
+          const end = new Date(start.getTime() + durMin * 6e4);
+          $$props.oneventcreate({ start, end });
+          return;
+        }
+      }
+    }
+    const DRAG_THRESHOLD = 5;
+    let evDragStartX = 0;
+    let evDragOriginPx = 0;
+    let evDragStarted = false;
+    let evDragging = /* @__PURE__ */ state(false);
+    let evDragId = /* @__PURE__ */ state(null);
+    let evDragEvent = null;
+    function onEventPointerDown(e, ev) {
+      if (e.button !== 0 || !get(drag) || readOnly() || ev.data?.readOnly) return;
+      e.stopPropagation();
+      evDragStartX = e.clientX;
+      evDragOriginPx = timeToPx(ev.start.getTime());
+      evDragStarted = false;
+      set(evDragId, ev.id, true);
+      evDragEvent = ev;
+      window.addEventListener("pointermove", onEvMove);
+      window.addEventListener("pointerup", onEvUp, { once: true });
+      window.addEventListener("pointercancel", onEvCancel, { once: true });
+    }
+    function onEvMove(e) {
+      const ev = evDragEvent;
+      if (!get(drag) || !ev || get(evDragId) !== ev.id) return;
+      const dx = e.clientX - evDragStartX;
+      if (!evDragStarted && Math.abs(dx) < DRAG_THRESHOLD) return;
+      if (!evDragStarted) {
+        evDragStarted = true;
+        set(evDragging, true);
+        get(drag).beginMove(ev.id, ev.start, ev.end);
+      }
+      const duration2 = ev.end.getTime() - ev.start.getTime();
+      const raw = pxToTime(evDragOriginPx + dx);
+      const snapped = Math.round(raw / get(SNAP_MS)) * get(SNAP_MS);
+      get(drag).updatePointer(new Date(snapped), new Date(snapped + duration2));
+    }
+    function cleanupEvDrag() {
+      window.removeEventListener("pointermove", onEvMove);
+      window.removeEventListener("pointerup", onEvUp);
+      window.removeEventListener("pointercancel", onEvCancel);
+      evDragStarted = false;
+      set(evDragging, false);
+      set(evDragId, null);
+      evDragEvent = null;
+    }
+    function onEvUp() {
+      if (!get(drag)) {
+        cleanupEvDrag();
+        return;
+      }
+      if (!evDragStarted && evDragEvent) $$props.oneventclick?.(evDragEvent);
+      else if (evDragStarted) get(commitDragCtx)?.();
+      cleanupEvDrag();
+    }
+    function onEvCancel() {
+      if (get(drag) && evDragStarted) get(drag).cancel();
+      cleanupEvDrag();
+    }
+    var div = root_1$5();
+    let classes;
+    let styles;
+    var div_1 = child(div);
+    let classes_1;
+    var div_2 = child(div_1);
+    let styles_1;
+    var node = child(div_2);
+    each(node, 17, () => get(days), (d) => d.ms, ($$anchor2, d) => {
+      var div_3 = root_2$6();
+      let classes_2;
+      let styles_2;
+      var node_1 = child(div_3);
+      each(node_1, 17, () => ({ length: get(hourCount) }), index, ($$anchor3, _, h) => {
+        const hour = /* @__PURE__ */ user_derived(() => get(startHour) + h);
+        const x = /* @__PURE__ */ user_derived(() => h * get(hourWidth));
+        var fragment = root_3$5();
+        var div_4 = first_child(fragment);
+        let styles_3;
+        var span = child(div_4);
+        var text2 = child(span, true);
+        reset(span);
+        reset(div_4);
+        var div_5 = sibling(div_4, 2);
+        let styles_4;
+        template_effect(
+          ($0) => {
+            styles_3 = set_style(div_4, "", styles_3, { left: `${get(x) ?? ""}px` });
+            set_text(text2, $0);
+            styles_4 = set_style(div_5, "", styles_4, { left: `${get(x) + get(hourWidth) * 0.5}px` });
+          },
+          [() => fmtH(get(hour), $$props.locale)]
+        );
+        append($$anchor3, fragment);
+      });
+      var node_2 = sibling(node_1, 2);
+      {
+        var consequent_3 = ($$anchor3) => {
+          const jsDay = /* @__PURE__ */ user_derived(() => new Date(get(d).ms).getDay());
+          const isoDay = /* @__PURE__ */ user_derived(() => get(jsDay) === 0 ? 7 : get(jsDay));
+          var fragment_1 = comment();
+          var node_3 = first_child(fragment_1);
+          each(node_3, 17, () => get(blockedSlots), index, ($$anchor4, slot) => {
+            var fragment_2 = comment();
+            var node_4 = first_child(fragment_2);
+            {
+              var consequent_2 = ($$anchor5) => {
+                const s = /* @__PURE__ */ user_derived(() => Math.max(get(slot).start, get(startHour)));
+                const e = /* @__PURE__ */ user_derived(() => Math.min(get(slot).end, get(endHour)));
+                var fragment_3 = comment();
+                var node_5 = first_child(fragment_3);
+                {
+                  var consequent_1 = ($$anchor6) => {
+                    var div_6 = root_7$5();
+                    let styles_5;
+                    var node_6 = child(div_6);
+                    {
+                      var consequent = ($$anchor7) => {
+                        var span_1 = root_8$5();
+                        var text_1 = child(span_1, true);
+                        reset(span_1);
+                        template_effect(() => set_text(text_1, get(slot).label));
+                        append($$anchor7, span_1);
+                      };
+                      if_block(node_6, ($$render) => {
+                        if (get(slot).label) $$render(consequent);
+                      });
+                    }
+                    reset(div_6);
+                    template_effect(() => {
+                      set_attribute(div_6, "aria-label", get(slot).label || "Unavailable");
+                      styles_5 = set_style(div_6, "", styles_5, {
+                        left: `${(get(s) - get(startHour)) * get(hourWidth)}px`,
+                        width: `${(get(e) - get(s)) * get(hourWidth)}px`
+                      });
+                    });
+                    append($$anchor6, div_6);
+                  };
+                  if_block(node_5, ($$render) => {
+                    if (get(e) > get(s)) $$render(consequent_1);
+                  });
+                }
+                append($$anchor5, fragment_3);
+              };
+              if_block(node_4, ($$render) => {
+                if (!get(slot).day || get(slot).day === get(isoDay)) $$render(consequent_2);
+              });
+            }
+            append($$anchor4, fragment_2);
+          });
+          append($$anchor3, fragment_1);
+        };
+        if_block(node_2, ($$render) => {
+          if (get(blockedSlots)?.length) $$render(consequent_3);
+        });
+      }
+      var node_7 = sibling(node_2, 2);
+      {
+        var consequent_4 = ($$anchor3) => {
+          var div_7 = root_9$4();
+          var node_8 = child(div_7);
+          {
+            let $0 = /* @__PURE__ */ user_derived(() => ({
+              date: new Date(get(d).ms),
+              isToday: get(d).today,
+              dayName: weekdayShort(get(d).ms, $$props.locale)
+            }));
+            snippet(node_8, () => get(dayHeaderSnippet), () => get($0));
+          }
+          reset(div_7);
+          append($$anchor3, div_7);
+        };
+        if_block(node_7, ($$render) => {
+          if (get(dayHeaderSnippet)) $$render(consequent_4);
+        });
+      }
+      reset(div_3);
+      template_effect(
+        ($0) => {
+          classes_2 = set_class(div_3, 1, "fs-day svelte-mrwdy7", null, classes_2, $0);
+          styles_2 = set_style(div_3, "", styles_2, {
+            left: `${get(d).x ?? ""}px`,
+            width: `${get(dayWidth) ?? ""}px`
+          });
+        },
+        [
+          () => ({
+            "fs-today": get(d).today,
+            "fs-past": get(d).past,
+            "fs-disabled": get(disabledSet).has(get(d).ms)
+          })
+        ]
+      );
+      append($$anchor2, div_3);
+    });
+    var div_8 = sibling(node, 2);
+    let styles_6;
+    var span_2 = child(div_8);
+    var text_2 = child(span_2, true);
+    var span_3 = sibling(text_2);
+    var text_3 = child(span_3, true);
+    reset(span_3);
+    reset(span_2);
+    next(2);
+    reset(div_8);
+    var node_9 = sibling(div_8, 2);
+    each(node_9, 17, () => get(positionedEvents), (p) => p.ev.id, ($$anchor2, p) => {
+      var div_9 = root_10$4();
+      let classes_3;
+      let styles_7;
+      var div_10 = child(div_9);
+      var node_10 = child(div_10);
+      {
+        var consequent_5 = ($$anchor3) => {
+          var span_4 = root_11$5();
+          append($$anchor3, span_4);
+        };
+        var consequent_6 = ($$anchor3) => {
+          var span_5 = root_12$3();
+          var text_4 = child(span_5, true);
+          reset(span_5);
+          template_effect(() => set_text(text_4, get(L).upNext));
+          append($$anchor3, span_5);
+        };
+        if_block(node_10, ($$render) => {
+          if (get(p).isCurrent) $$render(consequent_5);
+          else if (get(p).isNext) $$render(consequent_6, 1);
+        });
+      }
+      var node_11 = sibling(node_10, 2);
+      {
+        var consequent_7 = ($$anchor3) => {
+          var span_6 = root_13$3();
+          var text_5 = child(span_6);
+          reset(span_6);
+          template_effect(($0, $1) => set_text(text_5, `${$0 ?? ""} – ${$1 ?? ""}`), [
+            () => fmtTime$1(get(p).ev.start, $$props.locale),
+            () => fmtTime$1(get(p).ev.end, $$props.locale)
+          ]);
+          append($$anchor3, span_6);
+        };
+        if_block(node_11, ($$render) => {
+          if (get(p).fit.time) $$render(consequent_7);
+        });
+      }
+      var span_7 = sibling(node_11, 2);
+      var text_6 = child(span_7, true);
+      reset(span_7);
+      var node_12 = sibling(span_7, 2);
+      {
+        var consequent_8 = ($$anchor3) => {
+          var span_8 = root_14$5();
+          var text_7 = child(span_8, true);
+          reset(span_8);
+          template_effect(() => set_text(text_7, get(p).ev.subtitle));
+          append($$anchor3, span_8);
+        };
+        if_block(node_12, ($$render) => {
+          if (get(p).ev.subtitle && get(p).fit.subtitle) $$render(consequent_8);
+        });
+      }
+      var node_13 = sibling(node_12, 2);
+      {
+        var consequent_9 = ($$anchor3) => {
+          var span_9 = root_15$4();
+          var text_8 = child(span_9, true);
+          reset(span_9);
+          template_effect(() => set_text(text_8, get(p).ev.location));
+          append($$anchor3, span_9);
+        };
+        if_block(node_13, ($$render) => {
+          if (get(p).ev.location && get(p).fit.location) $$render(consequent_9);
+        });
+      }
+      var node_14 = sibling(node_13, 2);
+      {
+        var consequent_10 = ($$anchor3) => {
+          var span_10 = root_16$4();
+          each(span_10, 21, () => get(p).ev.tags, index, ($$anchor4, tag) => {
+            var span_11 = root_17$3();
+            var text_9 = child(span_11, true);
+            reset(span_11);
+            template_effect(() => set_text(text_9, get(tag)));
+            append($$anchor4, span_11);
+          });
+          reset(span_10);
+          append($$anchor3, span_10);
+        };
+        if_block(node_14, ($$render) => {
+          if (get(p).ev.tags?.length && get(p).fit.tags) $$render(consequent_10);
+        });
+      }
+      reset(div_10);
+      reset(div_9);
+      template_effect(() => {
+        classes_3 = set_class(div_9, 1, "fs-event svelte-mrwdy7", null, classes_3, {
+          "fs-event--selected": selectedEventId() === get(p).ev.id,
+          "fs-event--current": get(p).isCurrent,
+          "fs-event--next": get(p).isNext,
+          "fs-event--dragging": get(p).isDragged,
+          "fs-event--readonly": get(p).ev.data?.readOnly,
+          "fs-event--cancelled": get(p).ev.status === "cancelled",
+          "fs-event--tentative": get(p).ev.status === "tentative",
+          "fs-event--full": get(p).ev.status === "full",
+          "fs-event--limited": get(p).ev.status === "limited"
+        });
+        set_attribute(div_9, "aria-label", `${get(p).ev.title ?? ""}${get(p).ev.status === "cancelled" ? " (cancelled)" : ""}${get(p).ev.status === "tentative" ? " (tentative)" : ""}${get(p).ev.status === "full" ? " (full)" : ""}${get(p).ev.status === "limited" ? " (limited)" : ""}${get(p).isCurrent ? ` (${get(L).inProgress})` : ""}${get(p).isNext ? ` (${get(L).upNext})` : ""}`);
+        styles_7 = set_style(div_9, "", styles_7, {
+          left: `${get(p).x ?? ""}px`,
+          width: `${get(p).width ?? ""}px`,
+          top: `${get(p).topPx ?? ""}px`,
+          height: `${get(p).heightPx ?? ""}px`,
+          "--ev-color": get(p).ev.color ?? "var(--dt-accent)"
+        });
+        set_text(text_6, get(p).ev.title);
+      });
+      delegated("pointerdown", div_9, (e) => onEventPointerDown(e, get(p).ev));
+      event("pointerenter", div_9, () => get(oneventhover)?.(get(p).ev));
+      delegated("keydown", div_9, (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          $$props.oneventclick?.(get(p).ev);
+        }
+      });
+      append($$anchor2, div_9);
+    });
+    reset(div_2);
+    reset(div_1);
+    bind_this(div_1, ($$value) => el = $$value, () => el);
+    var node_15 = sibling(div_1, 2);
+    {
+      var consequent_12 = ($$anchor2) => {
+        var div_11 = root_18$3();
+        set_style(div_11, "", {}, { top: "56px" });
+        each(div_11, 21, () => get(allDayEvents), (seg) => seg.ev.id, ($$anchor3, seg) => {
+          var div_12 = root_19$3();
+          let classes_4;
+          let styles_8;
+          var span_12 = sibling(child(div_12), 2);
+          var text_10 = child(span_12, true);
+          reset(span_12);
+          var node_16 = sibling(span_12, 2);
+          {
+            var consequent_11 = ($$anchor4) => {
+              var span_13 = root_20$3();
+              var text_11 = child(span_13);
+              reset(span_13);
+              template_effect(() => set_text(text_11, `${get(L).day ?? ""} ${get(seg).dayIndex ?? ""}/${get(seg).totalDays ?? ""}`));
+              append($$anchor4, span_13);
+            };
+            var alternate = ($$anchor4) => {
+              var span_14 = root_21$3();
+              var text_12 = child(span_14, true);
+              reset(span_14);
+              template_effect(() => set_text(text_12, get(L).allDay));
+              append($$anchor4, span_14);
+            };
+            if_block(node_16, ($$render) => {
+              if (get(seg).totalDays > 1) $$render(consequent_11);
+              else $$render(alternate, -1);
+            });
+          }
+          reset(div_12);
+          template_effect(
+            ($0) => {
+              classes_4 = set_class(div_12, 1, "fs-ad svelte-mrwdy7", null, classes_4, {
+                "fs-ad--start": get(seg).isStart,
+                "fs-ad--selected": selectedEventId() === get(seg).ev.id
+              });
+              set_attribute(div_12, "aria-label", `${get(seg).ev.title ?? ""}${$0 ?? ""}`);
+              styles_8 = set_style(div_12, "", styles_8, { "--ev-color": get(seg).ev.color ?? "var(--dt-accent)" });
+              set_text(text_10, get(seg).ev.title);
+            },
+            [
+              () => get(seg).totalDays > 1 ? `, ${get(L).dayNOfTotal(get(seg).dayIndex, get(seg).totalDays)}` : `, ${get(L).allDay}`
+            ]
+          );
+          delegated("click", div_12, () => $$props.oneventclick?.(get(seg).ev));
+          delegated("keydown", div_12, (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              $$props.oneventclick?.(get(seg).ev);
+            }
+          });
+          append($$anchor3, div_12);
+        });
+        reset(div_11);
+        append($$anchor2, div_11);
+      };
+      if_block(node_15, ($$render) => {
+        if (get(allDayEvents).length > 0) $$render(consequent_12);
+      });
+    }
+    var div_13 = sibling(node_15, 2);
+    var text_13 = child(div_13, true);
+    reset(div_13);
+    var node_17 = sibling(div_13, 2);
+    {
+      var consequent_13 = ($$anchor2) => {
+        var nav = root_22$3();
+        var button = child(nav);
+        let classes_5;
+        var text_14 = child(button, true);
+        reset(button);
+        var button_1 = sibling(button, 2);
+        var button_2 = sibling(button_1, 2);
+        reset(nav);
+        template_effect(() => {
+          set_attribute(nav, "aria-label", get(L).dayNavigation);
+          classes_5 = set_class(button, 1, "fs-nav-pill fs-nav-today svelte-mrwdy7", null, classes_5, { "fs-nav-today--hidden": get(following) });
+          set_attribute(button, "aria-label", get(L).goToToday);
+          set_attribute(button, "tabindex", get(following) ? -1 : 0);
+          set_text(text_14, get(L).today);
+          set_attribute(button_1, "aria-label", get(L).previousDay);
+          set_attribute(button_2, "aria-label", get(L).nextDay);
+        });
+        delegated("click", button, () => {
+          set(internalCenterMs, clock.today, true);
+          lastExternalMs = clock.today;
+          get(viewState)?.goToday();
+          set(following, true);
+        });
+        delegated("click", button_1, () => {
+          const prev = get(internalCenterMs) - DAY_MS;
+          set(internalCenterMs, prev);
+          lastExternalMs = prev;
+          get(viewState)?.prev();
+          set(following, false);
+        });
+        delegated("click", button_2, () => {
+          const next2 = get(internalCenterMs) + DAY_MS;
+          set(internalCenterMs, next2);
+          lastExternalMs = next2;
+          get(viewState)?.next();
+          set(following, false);
+        });
+        append($$anchor2, nav);
+      };
+      if_block(node_17, ($$render) => {
+        if (get(showNav)) $$render(consequent_13);
+      });
+    }
+    reset(div);
+    template_effect(() => {
+      classes = set_class(div, 1, "fs svelte-mrwdy7", null, classes, { "fs--auto": get(autoHeight) });
+      styles = set_style(div, style() || void 0, styles, {
+        height: get(autoHeight) ? void 0 : height() ? `${height()}px` : "100%"
+      });
+      set_attribute(div, "aria-label", get(L).dayPlanner);
+      classes_1 = set_class(div_1, 1, "fs-scroll svelte-mrwdy7", null, classes_1, {
+        "fs-grabbing": get(scrollDragging),
+        "fs-readonly": readOnly()
+      });
+      set_attribute(div_1, "aria-label", get(L).scrollableDayPlanner);
+      styles_1 = set_style(div_2, "", styles_1, { width: `${get(totalWidth) ?? ""}px` });
+      styles_6 = set_style(div_8, "", styles_6, { left: `${get(nowPx) ?? ""}px` });
+      set_text(text_2, clock.hm);
+      set_text(text_3, clock.s);
+      set_text(text_13, get(dateLabel));
+    });
+    event("wheel", div_1, (e) => {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY || e.deltaX;
+      set(following, false);
+    });
+    delegated("pointerdown", div_1, onPointerDown);
+    delegated("click", div_2, handleTrackClick);
+    append($$anchor, div);
+    pop();
+  }
+  delegate(["pointerdown", "click", "keydown"]);
+  const allDaySegmentContent = ($$anchor, seg = noop) => {
+    var fragment = root_1$4();
+    var node = first_child(fragment);
+    {
+      var consequent = ($$anchor2) => {
+        var span = root_2$5();
+        var text2 = child(span, true);
+        reset(span);
+        template_effect(() => set_text(text2, seg().ev.title));
+        append($$anchor2, span);
+      };
+      var alternate = ($$anchor2) => {
+        var fragment_1 = root_3$4();
+        var span_1 = sibling(first_child(fragment_1), 2);
+        var text_1 = child(span_1, true);
+        reset(span_1);
+        template_effect(() => set_text(text_1, seg().ev.title));
+        append($$anchor2, fragment_1);
+      };
+      if_block(node, ($$render) => {
+        if (seg().isStart) $$render(consequent);
+        else $$render(alternate, -1);
+      });
+    }
+    var node_1 = sibling(node, 2);
+    {
+      var consequent_1 = ($$anchor2) => {
+        var span_2 = root_4$4();
+        append($$anchor2, span_2);
+      };
+      if_block(node_1, ($$render) => {
+        if (!seg().isEnd && seg().totalDays > 1) $$render(consequent_1);
+      });
+    }
+    append($$anchor, fragment);
+  };
+  var root_2$5 = /* @__PURE__ */ from_html(`<span class="wg-ad-title svelte-j4rvbp"> </span>`);
+  var root_3$4 = /* @__PURE__ */ from_html(`<span class="wg-ad-cont svelte-j4rvbp" aria-hidden="true">◂</span> <span class="wg-ad-title svelte-j4rvbp"> </span>`, 1);
+  var root_4$4 = /* @__PURE__ */ from_html(`<span class="wg-ad-arrow svelte-j4rvbp" aria-hidden="true">▸</span>`);
+  var root_1$4 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
+  var root_6$5 = /* @__PURE__ */ from_html(`<span class="wg-ev-loc svelte-j4rvbp"> </span>`);
+  var root_5$3 = /* @__PURE__ */ from_html(`<span class="wg-ev-time svelte-j4rvbp"> </span> <span class="wg-ev-title svelte-j4rvbp"> </span> <!>`, 1);
+  var root_9$3 = /* @__PURE__ */ from_html(`<span> </span>`);
+  var root_10$3 = /* @__PURE__ */ from_html(`<span class="wg-cell-month svelte-j4rvbp"> </span>`);
+  var root_11$4 = /* @__PURE__ */ from_html(`<div class="wg-cell-custom-header svelte-j4rvbp"><!></div>`);
+  var root_15$3 = /* @__PURE__ */ from_html(`<span class="wg-blocked-label svelte-j4rvbp"> </span>`);
+  var root_14$4 = /* @__PURE__ */ from_html(`<div class="wg-blocked svelte-j4rvbp"><!></div>`);
+  var root_17$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><!></div>`);
+  var root_18$2 = /* @__PURE__ */ from_html(`<div aria-hidden="true"><!></div>`);
+  var root_16$3 = /* @__PURE__ */ from_html(`<div class="wg-allday svelte-j4rvbp"><!> <!></div>`);
+  var root_19$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><!></div>`);
+  var root_20$2 = /* @__PURE__ */ from_html(`<div class="wg-ev wg-ev--drag-preview svelte-j4rvbp" aria-hidden="true"><!></div>`);
+  var root_21$2 = /* @__PURE__ */ from_html(`<div class="wg-ev-more svelte-j4rvbp"> </div>`);
+  var root_8$4 = /* @__PURE__ */ from_html(`<div role="gridcell" tabindex="0"><div><!> <span class="wg-day-wd svelte-j4rvbp"> </span></div> <!> <!> <!> <!> <div class="wg-cell-events svelte-j4rvbp"><!> <!> <!></div></div>`);
+  var root_7$4 = /* @__PURE__ */ from_html(`<div><div class="wg-week-body svelte-j4rvbp"><div class="wg-days svelte-j4rvbp"></div></div></div>`);
+  var root_22$2 = /* @__PURE__ */ from_html(`<nav class="wg-nav svelte-j4rvbp"><button class="wg-nav-pill svelte-j4rvbp"> </button></nav>`);
+  var root$4 = /* @__PURE__ */ from_html(`<div><div class="wg-body svelte-j4rvbp" role="grid"></div> <!></div>`);
+  function PlannerWeek($$anchor, $$props) {
+    push($$props, true);
+    const timedEventContent = ($$anchor2, ev = noop) => {
+      var fragment_2 = root_5$3();
+      var span_3 = first_child(fragment_2);
+      var text_2 = child(span_3, true);
+      reset(span_3);
+      var span_4 = sibling(span_3, 2);
+      var text_3 = child(span_4, true);
+      reset(span_4);
+      var node_2 = sibling(span_4, 2);
+      {
+        var consequent_2 = ($$anchor3) => {
+          var span_5 = root_6$5();
+          var text_4 = child(span_5, true);
+          reset(span_5);
+          template_effect(() => set_text(text_4, ev().location));
+          append($$anchor3, span_5);
+        };
+        if_block(node_2, ($$render) => {
+          if (ev().location) $$render(consequent_2);
+        });
+      }
+      template_effect(
+        ($0) => {
+          set_text(text_2, $0);
+          set_text(text_3, ev().title);
+        },
+        [() => fmtAmPm(ev().start)]
+      );
+      append($$anchor2, fragment_2);
+    };
+    const L = /* @__PURE__ */ user_derived(getLabels);
+    let mondayStart = prop($$props, "mondayStart", 3, true), height = prop($$props, "height", 3, 520), events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null), readOnly = prop($$props, "readOnly", 3, false);
+    const ctx = useCalendarContext();
+    const clock = createClock();
+    const drag = /* @__PURE__ */ user_derived(() => ctx.drag);
+    const commitDragCtx = /* @__PURE__ */ user_derived(() => ctx.commitDrag);
+    const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
+    const loadRangeCtx = /* @__PURE__ */ user_derived(() => ctx.loadRange);
+    const showNav = /* @__PURE__ */ user_derived(() => ctx.showNav);
+    const equalDays = /* @__PURE__ */ user_derived(() => ctx.equalDays);
+    const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
+    const hideDays = /* @__PURE__ */ user_derived(() => ctx.hideDays);
+    const blockedSlots = /* @__PURE__ */ user_derived(() => ctx.blockedSlots);
+    const dayHeaderSnippet = /* @__PURE__ */ user_derived(() => ctx.dayHeaderSnippet);
+    const minDuration = /* @__PURE__ */ user_derived(() => ctx.minDuration);
+    const autoHeight = /* @__PURE__ */ user_derived(() => ctx.autoHeight);
+    const oneventhover = /* @__PURE__ */ user_derived(() => ctx.oneventhover);
+    const disabledSet = /* @__PURE__ */ user_derived(() => ctx.disabledSet);
+    const INITIAL_BUFFER = 52;
+    const EXTEND_BY = 26;
+    const EDGE_PX = 200;
+    let bufferBefore = /* @__PURE__ */ state(INITIAL_BUFFER);
+    let bufferAfter = /* @__PURE__ */ state(INITIAL_BUFFER);
+    const MAX_EVENTS_SHOWN = 5;
+    const _initMs = untrack(() => sod($$props.focusDate?.getTime() ?? Date.now()));
+    let internalFocusMs = /* @__PURE__ */ state(proxy(_initMs));
+    let lastExternalMs = _initMs;
+    let el;
+    let scrolled = /* @__PURE__ */ state(false);
+    function scrollWeekIntoContainer(targetMs, behavior = "auto") {
+      if (!el) return;
+      let target = null;
+      if (targetMs !== void 0) {
+        const rows = el.querySelectorAll("[data-week]");
+        for (const row of rows) {
+          const weekMs = Number(row.dataset.week);
+          if (weekMs <= targetMs && targetMs < weekMs + get(customDays) * DAY_MS) {
+            target = row;
+            break;
+          }
+        }
+      }
+      if (!target) target = el.querySelector(".wg-week--current");
+      if (!target) return;
+      const targetTop = target.offsetTop - (el.clientHeight - target.offsetHeight) / 2;
+      el.scrollTo({ top: Math.max(0, targetTop), behavior });
+    }
+    const todayMs = /* @__PURE__ */ user_derived(() => clock.today);
+    const customDays = /* @__PURE__ */ user_derived(() => get(viewState)?.dayCount ?? 7);
+    const anchorPeriodStart = /* @__PURE__ */ user_derived(() => get(customDays) === 7 ? startOfWeek(get(internalFocusMs), mondayStart()) : sod(get(internalFocusMs)));
+    user_effect(() => {
+      if (!get(loadRangeCtx)) return;
+      const rangeStart = new Date(get(anchorPeriodStart) - get(bufferBefore) * get(customDays) * DAY_MS);
+      const rangeEnd = new Date(get(anchorPeriodStart) + (get(bufferAfter) + 1) * get(customDays) * DAY_MS);
+      get(loadRangeCtx).set({ start: rangeStart, end: rangeEnd });
+      return () => get(loadRangeCtx).set(null);
+    });
+    const weeks = /* @__PURE__ */ user_derived(() => {
+      const result = [];
+      for (let w = -get(bufferBefore); w <= get(bufferAfter); w++) {
+        const periodStart = get(anchorPeriodStart) + w * get(customDays) * DAY_MS;
+        const isCurrent = get(todayMs) >= periodStart && get(todayMs) < periodStart + get(customDays) * DAY_MS;
+        const days = [];
+        for (let d = 0; d < get(customDays); d++) {
+          const ms = periodStart + d * DAY_MS;
+          const date = new Date(ms);
+          const dayNum2 = date.getDate();
+          const dow = date.getDay();
+          const isWeekend = dow === 0 || dow === 6;
+          const isToday = ms === get(todayMs);
+          const isPast = get(equalDays) ? false : ms < get(todayMs);
+          const isFirstOfMonth = dayNum2 === 1;
+          const monthLabel2 = d === 0 || isFirstOfMonth ? monthLong(ms, $$props.locale).toUpperCase() : null;
+          const dayEnd = ms + DAY_MS;
+          const dayEventsAll = events().filter((ev) => ev.start.getTime() < dayEnd && ev.end.getTime() > ms).sort((a, b) => a.start.getTime() - b.start.getTime());
+          const timedEvents = [];
+          const allDaySegments = [];
+          for (const ev of dayEventsAll) {
+            if (isAllDay(ev) || isMultiDay(ev)) {
+              const seg = segmentForDay(ev, ms);
+              if (seg) allDaySegments.push(seg);
+            } else {
+              timedEvents.push(ev);
+            }
+          }
+          days.push({
+            ms,
+            dayNum: dayNum2,
+            isToday,
+            isPast,
+            isWeekend,
+            isFirstOfMonth,
+            monthLabel: monthLabel2,
+            events: timedEvents,
+            allDaySegments
+          });
+        }
+        const startDate = new Date(periodStart);
+        const showMonth = get(customDays) === 7 ? startDate.getDate() <= 7 : startDate.getDate() <= get(customDays);
+        const monthLabel = showMonth ? monthLong(periodStart, $$props.locale).toUpperCase() : null;
+        result.push({ weekStart: periodStart, isCurrent, monthLabel, days });
+      }
+      if (get(hideDays)?.length) {
+        for (const row of result) {
+          row.days = row.days.filter((d) => {
+            const isoDay = new Date(d.ms).getDay();
+            const iso = isoDay === 0 ? 7 : isoDay;
+            return !get(hideDays).includes(iso);
+          });
+        }
+      }
+      return result;
+    });
+    function fmtAmPm(d) {
+      return fmtTime$1(d, $$props.locale);
+    }
+    onMount(async () => {
+      await tick();
+      scrollWeekIntoContainer();
+    });
+    user_effect(() => {
+      const ext = $$props.focusDate ? sod($$props.focusDate.getTime()) : clock.today;
+      if (ext !== lastExternalMs) {
+        lastExternalMs = ext;
+        set(internalFocusMs, ext, true);
+        tick().then(() => scrollWeekIntoContainer(ext, "smooth"));
+      }
+    });
+    function isCurrentWeekVisible() {
+      if (!el) return false;
+      const current = el.querySelector(".wg-week--current");
+      if (!current) return false;
+      const top = current.offsetTop - el.scrollTop;
+      const bottom = top + current.offsetHeight;
+      return bottom > 0 && top < el.clientHeight;
+    }
+    let extending = false;
+    function handleUserScroll() {
+      set(scrolled, !isCurrentWeekVisible());
+      if (!el || extending) return;
+      if (el.scrollTop < EDGE_PX) {
+        extending = true;
+        const oldHeight = el.scrollHeight;
+        set(bufferBefore, get(bufferBefore) + EXTEND_BY);
+        tick().then(() => {
+          el.scrollTop += el.scrollHeight - oldHeight;
+          extending = false;
+        });
+      } else {
+        const bottomRemaining = el.scrollHeight - el.clientHeight - el.scrollTop;
+        if (bottomRemaining < EDGE_PX) {
+          set(bufferAfter, get(bufferAfter) + EXTEND_BY);
+        }
+      }
+    }
+    function jumpToday() {
+      set(internalFocusMs, clock.today, true);
+      lastExternalMs = clock.today;
+      get(viewState)?.goToday();
+      set(scrolled, false);
+      tick().then(() => {
+        scrollWeekIntoContainer(clock.today, "smooth");
+      });
+    }
+    function handleDayCellClick(ms, e) {
+      const target = e.target;
+      if (target.closest(".wg-ev")) return;
+      if (readOnly() || !$$props.oneventcreate) return;
+      if (get(disabledSet).has(ms)) return;
+      const durMin = get(minDuration) ? Math.max(60, get(minDuration)) : 60;
+      const start = new Date(ms + 9 * HOUR_MS);
+      const end = new Date(start.getTime() + durMin * 6e4);
+      $$props.oneventcreate({ start, end });
+    }
+    const DRAG_THRESHOLD = 8;
+    let evDragStartX = 0;
+    let evDragStartY = 0;
+    let evDragStarted = false;
+    let evDragging = /* @__PURE__ */ state(false);
+    let evDragId = /* @__PURE__ */ state(null);
+    let evDragEvent = null;
+    const dragPreviewEvent = /* @__PURE__ */ user_derived(() => {
+      const payload = get(drag)?.active && get(drag).mode === "move" ? get(drag).payload : null;
+      if (!payload?.eventId) return null;
+      const ev = events().find((event2) => event2.id === payload.eventId);
+      if (!ev) return null;
+      return { ...ev, start: payload.start, end: payload.end };
+    });
+    function isDraggedEvent(eventId) {
+      return get(dragPreviewEvent)?.id === eventId;
+    }
+    function timedEventsForDay(day) {
+      if (!get(dragPreviewEvent)) return day.events;
+      return day.events.filter((ev) => ev.id !== get(dragPreviewEvent).id);
+    }
+    function dragPreviewTimedForDay(dayMs) {
+      const ev = get(dragPreviewEvent);
+      if (!ev || isAllDay(ev) || isMultiDay(ev)) return null;
+      const dayEnd = dayMs + DAY_MS;
+      return ev.start.getTime() < dayEnd && ev.end.getTime() > dayMs ? ev : null;
+    }
+    function dragPreviewSegmentForDay(dayMs) {
+      const ev = get(dragPreviewEvent);
+      if (!ev || !isAllDay(ev) && !isMultiDay(ev)) return null;
+      return segmentForDay(ev, dayMs);
+    }
+    function getCellWidth() {
+      const cell = el?.querySelector(".wg-cell");
+      return cell ? cell.getBoundingClientRect().width : 100;
+    }
+    function getRowHeight() {
+      const row = el?.querySelector(".wg-week");
+      return row ? row.getBoundingClientRect().height + 24 : 200;
+    }
+    function onEventPointerDown(e, ev) {
+      if (e.button !== 0 || !get(drag) || readOnly() || ev.data?.readOnly) return;
+      e.stopPropagation();
+      evDragStartX = e.clientX;
+      evDragStartY = e.clientY;
+      evDragStarted = false;
+      set(evDragId, ev.id, true);
+      evDragEvent = ev;
+      window.addEventListener("pointermove", onEvWindowPointerMove);
+      window.addEventListener("pointerup", onEvWindowPointerUp, { once: true });
+      window.addEventListener("pointercancel", onEvWindowPointerCancel, { once: true });
+    }
+    function onEvWindowPointerMove(e) {
+      const ev = evDragEvent;
+      if (!get(drag) || !ev || get(evDragId) !== ev.id) return;
+      const dx = e.clientX - evDragStartX;
+      const dy = e.clientY - evDragStartY;
+      if (!evDragStarted && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return;
+      if (!evDragStarted) {
+        evDragStarted = true;
+        set(evDragging, true);
+        get(drag).beginMove(ev.id, ev.start, ev.end);
+      }
+      const cellW = getCellWidth();
+      const rowH = getRowHeight();
+      const dayOffset = Math.round(dx / cellW);
+      const weekOffset = Math.round(dy / rowH);
+      const deltaMs = (dayOffset + weekOffset * 7) * DAY_MS;
+      get(drag).updatePointer(new Date(ev.start.getTime() + deltaMs), new Date(ev.end.getTime() + deltaMs));
+    }
+    function cleanupEvDrag() {
+      window.removeEventListener("pointermove", onEvWindowPointerMove);
+      window.removeEventListener("pointerup", onEvWindowPointerUp);
+      window.removeEventListener("pointercancel", onEvWindowPointerCancel);
+      evDragStarted = false;
+      set(evDragging, false);
+      set(evDragId, null);
+      evDragEvent = null;
+    }
+    function onEvWindowPointerUp() {
+      if (!get(drag)) {
+        cleanupEvDrag();
+        return;
+      }
+      if (!evDragStarted) {
+        if (evDragEvent) $$props.oneventclick?.(evDragEvent);
+      } else {
+        get(commitDragCtx)?.();
+      }
+      cleanupEvDrag();
+    }
+    function onEvWindowPointerCancel() {
+      if (get(drag) && evDragStarted) get(drag).cancel();
+      cleanupEvDrag();
+    }
+    var div = root$4();
+    let classes;
+    let styles;
+    var div_1 = child(div);
+    each(div_1, 21, () => get(weeks), (week) => week.weekStart, ($$anchor2, week) => {
+      var div_2 = root_7$4();
+      let classes_1;
+      var div_3 = child(div_2);
+      var div_4 = child(div_3);
+      each(div_4, 21, () => get(week).days, (day) => day.ms, ($$anchor3, day) => {
+        const visibleAllDaySegments = /* @__PURE__ */ user_derived(() => get(day).allDaySegments.filter((seg) => !isDraggedEvent(seg.ev.id)));
+        const visibleTimedEvents = /* @__PURE__ */ user_derived(() => timedEventsForDay(get(day)));
+        const previewTimedEvent = /* @__PURE__ */ user_derived(() => dragPreviewTimedForDay(get(day).ms));
+        const previewSegment = /* @__PURE__ */ user_derived(() => dragPreviewSegmentForDay(get(day).ms));
+        var div_5 = root_8$4();
+        let classes_2;
+        var div_6 = child(div_5);
+        let classes_3;
+        var node_3 = child(div_6);
+        {
+          var consequent_3 = ($$anchor4) => {
+            var span_6 = root_9$3();
+            let classes_4;
+            var text_5 = child(span_6, true);
+            reset(span_6);
+            template_effect(() => {
+              classes_4 = set_class(span_6, 1, "wg-day-num svelte-j4rvbp", null, classes_4, { "wg-day-num--today": get(day).isToday });
+              set_text(text_5, get(day).dayNum);
+            });
+            append($$anchor4, span_6);
+          };
+          if_block(node_3, ($$render) => {
+            if (get(showDates)) $$render(consequent_3);
+          });
+        }
+        var span_7 = sibling(node_3, 2);
+        var text_6 = child(span_7, true);
+        reset(span_7);
+        reset(div_6);
+        var node_4 = sibling(div_6, 2);
+        {
+          var consequent_4 = ($$anchor4) => {
+            var span_8 = root_10$3();
+            var text_7 = child(span_8, true);
+            reset(span_8);
+            template_effect(() => set_text(text_7, get(day).monthLabel));
+            append($$anchor4, span_8);
+          };
+          if_block(node_4, ($$render) => {
+            if (get(day).monthLabel && get(showDates)) $$render(consequent_4);
+          });
+        }
+        var node_5 = sibling(node_4, 2);
+        {
+          var consequent_5 = ($$anchor4) => {
+            var div_7 = root_11$4();
+            var node_6 = child(div_7);
+            {
+              let $0 = /* @__PURE__ */ user_derived(() => ({
+                date: new Date(get(day).ms),
+                isToday: get(day).isToday,
+                dayName: weekdayShort(get(day).ms, $$props.locale)
+              }));
+              snippet(node_6, () => get(dayHeaderSnippet), () => get($0));
+            }
+            reset(div_7);
+            append($$anchor4, div_7);
+          };
+          if_block(node_5, ($$render) => {
+            if (get(dayHeaderSnippet)) $$render(consequent_5);
+          });
+        }
+        var node_7 = sibling(node_5, 2);
+        {
+          var consequent_8 = ($$anchor4) => {
+            const jsDay = /* @__PURE__ */ user_derived(() => new Date(get(day).ms).getDay());
+            const isoDay = /* @__PURE__ */ user_derived(() => get(jsDay) === 0 ? 7 : get(jsDay));
+            var fragment_3 = comment();
+            var node_8 = first_child(fragment_3);
+            each(node_8, 17, () => get(blockedSlots), index, ($$anchor5, slot) => {
+              var fragment_4 = comment();
+              var node_9 = first_child(fragment_4);
+              {
+                var consequent_7 = ($$anchor6) => {
+                  var div_8 = root_14$4();
+                  var node_10 = child(div_8);
+                  {
+                    var consequent_6 = ($$anchor7) => {
+                      var span_9 = root_15$3();
+                      var text_8 = child(span_9, true);
+                      reset(span_9);
+                      template_effect(() => set_text(text_8, get(slot).label));
+                      append($$anchor7, span_9);
+                    };
+                    if_block(node_10, ($$render) => {
+                      if (get(slot).label) $$render(consequent_6);
+                    });
+                  }
+                  reset(div_8);
+                  template_effect(() => set_attribute(div_8, "aria-label", get(slot).label || "Unavailable"));
+                  append($$anchor6, div_8);
+                };
+                if_block(node_9, ($$render) => {
+                  if (!get(slot).day || get(slot).day === get(isoDay)) $$render(consequent_7);
+                });
+              }
+              append($$anchor5, fragment_4);
+            });
+            append($$anchor4, fragment_3);
+          };
+          if_block(node_7, ($$render) => {
+            if (get(blockedSlots)?.length) $$render(consequent_8);
+          });
+        }
+        var node_11 = sibling(node_7, 2);
+        {
+          var consequent_10 = ($$anchor4) => {
+            var div_9 = root_16$3();
+            var node_12 = child(div_9);
+            each(node_12, 17, () => get(visibleAllDaySegments), (seg) => seg.ev.id, ($$anchor5, seg) => {
+              var div_10 = root_17$2();
+              let classes_5;
+              let styles_1;
+              var node_13 = child(div_10);
+              allDaySegmentContent(node_13, () => get(seg));
+              reset(div_10);
+              template_effect(
+                ($0) => {
+                  classes_5 = set_class(div_10, 1, "wg-ad svelte-j4rvbp", null, classes_5, {
+                    "wg-ad--start": get(seg).isStart,
+                    "wg-ad--end": get(seg).isEnd,
+                    "wg-ad--mid": !get(seg).isStart && !get(seg).isEnd,
+                    "wg-ad--selected": selectedEventId() === get(seg).ev.id
+                  });
+                  set_attribute(div_10, "aria-label", `${get(seg).ev.title ?? ""}${$0 ?? ""}`);
+                  styles_1 = set_style(div_10, "", styles_1, { "--ev-color": get(seg).ev.color ?? "var(--dt-accent)" });
+                },
+                [
+                  () => get(seg).totalDays > 1 ? `, ${get(L).dayNOfTotal(get(seg).dayIndex, get(seg).totalDays)}` : `, ${get(L).allDay}`
+                ]
+              );
+              delegated("pointerdown", div_10, (e) => onEventPointerDown(e, get(seg).ev));
+              delegated("keydown", div_10, (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  $$props.oneventclick?.(get(seg).ev);
+                }
+              });
+              append($$anchor5, div_10);
+            });
+            var node_14 = sibling(node_12, 2);
+            {
+              var consequent_9 = ($$anchor5) => {
+                var div_11 = root_18$2();
+                let classes_6;
+                let styles_2;
+                var node_15 = child(div_11);
+                allDaySegmentContent(node_15, () => get(previewSegment));
+                reset(div_11);
+                template_effect(() => {
+                  classes_6 = set_class(div_11, 1, "wg-ad wg-ad--drag-preview svelte-j4rvbp", null, classes_6, {
+                    "wg-ad--start": get(previewSegment).isStart,
+                    "wg-ad--end": get(previewSegment).isEnd,
+                    "wg-ad--mid": !get(previewSegment).isStart && !get(previewSegment).isEnd
+                  });
+                  styles_2 = set_style(div_11, "", styles_2, {
+                    "--ev-color": get(previewSegment).ev.color ?? "var(--dt-accent)"
+                  });
+                });
+                append($$anchor5, div_11);
+              };
+              if_block(node_14, ($$render) => {
+                if (get(previewSegment)) $$render(consequent_9);
+              });
+            }
+            reset(div_9);
+            append($$anchor4, div_9);
+          };
+          if_block(node_11, ($$render) => {
+            if (get(visibleAllDaySegments).length > 0 || get(previewSegment)) $$render(consequent_10);
+          });
+        }
+        var div_12 = sibling(node_11, 2);
+        var node_16 = child(div_12);
+        each(node_16, 17, () => get(visibleTimedEvents).slice(0, MAX_EVENTS_SHOWN), (ev) => ev.id, ($$anchor4, ev) => {
+          var div_13 = root_19$2();
+          let classes_7;
+          let styles_3;
+          var node_17 = child(div_13);
+          timedEventContent(node_17, () => get(ev));
+          reset(div_13);
+          template_effect(
+            ($0, $1) => {
+              classes_7 = set_class(div_13, 1, "wg-ev svelte-j4rvbp", null, classes_7, $0);
+              set_attribute(div_13, "aria-label", `${get(ev).title ?? ""}${get(ev).status === "cancelled" ? ` (cancelled)` : ""}${get(ev).status === "tentative" ? ` (tentative)` : ""}${get(ev).status === "full" ? ` (full)` : ""}${get(ev).status === "limited" ? ` (limited)` : ""}${$1 ?? ""}`);
+              styles_3 = set_style(div_13, "", styles_3, { "--ev-color": get(ev).color ?? "var(--dt-accent)" });
+            },
+            [
+              () => ({
+                "wg-ev--selected": selectedEventId() === get(ev).id,
+                "wg-ev--current": get(ev).start.getTime() <= clock.tick && get(ev).end.getTime() > clock.tick,
+                "wg-ev--dragging": get(evDragging) && get(evDragId) === get(ev).id,
+                "wg-ev--readonly": get(ev).data?.readOnly,
+                "wg-ev--cancelled": get(ev).status === "cancelled",
+                "wg-ev--tentative": get(ev).status === "tentative",
+                "wg-ev--full": get(ev).status === "full",
+                "wg-ev--limited": get(ev).status === "limited"
+              }),
+              () => get(ev).start.getTime() <= clock.tick && get(ev).end.getTime() > clock.tick ? ` (${get(L).inProgress})` : ""
+            ]
+          );
+          delegated("pointerdown", div_13, (e) => onEventPointerDown(e, get(ev)));
+          event("pointerenter", div_13, () => get(oneventhover)?.(get(ev)));
+          delegated("keydown", div_13, (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              $$props.oneventclick?.(get(ev));
+            }
+          });
+          append($$anchor4, div_13);
+        });
+        var node_18 = sibling(node_16, 2);
+        {
+          var consequent_11 = ($$anchor4) => {
+            var div_14 = root_20$2();
+            let styles_4;
+            var node_19 = child(div_14);
+            timedEventContent(node_19, () => get(previewTimedEvent));
+            reset(div_14);
+            template_effect(() => styles_4 = set_style(div_14, "", styles_4, {
+              "--ev-color": get(previewTimedEvent).color ?? "var(--dt-accent)"
+            }));
+            append($$anchor4, div_14);
+          };
+          if_block(node_18, ($$render) => {
+            if (get(previewTimedEvent)) $$render(consequent_11);
+          });
+        }
+        var node_20 = sibling(node_18, 2);
+        {
+          var consequent_12 = ($$anchor4) => {
+            var div_15 = root_21$2();
+            var text_9 = child(div_15, true);
+            reset(div_15);
+            template_effect(($0) => set_text(text_9, $0), [
+              () => get(L).nMore(get(visibleTimedEvents).length - MAX_EVENTS_SHOWN)
+            ]);
+            append($$anchor4, div_15);
+          };
+          if_block(node_20, ($$render) => {
+            if (get(visibleTimedEvents).length > MAX_EVENTS_SHOWN) $$render(consequent_12);
+          });
+        }
+        reset(div_12);
+        reset(div_5);
+        template_effect(
+          ($0, $1, $2, $3, $4) => {
+            classes_2 = set_class(div_5, 1, "wg-cell svelte-j4rvbp", null, classes_2, $0);
+            set_attribute(div_5, "aria-label", `${$1 ?? ""}${$2 ?? ""}, ${$3 ?? ""}`);
+            classes_3 = set_class(div_6, 1, "wg-cell-hd svelte-j4rvbp", null, classes_3, { "wg-cell-hd--today": get(day).isToday });
+            set_text(text_6, $4);
+          },
+          [
+            () => ({
+              "wg-cell--today": get(day).isToday,
+              "wg-cell--past": get(day).isPast,
+              "wg-cell--weekend": get(day).isWeekend,
+              "wg-cell--disabled": get(disabledSet).has(get(day).ms)
+            }),
+            () => new Date(get(day).ms).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long", month: "short", day: "numeric" }),
+            () => get(day).isToday ? ` (${get(L).today.toLowerCase()})` : "",
+            () => get(L).nEvents(get(day).events.length),
+            () => weekdayShort(get(day).ms, $$props.locale)
+          ]
+        );
+        delegated("click", div_5, (e) => handleDayCellClick(get(day).ms, e));
+        delegated("keydown", div_5, (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleDayCellClick(get(day).ms, e);
+          }
+        });
+        append($$anchor3, div_5);
+      });
+      reset(div_4);
+      reset(div_3);
+      reset(div_2);
+      template_effect(() => {
+        classes_1 = set_class(div_2, 1, "wg-week svelte-j4rvbp", null, classes_1, { "wg-week--current": get(week).isCurrent });
+        set_attribute(div_2, "data-week", get(week).weekStart);
+      });
+      append($$anchor2, div_2);
+    });
+    reset(div_1);
+    bind_this(div_1, ($$value) => el = $$value, () => el);
+    var node_21 = sibling(div_1, 2);
+    {
+      var consequent_13 = ($$anchor2) => {
+        var nav = root_22$2();
+        var button = child(nav);
+        var text_10 = child(button, true);
+        reset(button);
+        reset(nav);
+        template_effect(() => {
+          set_attribute(nav, "aria-label", get(L).weekNavigation);
+          set_attribute(button, "aria-label", get(L).goToToday);
+          set_text(text_10, get(L).today);
+        });
+        delegated("click", button, jumpToday);
+        append($$anchor2, nav);
+      };
+      if_block(node_21, ($$render) => {
+        if (get(showNav) && get(scrolled)) $$render(consequent_13);
+      });
+    }
+    reset(div);
+    template_effect(() => {
+      classes = set_class(div, 1, "wg svelte-j4rvbp", null, classes, { "wg--auto": get(autoHeight) });
+      styles = set_style(div, style() || void 0, styles, {
+        height: get(autoHeight) ? void 0 : height() ? `${height()}px` : "100%"
+      });
+      set_attribute(div_1, "aria-label", get(L).multiWeekGrid);
+    });
+    event("scroll", div_1, handleUserScroll);
+    append($$anchor, div);
+    pop();
+  }
+  delegate(["click", "keydown", "pointerdown"]);
+  function Planner($$anchor, $$props) {
+    let mode = prop($$props, "mode", 3, "week"), rest = /* @__PURE__ */ rest_props($$props, ["$$slots", "$$events", "$$legacy", "mode"]);
+    var fragment = comment();
+    var node = first_child(fragment);
+    {
+      var consequent = ($$anchor2) => {
+        PlannerDay($$anchor2, spread_props(() => rest));
+      };
+      var alternate = ($$anchor2) => {
+        PlannerWeek($$anchor2, spread_props(() => rest));
+      };
+      if_block(node, ($$render) => {
+        if (mode() === "day") $$render(consequent);
+        else $$render(alternate, -1);
+      });
+    }
+    append($$anchor, fragment);
+  }
+  function fmtTime(d, locale) {
+    return fmtTime$1(d, locale);
+  }
+  function duration(ev) {
+    return fmtDuration(ev.start, ev.end);
+  }
+  function timeUntilMs(ms, now) {
+    const L = getLabels();
+    const diff = ms - now;
+    if (diff <= 0) return L.now;
+    const tMins = Math.floor(diff / 6e4);
+    if (tMins < 60) return `in ${tMins}m`;
+    const hrs = Math.floor(tMins / 60);
+    const rm = tMins % 60;
+    if (hrs < 24) return rm > 0 ? `in ${hrs}h ${rm}m` : `in ${hrs}h`;
+    const days = Math.floor(hrs / 24);
+    return `in ${days}d`;
+  }
+  function progress(ev, now) {
+    const s = ev.start.getTime();
+    const e = ev.end.getTime();
+    return Math.min(1, Math.max(0, (now - s) / (e - s)));
+  }
+  function groupIntoSlots(evts) {
+    const sorted = [...evts].sort((a, b) => a.start.getTime() - b.start.getTime());
+    const slots = [];
+    for (const ev of sorted) {
+      const last = slots[slots.length - 1];
+      if (last && ev.start.getTime() < last.endMs) {
+        last.events.push(ev);
+        last.endMs = Math.max(last.endMs, ev.end.getTime());
+      } else {
+        slots.push({
+          startMs: ev.start.getTime(),
+          endMs: ev.end.getTime(),
+          events: [ev]
+        });
+      }
+    }
+    return slots;
+  }
+  var root_2$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-allday-dot svelte-n8lbn1"></span> <span class="ag-allday-title svelte-n8lbn1"> </span></div>`);
+  var root_1$3 = /* @__PURE__ */ from_html(`<div class="ag-allday svelte-n8lbn1"><div class="ag-allday-label svelte-n8lbn1"> </div> <div class="ag-allday-items svelte-n8lbn1"></div></div>`);
+  var root_4$3 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
+  var root_7$3 = /* @__PURE__ */ from_html(`<span class="ag-compact-row-sub svelte-n8lbn1"> </span>`);
+  var root_9$2 = /* @__PURE__ */ from_html(`<span class="ag-compact-row-tag svelte-n8lbn1"> </span>`);
+  var root_6$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-row-dot svelte-n8lbn1"></span> <span class="ag-compact-row-time svelte-n8lbn1"> </span> <span class="ag-compact-row-title svelte-n8lbn1"> </span> <!> <!> <span class="ag-compact-row-dur svelte-n8lbn1"> </span></div>`);
+  var root_3$3 = /* @__PURE__ */ from_html(`<div class="ag-compact-list svelte-n8lbn1"><!></div>`);
+  var root_12$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-q-done-check svelte-n8lbn1">✓</span> <span class="ag-q-done-title svelte-n8lbn1"> </span></div>`);
+  var root_11$3 = /* @__PURE__ */ from_html(`<div class="ag-q-done-section svelte-n8lbn1"><div class="ag-q-label svelte-n8lbn1"> </div> <!></div>`);
+  var root_14$3 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-q-now-dot svelte-n8lbn1"></div> <div class="ag-q-now-title svelte-n8lbn1"> </div> <div class="ag-q-now-time svelte-n8lbn1"> </div> <div class="ag-q-now-track svelte-n8lbn1"><div class="ag-q-now-fill svelte-n8lbn1"></div></div></div>`);
+  var root_15$2 = /* @__PURE__ */ from_html(`<div class="ag-q-free svelte-n8lbn1"><div class="ag-q-free-label svelte-n8lbn1"> </div></div>`);
+  var root_16$2 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
+  var root_19$1 = /* @__PURE__ */ from_html(`<span class="ag-card-sub svelte-n8lbn1"> </span>`);
+  var root_21$1 = /* @__PURE__ */ from_html(`<span class="ag-card-tag svelte-n8lbn1"> </span>`);
+  var root_20$1 = /* @__PURE__ */ from_html(`<div class="ag-card-tags svelte-n8lbn1"></div>`);
+  var root_18$1 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-n8lbn1"><div class="ag-card-top svelte-n8lbn1"><span class="ag-card-title svelte-n8lbn1"> </span> <span class="ag-card-eta svelte-n8lbn1"> </span></div> <!> <div class="ag-card-meta svelte-n8lbn1"> <span class="ag-card-dur svelte-n8lbn1"> </span></div> <!></div></div>`);
+  var root_10$2 = /* @__PURE__ */ from_html(`<div class="ag-q svelte-n8lbn1"><div class="ag-q-status svelte-n8lbn1"><!> <div class="ag-q-label svelte-n8lbn1"> <span class="ag-q-clock svelte-n8lbn1"> </span></div> <!></div> <div class="ag-q-queue svelte-n8lbn1"><div class="ag-q-label svelte-n8lbn1"> </div> <!></div></div>`);
+  var root_23$1 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
+  var root_25 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-log-check svelte-n8lbn1">✓</span> <span class="ag-log-time svelte-n8lbn1"> </span> <span class="ag-log-dot svelte-n8lbn1"></span> <span class="ag-log-title svelte-n8lbn1"> </span> <span class="ag-log-dur svelte-n8lbn1"> </span></div>`);
+  var root_22$1 = /* @__PURE__ */ from_html(`<div class="ag-log svelte-n8lbn1"><!></div>`);
+  var root_27$1 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
+  var root_30$1 = /* @__PURE__ */ from_html(`<span class="ag-card-sub svelte-n8lbn1"> </span>`);
+  var root_31 = /* @__PURE__ */ from_html(`<span class="ag-card-loc svelte-n8lbn1"> </span>`);
+  var root_33$1 = /* @__PURE__ */ from_html(`<span class="ag-card-tag svelte-n8lbn1"> </span>`);
+  var root_32$1 = /* @__PURE__ */ from_html(`<div class="ag-card-tags svelte-n8lbn1"></div>`);
+  var root_29 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-n8lbn1"><div class="ag-card-top svelte-n8lbn1"><span class="ag-card-order svelte-n8lbn1"> </span> <span class="ag-card-title svelte-n8lbn1"> </span></div> <!> <!> <div class="ag-card-meta svelte-n8lbn1"> <span class="ag-card-dur svelte-n8lbn1"> </span></div> <!></div></div>`);
+  var root_26$1 = /* @__PURE__ */ from_html(`<div class="ag-plan svelte-n8lbn1"><!></div>`);
+  var root_34 = /* @__PURE__ */ from_html(`<div class="ag-date-label svelte-n8lbn1"> </div>`);
+  var root_35$1 = /* @__PURE__ */ from_html(`<nav class="ag-nav svelte-n8lbn1"><button> </button> <button class="ag-nav-pill svelte-n8lbn1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true" class="svelte-n8lbn1"><path d="M10 3 5 8l5 5" class="svelte-n8lbn1"></path></svg></button> <button class="ag-nav-pill svelte-n8lbn1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true" class="svelte-n8lbn1"><path d="M6 3l5 5-5 5" class="svelte-n8lbn1"></path></svg></button></nav>`);
+  var root$3 = /* @__PURE__ */ from_html(`<div><div class="ag-body svelte-n8lbn1" role="list"><!> <!></div> <!> <!></div>`);
+  function AgendaDay($$anchor, $$props) {
+    push($$props, true);
+    const L = /* @__PURE__ */ user_derived(getLabels);
+    const ctx = useCalendarContext();
+    let events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null);
+    const clock = createClock();
+    const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
+    const showNav = /* @__PURE__ */ user_derived(() => ctx.showNav);
+    const equalDays = /* @__PURE__ */ user_derived(() => ctx.equalDays);
+    const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
+    const isMobile = /* @__PURE__ */ user_derived(() => ctx.isMobile);
+    const autoHeight = /* @__PURE__ */ user_derived(() => ctx.autoHeight);
+    const compact = /* @__PURE__ */ user_derived(() => ctx.compact);
+    const oneventhover = /* @__PURE__ */ user_derived(() => ctx.oneventhover);
+    const disabledSet = /* @__PURE__ */ user_derived(() => ctx.disabledSet);
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    const SWIPE_THRESHOLD = 50;
+    function onPointerDown(e) {
+      if (!get(isMobile)) return;
+      swipeStartX = e.clientX;
+      swipeStartY = e.clientY;
+    }
+    function onPointerUp(e) {
+      if (!get(isMobile)) return;
+      const dx = e.clientX - swipeStartX;
+      const dy = e.clientY - swipeStartY;
+      if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        if (dx > 0) get(viewState)?.prev();
+        else get(viewState)?.next();
+      }
+    }
+    const fmt = (d) => fmtTime(d, $$props.locale);
+    const eta = (ms) => timeUntilMs(ms, clock.tick);
+    const prog = (ev) => progress(ev, clock.tick);
+    function handleClick(ev) {
+      $$props.oneventclick?.(ev);
+    }
+    function handleKeydown(e, ev) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        $$props.oneventclick?.(ev);
+      }
+    }
+    const dayMs = /* @__PURE__ */ user_derived(() => $$props.focusDate ? sod($$props.focusDate.getTime()) : clock.today);
+    const dayEnd = /* @__PURE__ */ user_derived(() => get(dayMs) + DAY_MS);
+    const isToday = /* @__PURE__ */ user_derived(() => get(dayMs) === clock.today);
+    const isPastDay = /* @__PURE__ */ user_derived(() => get(equalDays) ? false : get(dayMs) < clock.today);
+    const dateLabel = /* @__PURE__ */ user_derived(() => get(showDates) ? new Date(get(dayMs)).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long", month: "long", day: "numeric" }) : new Date(get(dayMs)).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long" }));
+    const dayEvents = /* @__PURE__ */ user_derived(() => {
+      return events().filter((ev) => ev.start.getTime() < get(dayEnd) && ev.end.getTime() > get(dayMs)).sort((a, b) => a.start.getTime() - b.start.getTime());
+    });
+    const allDayBanner = /* @__PURE__ */ user_derived(() => get(dayEvents).filter((ev) => isAllDay(ev) || isMultiDay(ev)));
+    const timedDayEvents = /* @__PURE__ */ user_derived(() => get(dayEvents).filter((ev) => !isAllDay(ev) && !isMultiDay(ev)));
+    const dayCat = /* @__PURE__ */ user_derived(() => {
+      const now = clock.tick;
+      const past = [];
+      const current = [];
+      const upcoming = [];
+      for (const ev of get(timedDayEvents)) {
+        const s = ev.start.getTime();
+        const e = ev.end.getTime();
+        if (e <= now) past.push(ev);
+        else if (s <= now && e > now) current.push(ev);
+        else upcoming.push(ev);
+      }
+      return {
+        past,
+        current,
+        upcomingSlots: groupIntoSlots(upcoming),
+        totalUp: upcoming.length
+      };
+    });
+    const upcomingNext = /* @__PURE__ */ user_derived(() => {
+      const all = [];
+      for (const slot of get(dayCat).upcomingSlots) {
+        for (const ev of slot.events) {
+          all.push(ev);
+          if (all.length >= 5) return all;
+        }
+      }
+      return all;
+    });
+    var div = root$3();
+    let classes;
+    let styles;
+    var div_1 = child(div);
+    var node = child(div_1);
+    {
+      var consequent = ($$anchor2) => {
+        var div_2 = root_1$3();
+        var div_3 = child(div_2);
+        var text2 = child(div_3, true);
+        reset(div_3);
+        var div_4 = sibling(div_3, 2);
+        each(div_4, 21, () => get(allDayBanner), (ev) => ev.id, ($$anchor3, ev) => {
+          var div_5 = root_2$4();
+          let classes_1;
+          let styles_1;
+          var span = sibling(child(div_5), 2);
+          var text_1 = child(span, true);
+          reset(span);
+          reset(div_5);
+          template_effect(() => {
+            classes_1 = set_class(div_5, 1, "ag-allday-chip svelte-n8lbn1", null, classes_1, {
+              "ag-allday-chip--selected": selectedEventId() === get(ev).id
+            });
+            set_attribute(div_5, "aria-label", `${get(ev).title ?? ""}, ${get(L).allDay ?? ""}`);
+            styles_1 = set_style(div_5, "", styles_1, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+            set_text(text_1, get(ev).title);
+          });
+          delegated("click", div_5, () => handleClick(get(ev)));
+          event("pointerenter", div_5, () => get(oneventhover)?.(get(ev)));
+          delegated("keydown", div_5, (e) => handleKeydown(e, get(ev)));
+          append($$anchor3, div_5);
+        });
+        reset(div_4);
+        reset(div_2);
+        template_effect(() => set_text(text2, get(L).allDay));
+        append($$anchor2, div_2);
+      };
+      if_block(node, ($$render) => {
+        if (get(allDayBanner).length > 0) $$render(consequent);
+      });
+    }
+    var node_1 = sibling(node, 2);
+    {
+      var consequent_4 = ($$anchor2) => {
+        var div_6 = root_3$3();
+        var node_2 = child(div_6);
+        {
+          var consequent_1 = ($$anchor3) => {
+            var div_7 = root_4$3();
+            var text_2 = child(div_7, true);
+            reset(div_7);
+            template_effect(() => set_text(text_2, get(L).nothingScheduledYet));
+            append($$anchor3, div_7);
+          };
+          var alternate = ($$anchor3) => {
+            var fragment = comment();
+            var node_3 = first_child(fragment);
+            each(node_3, 17, () => get(timedDayEvents), (ev) => ev.id, ($$anchor4, ev) => {
+              var div_8 = root_6$4();
+              let classes_2;
+              let styles_2;
+              var span_1 = sibling(child(div_8), 2);
+              var text_3 = child(span_1, true);
+              reset(span_1);
+              var span_2 = sibling(span_1, 2);
+              var text_4 = child(span_2, true);
+              reset(span_2);
+              var node_4 = sibling(span_2, 2);
+              {
+                var consequent_2 = ($$anchor5) => {
+                  var span_3 = root_7$3();
+                  var text_5 = child(span_3, true);
+                  reset(span_3);
+                  template_effect(() => set_text(text_5, get(ev).subtitle));
+                  append($$anchor5, span_3);
+                };
+                if_block(node_4, ($$render) => {
+                  if (get(ev).subtitle) $$render(consequent_2);
+                });
+              }
+              var node_5 = sibling(node_4, 2);
+              {
+                var consequent_3 = ($$anchor5) => {
+                  var fragment_1 = comment();
+                  var node_6 = first_child(fragment_1);
+                  each(node_6, 17, () => get(ev).tags, index, ($$anchor6, tag) => {
+                    var span_4 = root_9$2();
+                    var text_6 = child(span_4, true);
+                    reset(span_4);
+                    template_effect(() => set_text(text_6, get(tag)));
+                    append($$anchor6, span_4);
+                  });
+                  append($$anchor5, fragment_1);
+                };
+                if_block(node_5, ($$render) => {
+                  if (get(ev).tags?.length) $$render(consequent_3);
+                });
+              }
+              var span_5 = sibling(node_5, 2);
+              var text_7 = child(span_5, true);
+              reset(span_5);
+              reset(div_8);
+              template_effect(
+                ($0, $1, $2, $3) => {
+                  classes_2 = set_class(div_8, 1, "ag-compact-row svelte-n8lbn1", null, classes_2, {
+                    "ag-compact-row--selected": selectedEventId() === get(ev).id,
+                    "ag-compact-row--cancelled": get(ev).status === "cancelled",
+                    "ag-compact-row--tentative": get(ev).status === "tentative"
+                  });
+                  set_attribute(div_8, "aria-label", `${get(ev).title ?? ""}, ${$0 ?? ""}, ${$1 ?? ""}`);
+                  styles_2 = set_style(div_8, "", styles_2, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+                  set_text(text_3, $2);
+                  set_text(text_4, get(ev).title);
+                  set_text(text_7, $3);
+                },
+                [
+                  () => fmt(get(ev).start),
+                  () => duration(get(ev)),
+                  () => fmt(get(ev).start),
+                  () => duration(get(ev))
+                ]
+              );
+              delegated("click", div_8, () => handleClick(get(ev)));
+              event("pointerenter", div_8, () => get(oneventhover)?.(get(ev)));
+              delegated("keydown", div_8, (e) => handleKeydown(e, get(ev)));
+              append($$anchor4, div_8);
+            });
+            append($$anchor3, fragment);
+          };
+          if_block(node_2, ($$render) => {
+            if (get(timedDayEvents).length === 0 && get(allDayBanner).length === 0) $$render(consequent_1);
+            else $$render(alternate, -1);
+          });
+        }
+        reset(div_6);
+        append($$anchor2, div_6);
+      };
+      var consequent_10 = ($$anchor2) => {
+        var div_9 = root_10$2();
+        var div_10 = child(div_9);
+        var node_7 = child(div_10);
+        {
+          var consequent_5 = ($$anchor3) => {
+            var div_11 = root_11$3();
+            var div_12 = child(div_11);
+            var text_8 = child(div_12, true);
+            reset(div_12);
+            var node_8 = sibling(div_12, 2);
+            each(node_8, 17, () => get(dayCat).past, (ev) => ev.id, ($$anchor4, ev) => {
+              var div_13 = root_12$2();
+              let classes_3;
+              var span_6 = sibling(child(div_13), 2);
+              var text_9 = child(span_6, true);
+              reset(span_6);
+              reset(div_13);
+              template_effect(
+                ($0) => {
+                  classes_3 = set_class(div_13, 1, "ag-q-done-item svelte-n8lbn1", null, classes_3, {
+                    "ag-q-done-item--selected": selectedEventId() === get(ev).id
+                  });
+                  set_attribute(div_13, "aria-label", `${get(ev).title ?? ""}, ${get(L).completed ?? ""}, ${$0 ?? ""}`);
+                  set_text(text_9, get(ev).title);
+                },
+                [() => fmt(get(ev).start)]
+              );
+              delegated("click", div_13, () => handleClick(get(ev)));
+              delegated("keydown", div_13, (e) => handleKeydown(e, get(ev)));
+              append($$anchor4, div_13);
+            });
+            reset(div_11);
+            template_effect(() => set_text(text_8, get(L).done));
+            append($$anchor3, div_11);
+          };
+          if_block(node_7, ($$render) => {
+            if (get(dayCat).past.length > 0) $$render(consequent_5);
+          });
+        }
+        var div_14 = sibling(node_7, 2);
+        var text_10 = child(div_14);
+        var span_7 = sibling(text_10);
+        var text_11 = child(span_7, true);
+        reset(span_7);
+        reset(div_14);
+        var node_9 = sibling(div_14, 2);
+        {
+          var consequent_6 = ($$anchor3) => {
+            var fragment_2 = comment();
+            var node_10 = first_child(fragment_2);
+            each(node_10, 17, () => get(dayCat).current, (ev) => ev.id, ($$anchor4, ev) => {
+              var div_15 = root_14$3();
+              let classes_4;
+              let styles_3;
+              var div_16 = sibling(child(div_15), 2);
+              var text_12 = child(div_16, true);
+              reset(div_16);
+              var div_17 = sibling(div_16, 2);
+              var text_13 = child(div_17);
+              reset(div_17);
+              var div_18 = sibling(div_17, 2);
+              var div_19 = child(div_18);
+              let styles_4;
+              reset(div_18);
+              reset(div_15);
+              template_effect(
+                ($0, $1, $2) => {
+                  classes_4 = set_class(div_15, 1, "ag-q-now svelte-n8lbn1", null, classes_4, { "ag-q-now--selected": selectedEventId() === get(ev).id });
+                  set_attribute(div_15, "aria-label", `${get(ev).title ?? ""}, ${get(L).happeningNow ?? ""}, ${$0 ?? ""}`);
+                  styles_3 = set_style(div_15, "", styles_3, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+                  set_text(text_12, get(ev).title);
+                  set_text(text_13, `${get(L).until ?? ""} ${$1 ?? ""}`);
+                  styles_4 = set_style(div_19, "", styles_4, $2);
+                },
+                [
+                  () => get(L).percentComplete(Math.round(prog(get(ev)) * 100)),
+                  () => fmt(get(ev).end),
+                  () => ({ width: `${prog(get(ev)) * 100}%` })
+                ]
+              );
+              delegated("click", div_15, () => handleClick(get(ev)));
+              event("pointerenter", div_15, () => get(oneventhover)?.(get(ev)));
+              delegated("keydown", div_15, (e) => handleKeydown(e, get(ev)));
+              append($$anchor4, div_15);
+            });
+            append($$anchor3, fragment_2);
+          };
+          var alternate_1 = ($$anchor3) => {
+            var div_20 = root_15$2();
+            var div_21 = child(div_20);
+            var text_14 = child(div_21, true);
+            reset(div_21);
+            reset(div_20);
+            template_effect(() => set_text(text_14, get(L).free));
+            append($$anchor3, div_20);
+          };
+          if_block(node_9, ($$render) => {
+            if (get(dayCat).current.length > 0) $$render(consequent_6);
+            else $$render(alternate_1, -1);
+          });
+        }
+        reset(div_10);
+        var div_22 = sibling(div_10, 2);
+        var div_23 = child(div_22);
+        var text_15 = child(div_23, true);
+        reset(div_23);
+        var node_11 = sibling(div_23, 2);
+        {
+          var consequent_7 = ($$anchor3) => {
+            var div_24 = root_16$2();
+            var text_16 = child(div_24, true);
+            reset(div_24);
+            template_effect(() => set_text(text_16, get(dayCat).past.length > 0 ? get(L).allDoneForToday : get(L).nothingScheduled));
+            append($$anchor3, div_24);
+          };
+          var alternate_2 = ($$anchor3) => {
+            var fragment_3 = comment();
+            var node_12 = first_child(fragment_3);
+            each(node_12, 19, () => get(upcomingNext), (ev) => ev.id, ($$anchor4, ev, i) => {
+              var div_25 = root_18$1();
+              let classes_5;
+              let styles_5;
+              var div_26 = child(div_25);
+              var div_27 = child(div_26);
+              var span_8 = child(div_27);
+              var text_17 = child(span_8, true);
+              reset(span_8);
+              var span_9 = sibling(span_8, 2);
+              var text_18 = child(span_9, true);
+              reset(span_9);
+              reset(div_27);
+              var node_13 = sibling(div_27, 2);
+              {
+                var consequent_8 = ($$anchor5) => {
+                  var span_10 = root_19$1();
+                  var text_19 = child(span_10, true);
+                  reset(span_10);
+                  template_effect(() => set_text(text_19, get(ev).subtitle));
+                  append($$anchor5, span_10);
+                };
+                if_block(node_13, ($$render) => {
+                  if (get(ev).subtitle) $$render(consequent_8);
+                });
+              }
+              var div_28 = sibling(node_13, 2);
+              var text_20 = child(div_28);
+              var span_11 = sibling(text_20);
+              var text_21 = child(span_11, true);
+              reset(span_11);
+              reset(div_28);
+              var node_14 = sibling(div_28, 2);
+              {
+                var consequent_9 = ($$anchor5) => {
+                  var div_29 = root_20$1();
+                  each(div_29, 21, () => get(ev).tags, index, ($$anchor6, tag) => {
+                    var span_12 = root_21$1();
+                    var text_22 = child(span_12, true);
+                    reset(span_12);
+                    template_effect(() => set_text(text_22, get(tag)));
+                    append($$anchor6, span_12);
+                  });
+                  reset(div_29);
+                  append($$anchor5, div_29);
+                };
+                if_block(node_14, ($$render) => {
+                  if (get(ev).tags?.length) $$render(consequent_9);
+                });
+              }
+              reset(div_26);
+              reset(div_25);
+              template_effect(
+                ($0, $1, $2, $3, $4, $5) => {
+                  classes_5 = set_class(div_25, 1, "ag-card ag-card--q svelte-n8lbn1", null, classes_5, {
+                    "ag-card--hero": get(i) === 0,
+                    "ag-card--selected": selectedEventId() === get(ev).id
+                  });
+                  set_attribute(div_25, "aria-label", `${get(ev).title ?? ""}, ${$0 ?? ""}, ${$1 ?? ""}`);
+                  styles_5 = set_style(div_25, "", styles_5, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+                  set_text(text_17, get(ev).title);
+                  set_text(text_18, $2);
+                  set_text(text_20, `${$3 ?? ""} – ${$4 ?? ""} `);
+                  set_text(text_21, $5);
+                },
+                [
+                  () => fmt(get(ev).start),
+                  () => duration(get(ev)),
+                  () => eta(get(ev).start.getTime()),
+                  () => fmt(get(ev).start),
+                  () => fmt(get(ev).end),
+                  () => duration(get(ev))
+                ]
+              );
+              delegated("click", div_25, () => handleClick(get(ev)));
+              event("pointerenter", div_25, () => get(oneventhover)?.(get(ev)));
+              delegated("keydown", div_25, (e) => handleKeydown(e, get(ev)));
+              append($$anchor4, div_25);
+            });
+            append($$anchor3, fragment_3);
+          };
+          if_block(node_11, ($$render) => {
+            if (get(upcomingNext).length === 0) $$render(consequent_7);
+            else $$render(alternate_2, -1);
+          });
+        }
+        reset(div_22);
+        reset(div_9);
+        template_effect(() => {
+          set_text(text_10, `${get(L).now ?? ""} `);
+          set_text(text_11, clock.hm);
+          set_text(text_15, get(L).upNext);
+        });
+        append($$anchor2, div_9);
+      };
+      var consequent_12 = ($$anchor2) => {
+        var div_30 = root_22$1();
+        var node_15 = child(div_30);
+        {
+          var consequent_11 = ($$anchor3) => {
+            var div_31 = root_23$1();
+            var text_23 = child(div_31, true);
+            reset(div_31);
+            template_effect(() => set_text(text_23, get(L).nothingWasScheduled));
+            append($$anchor3, div_31);
+          };
+          var alternate_3 = ($$anchor3) => {
+            var fragment_4 = comment();
+            var node_16 = first_child(fragment_4);
+            each(node_16, 17, () => get(timedDayEvents), (ev) => ev.id, ($$anchor4, ev) => {
+              var div_32 = root_25();
+              let classes_6;
+              let styles_6;
+              var span_13 = sibling(child(div_32), 2);
+              var text_24 = child(span_13, true);
+              reset(span_13);
+              var span_14 = sibling(span_13, 2);
+              let styles_7;
+              var span_15 = sibling(span_14, 2);
+              var text_25 = child(span_15, true);
+              reset(span_15);
+              var span_16 = sibling(span_15, 2);
+              var text_26 = child(span_16, true);
+              reset(span_16);
+              reset(div_32);
+              template_effect(
+                ($0, $1, $2, $3) => {
+                  classes_6 = set_class(div_32, 1, "ag-log-row svelte-n8lbn1", null, classes_6, { "ag-log-row--selected": selectedEventId() === get(ev).id });
+                  set_attribute(div_32, "aria-label", `${get(ev).title ?? ""}, ${$0 ?? ""} to ${$1 ?? ""}`);
+                  styles_6 = set_style(div_32, "", styles_6, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+                  set_text(text_24, $2);
+                  styles_7 = set_style(span_14, "", styles_7, { background: get(ev).color || "var(--dt-accent)" });
+                  set_text(text_25, get(ev).title);
+                  set_text(text_26, $3);
+                },
+                [
+                  () => fmt(get(ev).start),
+                  () => fmt(get(ev).end),
+                  () => fmt(get(ev).start),
+                  () => duration(get(ev))
+                ]
+              );
+              delegated("click", div_32, () => handleClick(get(ev)));
+              event("pointerenter", div_32, () => get(oneventhover)?.(get(ev)));
+              delegated("keydown", div_32, (e) => handleKeydown(e, get(ev)));
+              append($$anchor4, div_32);
+            });
+            append($$anchor3, fragment_4);
+          };
+          if_block(node_15, ($$render) => {
+            if (get(timedDayEvents).length === 0 && get(allDayBanner).length === 0) $$render(consequent_11);
+            else $$render(alternate_3, -1);
+          });
+        }
+        reset(div_30);
+        append($$anchor2, div_30);
+      };
+      var alternate_5 = ($$anchor2) => {
+        var div_33 = root_26$1();
+        var node_17 = child(div_33);
+        {
+          var consequent_13 = ($$anchor3) => {
+            var div_34 = root_27$1();
+            var text_27 = child(div_34, true);
+            reset(div_34);
+            template_effect(() => set_text(text_27, get(L).nothingScheduledYet));
+            append($$anchor3, div_34);
+          };
+          var alternate_4 = ($$anchor3) => {
+            var fragment_5 = comment();
+            var node_18 = first_child(fragment_5);
+            each(node_18, 19, () => get(timedDayEvents), (ev) => ev.id, ($$anchor4, ev, i) => {
+              var div_35 = root_29();
+              let classes_7;
+              let styles_8;
+              var div_36 = child(div_35);
+              var div_37 = child(div_36);
+              var span_17 = child(div_37);
+              var text_28 = child(span_17, true);
+              reset(span_17);
+              var span_18 = sibling(span_17, 2);
+              var text_29 = child(span_18, true);
+              reset(span_18);
+              reset(div_37);
+              var node_19 = sibling(div_37, 2);
+              {
+                var consequent_14 = ($$anchor5) => {
+                  var span_19 = root_30$1();
+                  var text_30 = child(span_19, true);
+                  reset(span_19);
+                  template_effect(() => set_text(text_30, get(ev).subtitle));
+                  append($$anchor5, span_19);
+                };
+                if_block(node_19, ($$render) => {
+                  if (get(ev).subtitle) $$render(consequent_14);
+                });
+              }
+              var node_20 = sibling(node_19, 2);
+              {
+                var consequent_15 = ($$anchor5) => {
+                  var span_20 = root_31();
+                  var text_31 = child(span_20, true);
+                  reset(span_20);
+                  template_effect(() => set_text(text_31, get(ev).location));
+                  append($$anchor5, span_20);
+                };
+                if_block(node_20, ($$render) => {
+                  if (get(ev).location) $$render(consequent_15);
+                });
+              }
+              var div_38 = sibling(node_20, 2);
+              var text_32 = child(div_38);
+              var span_21 = sibling(text_32);
+              var text_33 = child(span_21, true);
+              reset(span_21);
+              reset(div_38);
+              var node_21 = sibling(div_38, 2);
+              {
+                var consequent_16 = ($$anchor5) => {
+                  var div_39 = root_32$1();
+                  each(div_39, 21, () => get(ev).tags, index, ($$anchor6, tag) => {
+                    var span_22 = root_33$1();
+                    var text_34 = child(span_22, true);
+                    reset(span_22);
+                    template_effect(() => set_text(text_34, get(tag)));
+                    append($$anchor6, span_22);
+                  });
+                  reset(div_39);
+                  append($$anchor5, div_39);
+                };
+                if_block(node_21, ($$render) => {
+                  if (get(ev).tags?.length) $$render(consequent_16);
+                });
+              }
+              reset(div_36);
+              reset(div_35);
+              template_effect(
+                ($0, $1, $2, $3, $4, $5) => {
+                  classes_7 = set_class(div_35, 1, "ag-card ag-card--plan svelte-n8lbn1", null, classes_7, {
+                    "ag-card--first": get(i) === 0,
+                    "ag-card--selected": selectedEventId() === get(ev).id,
+                    "ag-card--cancelled": get(ev).status === "cancelled",
+                    "ag-card--tentative": get(ev).status === "tentative",
+                    "ag-card--full": get(ev).status === "full",
+                    "ag-card--limited": get(ev).status === "limited"
+                  });
+                  set_attribute(div_35, "aria-label", `${get(ev).title ?? ""}${get(ev).status === "cancelled" ? " (cancelled)" : ""}${get(ev).status === "tentative" ? " (tentative)" : ""}${get(ev).status === "full" ? " (full)" : ""}${get(ev).status === "limited" ? " (limited)" : ""}, ${$0 ?? ""} to ${$1 ?? ""}, ${$2 ?? ""}`);
+                  styles_8 = set_style(div_35, "", styles_8, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+                  set_text(text_28, get(i) + 1);
+                  set_text(text_29, get(ev).title);
+                  set_text(text_32, `${$3 ?? ""} – ${$4 ?? ""} `);
+                  set_text(text_33, $5);
+                },
+                [
+                  () => fmt(get(ev).start),
+                  () => fmt(get(ev).end),
+                  () => duration(get(ev)),
+                  () => fmt(get(ev).start),
+                  () => fmt(get(ev).end),
+                  () => duration(get(ev))
+                ]
+              );
+              delegated("click", div_35, () => handleClick(get(ev)));
+              event("pointerenter", div_35, () => get(oneventhover)?.(get(ev)));
+              delegated("keydown", div_35, (e) => handleKeydown(e, get(ev)));
+              append($$anchor4, div_35);
+            });
+            append($$anchor3, fragment_5);
+          };
+          if_block(node_17, ($$render) => {
+            if (get(timedDayEvents).length === 0 && get(allDayBanner).length === 0) $$render(consequent_13);
+            else $$render(alternate_4, -1);
+          });
+        }
+        reset(div_33);
+        append($$anchor2, div_33);
+      };
+      if_block(node_1, ($$render) => {
+        if (get(compact)) $$render(consequent_4);
+        else if (get(isToday)) $$render(consequent_10, 1);
+        else if (get(isPastDay)) $$render(consequent_12, 2);
+        else $$render(alternate_5, -1);
+      });
+    }
+    reset(div_1);
+    var node_22 = sibling(div_1, 2);
+    {
+      var consequent_17 = ($$anchor2) => {
+        var div_40 = root_34();
+        var text_35 = child(div_40, true);
+        reset(div_40);
+        template_effect(() => set_text(text_35, get(dateLabel)));
+        append($$anchor2, div_40);
+      };
+      if_block(node_22, ($$render) => {
+        if (!get(isMobile)) $$render(consequent_17);
+      });
+    }
+    var node_23 = sibling(node_22, 2);
+    {
+      var consequent_18 = ($$anchor2) => {
+        var nav = root_35$1();
+        var button = child(nav);
+        let classes_8;
+        var text_36 = child(button, true);
+        reset(button);
+        var button_1 = sibling(button, 2);
+        var button_2 = sibling(button_1, 2);
+        reset(nav);
+        template_effect(() => {
+          set_attribute(nav, "aria-label", get(L).dayNavigation);
+          classes_8 = set_class(button, 1, "ag-nav-pill ag-nav-today svelte-n8lbn1", null, classes_8, { "ag-nav-today--hidden": get(isToday) });
+          set_attribute(button, "aria-label", get(L).goToToday);
+          set_attribute(button, "tabindex", get(isToday) ? -1 : 0);
+          set_text(text_36, get(L).today);
+          set_attribute(button_1, "aria-label", get(L).previousDay);
+          set_attribute(button_2, "aria-label", get(L).nextDay);
+        });
+        delegated("click", button, () => get(viewState)?.goToday());
+        delegated("click", button_1, () => get(viewState)?.prev());
+        delegated("click", button_2, () => get(viewState)?.next());
+        append($$anchor2, nav);
+      };
+      if_block(node_23, ($$render) => {
+        if (get(showNav) && !get(isMobile)) $$render(consequent_18);
+      });
+    }
+    reset(div);
+    template_effect(
+      ($0) => {
+        classes = set_class(div, 1, "ag ag--day svelte-n8lbn1", null, classes, $0);
+        styles = set_style(div, style() || void 0, styles, { height: $$props.height ? `${$$props.height}px` : void 0 });
+        set_attribute(div_1, "aria-label", get(L).todaysLineup);
+      },
+      [
+        () => ({
+          "ag--disabled": get(disabledSet).has(get(dayMs)),
+          "ag--mobile": get(isMobile),
+          "ag--auto": get(autoHeight)
+        })
+      ]
+    );
+    delegated("pointerdown", div, onPointerDown);
+    delegated("pointerup", div, onPointerUp);
+    append($$anchor, div);
+    pop();
+  }
+  delegate(["pointerdown", "pointerup", "click", "keydown"]);
+  var root_2$3 = /* @__PURE__ */ from_html(`<span class="ag-card-sub svelte-uhwfyj"> </span>`);
+  var root_3$2 = /* @__PURE__ */ from_html(`<span class="ag-card-loc svelte-uhwfyj"> </span>`);
+  var root_6$3 = /* @__PURE__ */ from_html(`<span class="ag-card-eta svelte-uhwfyj"> </span>`);
+  var root_8$3 = /* @__PURE__ */ from_html(`<span class="ag-card-tag svelte-uhwfyj"> </span>`);
+  var root_7$2 = /* @__PURE__ */ from_html(`<div class="ag-card-tags svelte-uhwfyj"></div>`);
+  var root_9$1 = /* @__PURE__ */ from_html(`<div class="ag-card-progress svelte-uhwfyj"><div class="ag-card-progress-fill svelte-uhwfyj"></div></div>`);
+  var root_1$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-uhwfyj"><span class="ag-card-title svelte-uhwfyj"> </span> <!> <!> <span class="ag-card-meta svelte-uhwfyj"><!> <span class="ag-card-dur svelte-uhwfyj"> </span> <!></span> <!> <!></div></div>`);
+  var root_12$1 = /* @__PURE__ */ from_html(`<span class="ag-wday-date svelte-uhwfyj"> </span>`);
+  var root_13$2 = /* @__PURE__ */ from_html(`<div class="ag-wday-custom-header svelte-uhwfyj"><!></div>`);
+  var root_11$2 = /* @__PURE__ */ from_html(`<div role="listitem"><div class="ag-wday-head svelte-uhwfyj"><div class="ag-wday-head-left svelte-uhwfyj"><span class="ag-wday-name svelte-uhwfyj"> </span> <!></div> <!></div></div>`);
+  var root_15$1 = /* @__PURE__ */ from_html(`<span class="ag-wday-badge svelte-uhwfyj"> </span>`);
+  var root_16$1 = /* @__PURE__ */ from_html(`<span class="ag-wday-badge ag-wday-badge--muted svelte-uhwfyj"> </span>`);
+  var root_17$1 = /* @__PURE__ */ from_html(`<span class="ag-wday-date svelte-uhwfyj"> </span>`);
+  var root_18 = /* @__PURE__ */ from_html(`<div class="ag-wday-custom-header svelte-uhwfyj"><!></div>`);
+  var root_20 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-allday-dot svelte-uhwfyj"></span> <span class="ag-allday-title svelte-uhwfyj"> </span></div>`);
+  var root_19 = /* @__PURE__ */ from_html(`<div class="ag-allday svelte-uhwfyj"></div>`);
+  var root_21 = /* @__PURE__ */ from_html(`<div class="ag-wday-empty svelte-uhwfyj"> </div>`);
+  var root_24 = /* @__PURE__ */ from_html(`<span class="ag-compact-sub svelte-uhwfyj"> </span>`);
+  var root_26 = /* @__PURE__ */ from_html(`<span class="ag-compact-tag svelte-uhwfyj"> </span>`);
+  var root_23 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-dot svelte-uhwfyj"></span> <span class="ag-compact-time svelte-uhwfyj"> </span> <span class="ag-compact-title svelte-uhwfyj"> </span> <!> <!> <span class="ag-compact-dur svelte-uhwfyj"> </span></div>`);
+  var root_22 = /* @__PURE__ */ from_html(`<div class="ag-wday-compact svelte-uhwfyj"></div>`);
+  var root_28 = /* @__PURE__ */ from_html(`<div class="ag-wslot svelte-uhwfyj"><div></div></div>`);
+  var root_27 = /* @__PURE__ */ from_html(`<div class="ag-wday-expanded svelte-uhwfyj"></div>`);
+  var root_32 = /* @__PURE__ */ from_html(`<div class="ag-wslot svelte-uhwfyj"><div class="ag-wslot-header svelte-uhwfyj"><span class="ag-wslot-now svelte-uhwfyj"> </span></div> <!></div>`);
+  var root_33 = /* @__PURE__ */ from_html(`<div class="ag-wslot svelte-uhwfyj"><div></div></div>`);
+  var root_35 = /* @__PURE__ */ from_html(`<div class="ag-wday-past-line svelte-uhwfyj"> </div>`);
+  var root_30 = /* @__PURE__ */ from_html(`<div class="ag-wday-expanded svelte-uhwfyj"><!> <!> <!></div>`);
+  var root_38 = /* @__PURE__ */ from_html(`<span class="ag-compact-loc svelte-uhwfyj"> </span>`);
+  var root_39 = /* @__PURE__ */ from_html(`<span class="ag-compact-sub svelte-uhwfyj"> </span>`);
+  var root_41 = /* @__PURE__ */ from_html(`<span class="ag-compact-tag svelte-uhwfyj"> </span>`);
+  var root_37 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-dot svelte-uhwfyj"></span> <span class="ag-compact-time svelte-uhwfyj"> </span> <span class="ag-compact-title svelte-uhwfyj"> </span> <!> <!> <!> <span class="ag-compact-dur svelte-uhwfyj"> </span></div>`);
+  var root_42 = /* @__PURE__ */ from_html(`<div class="ag-compact-more svelte-uhwfyj"> </div>`);
+  var root_36 = /* @__PURE__ */ from_html(`<div class="ag-wday-compact svelte-uhwfyj"><!> <!></div>`);
+  var root_14$2 = /* @__PURE__ */ from_html(`<div role="listitem"><div class="ag-wday-head svelte-uhwfyj"><div class="ag-wday-head-left svelte-uhwfyj"><!> <span class="ag-wday-name svelte-uhwfyj"> </span> <!></div> <!></div> <!> <!></div>`);
+  var root_43 = /* @__PURE__ */ from_html(`<nav class="ag-nav svelte-uhwfyj"><button> </button> <button class="ag-nav-pill svelte-uhwfyj"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></button> <button class="ag-nav-pill svelte-uhwfyj"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></button></nav>`);
+  var root$2 = /* @__PURE__ */ from_html(`<div><div class="ag-body svelte-uhwfyj" role="list"></div> <!></div>`);
+  function AgendaWeek($$anchor, $$props) {
+    push($$props, true);
+    const eventCard = ($$anchor2, ev = noop, isNow = noop, eta2 = noop) => {
+      var div = root_1$2();
+      let classes;
+      let styles;
+      var div_1 = child(div);
+      var span = child(div_1);
+      var text$1 = child(span, true);
+      reset(span);
+      var node = sibling(span, 2);
+      {
+        var consequent = ($$anchor3) => {
+          var span_1 = root_2$3();
+          var text_1 = child(span_1, true);
+          reset(span_1);
+          template_effect(() => set_text(text_1, ev().subtitle));
+          append($$anchor3, span_1);
+        };
+        if_block(node, ($$render) => {
+          if (ev().subtitle) $$render(consequent);
+        });
+      }
+      var node_1 = sibling(node, 2);
+      {
+        var consequent_1 = ($$anchor3) => {
+          var span_2 = root_3$2();
+          var text_2 = child(span_2, true);
+          reset(span_2);
+          template_effect(() => set_text(text_2, ev().location));
+          append($$anchor3, span_2);
+        };
+        if_block(node_1, ($$render) => {
+          if (ev().location) $$render(consequent_1);
+        });
+      }
+      var span_3 = sibling(node_1, 2);
+      var node_2 = child(span_3);
+      {
+        var consequent_2 = ($$anchor3) => {
+          var text_3 = text();
+          template_effect(($0) => set_text(text_3, `${get(L).until ?? ""} ${$0 ?? ""}`), [() => fmt(ev().end)]);
+          append($$anchor3, text_3);
+        };
+        var alternate = ($$anchor3) => {
+          var text_4 = text();
+          template_effect(($0, $1) => set_text(text_4, `${$0 ?? ""} – ${$1 ?? ""}`), [() => fmt(ev().start), () => fmt(ev().end)]);
+          append($$anchor3, text_4);
+        };
+        if_block(node_2, ($$render) => {
+          if (isNow()) $$render(consequent_2);
+          else $$render(alternate, -1);
+        });
+      }
+      var span_4 = sibling(node_2, 2);
+      var text_5 = child(span_4, true);
+      reset(span_4);
+      var node_3 = sibling(span_4, 2);
+      {
+        var consequent_3 = ($$anchor3) => {
+          var span_5 = root_6$3();
+          var text_6 = child(span_5, true);
+          reset(span_5);
+          template_effect(() => set_text(text_6, eta2()));
+          append($$anchor3, span_5);
+        };
+        if_block(node_3, ($$render) => {
+          if (eta2()) $$render(consequent_3);
+        });
+      }
+      reset(span_3);
+      var node_4 = sibling(span_3, 2);
+      {
+        var consequent_4 = ($$anchor3) => {
+          var div_2 = root_7$2();
+          each(div_2, 21, () => ev().tags, index, ($$anchor4, tag) => {
+            var span_6 = root_8$3();
+            var text_7 = child(span_6, true);
+            reset(span_6);
+            template_effect(() => set_text(text_7, get(tag)));
+            append($$anchor4, span_6);
+          });
+          reset(div_2);
+          append($$anchor3, div_2);
+        };
+        if_block(node_4, ($$render) => {
+          if (ev().tags?.length) $$render(consequent_4);
+        });
+      }
+      var node_5 = sibling(node_4, 2);
+      {
+        var consequent_5 = ($$anchor3) => {
+          var div_3 = root_9$1();
+          var div_4 = child(div_3);
+          let styles_1;
+          reset(div_3);
+          template_effect(($0) => styles_1 = set_style(div_4, "", styles_1, $0), [() => ({ width: `${prog(ev()) * 100}%` })]);
+          append($$anchor3, div_3);
+        };
+        if_block(node_5, ($$render) => {
+          if (isNow()) $$render(consequent_5);
+        });
+      }
+      reset(div_1);
+      reset(div);
+      template_effect(
+        ($0, $1, $2, $3) => {
+          classes = set_class(div, 1, "ag-card svelte-uhwfyj", null, classes, {
+            "ag-card--selected": selectedEventId() === ev().id,
+            "ag-card--cancelled": ev().status === "cancelled",
+            "ag-card--tentative": ev().status === "tentative",
+            "ag-card--full": ev().status === "full",
+            "ag-card--limited": ev().status === "limited"
+          });
+          set_attribute(div, "aria-label", `${ev().title ?? ""}${ev().status === "cancelled" ? " (cancelled)" : ""}${ev().status === "tentative" ? " (tentative)" : ""}${ev().status === "full" ? " (full)" : ""}${ev().status === "limited" ? " (limited)" : ""}, ${$0 ?? ""} to ${$1 ?? ""}, ${$2 ?? ""}`);
+          styles = set_style(div, "", styles, { "--ev-color": ev().color || "var(--dt-accent)" });
+          set_text(text$1, ev().title);
+          set_text(text_5, $3);
+        },
+        [
+          () => fmt(ev().start),
+          () => fmt(ev().end),
+          () => duration(ev()),
+          () => duration(ev())
+        ]
+      );
+      delegated("click", div, () => handleClick(ev()));
+      event("pointerenter", div, () => get(oneventhover)?.(ev()));
+      delegated("keydown", div, (e) => handleKeydown(e, ev()));
+      append($$anchor2, div);
+    };
+    const L = /* @__PURE__ */ user_derived(getLabels);
+    const ctx = useCalendarContext();
+    let mondayStart = prop($$props, "mondayStart", 3, true);
+    prop($$props, "height", 3, 520);
+    let events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null);
+    const clock = createClock();
+    const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
+    const showNav = /* @__PURE__ */ user_derived(() => ctx.showNav);
+    const equalDays = /* @__PURE__ */ user_derived(() => ctx.equalDays);
+    const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
+    const hideDays = /* @__PURE__ */ user_derived(() => ctx.hideDays);
+    const isMobile = /* @__PURE__ */ user_derived(() => ctx.isMobile);
+    const autoHeight = /* @__PURE__ */ user_derived(() => ctx.autoHeight);
+    const compact = /* @__PURE__ */ user_derived(() => ctx.compact);
+    const dayHeaderSnippet = /* @__PURE__ */ user_derived(() => ctx.dayHeaderSnippet);
+    const oneventhover = /* @__PURE__ */ user_derived(() => ctx.oneventhover);
+    const disabledSet = /* @__PURE__ */ user_derived(() => ctx.disabledSet);
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    const SWIPE_THRESHOLD = 50;
+    function onPointerDown(e) {
+      if (!get(isMobile)) return;
+      swipeStartX = e.clientX;
+      swipeStartY = e.clientY;
+    }
+    function onPointerUp(e) {
+      if (!get(isMobile)) return;
+      const dx = e.clientX - swipeStartX;
+      const dy = e.clientY - swipeStartY;
+      if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        if (dx > 0) get(viewState)?.prev();
+        else get(viewState)?.next();
+      }
+    }
+    const fmt = (d) => fmtTime(d, $$props.locale);
+    const eta = (ms) => timeUntilMs(ms, clock.tick);
+    const prog = (ev) => progress(ev, clock.tick);
+    function handleClick(ev) {
+      $$props.oneventclick?.(ev);
+    }
+    function handleKeydown(e, ev) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        $$props.oneventclick?.(ev);
+      }
+    }
+    const weekStartMs = /* @__PURE__ */ user_derived(() => $$props.focusDate ? get(viewState)?.dayCount === 7 ? startOfWeek(sod($$props.focusDate.getTime()), mondayStart()) : sod($$props.focusDate.getTime()) : get(viewState)?.dayCount === 7 ? startOfWeek(clock.today, mondayStart()) : clock.today);
+    const customDays = /* @__PURE__ */ user_derived(() => get(viewState)?.dayCount ?? 7);
+    const isThisWeek = /* @__PURE__ */ user_derived(() => get(customDays) === 7 ? get(weekStartMs) === startOfWeek(clock.today, mondayStart()) : clock.today >= get(weekStartMs) && clock.today < get(weekStartMs) + get(customDays) * DAY_MS);
+    const weekDays = /* @__PURE__ */ user_derived(() => {
+      const now = clock.tick;
+      const todayMs = clock.today;
+      const tomorrowMs = todayMs + DAY_MS;
+      const out = [];
+      for (let i = 0; i < get(customDays); i++) {
+        const ms = get(weekStartMs) + i * DAY_MS;
+        const dEnd = ms + DAY_MS;
+        const dayEvts = events().filter((ev) => ev.start.getTime() < dEnd && ev.end.getTime() > ms).sort((a, b) => a.start.getTime() - b.start.getTime());
+        const allDayEvts = dayEvts.filter((ev) => isAllDay(ev) || isMultiDay(ev));
+        const timedEvts = dayEvts.filter((ev) => !isAllDay(ev) && !isMultiDay(ev));
+        const totalMinutes = timedEvts.reduce(
+          (sum, ev) => {
+            const s = Math.max(ev.start.getTime(), ms);
+            const e = Math.min(ev.end.getTime(), dEnd);
+            return sum + (e - s) / 6e4;
+          },
+          0
+        );
+        const pastEvents = [];
+        const currentEvents = [];
+        const upcomingEvents = [];
+        for (const ev of timedEvts) {
+          if (ev.end.getTime() <= now) pastEvents.push(ev);
+          else if (ev.start.getTime() <= now && ev.end.getTime() > now) currentEvents.push(ev);
+          else upcomingEvents.push(ev);
+        }
+        let tier;
+        if (get(equalDays)) {
+          tier = "upcoming";
+        } else if (ms === todayMs) {
+          tier = "today";
+        } else if (ms === tomorrowMs) {
+          tier = "tomorrow";
+        } else if (ms < todayMs) {
+          tier = "past";
+        } else {
+          tier = "upcoming";
+        }
+        out.push({
+          ms,
+          dayName: weekdayLong(ms, $$props.locale),
+          dateLabel: `${monthLong(ms, $$props.locale)} ${dayNum(ms)}`,
+          tier,
+          events: dayEvts,
+          allDayEvents: allDayEvts,
+          timedEvents: timedEvts,
+          pastEvents,
+          currentEvents,
+          upcomingEvents,
+          totalHours: Math.round(totalMinutes / 60 * 10) / 10
+        });
+      }
+      if (get(hideDays)?.length) {
+        return out.filter((d) => {
+          const jsDay = new Date(d.ms).getDay();
+          const iso = jsDay === 0 ? 7 : jsDay;
+          return !get(hideDays).includes(iso);
+        });
+      }
+      return out;
+    });
+    var div_5 = root$2();
+    let classes_1;
+    var div_6 = child(div_5);
+    each(div_6, 21, () => get(weekDays), (day) => day.ms, ($$anchor2, day) => {
+      const expanded = /* @__PURE__ */ user_derived(() => get(day).tier === "today" || get(day).tier === "tomorrow");
+      var fragment_2 = comment();
+      var node_6 = first_child(fragment_2);
+      {
+        var consequent_8 = ($$anchor3) => {
+          var div_7 = root_11$2();
+          let classes_2;
+          var div_8 = child(div_7);
+          var div_9 = child(div_8);
+          var span_7 = child(div_9);
+          var text_8 = child(span_7, true);
+          reset(span_7);
+          var node_7 = sibling(span_7, 2);
+          {
+            var consequent_6 = ($$anchor4) => {
+              var span_8 = root_12$1();
+              var text_9 = child(span_8, true);
+              reset(span_8);
+              template_effect(() => set_text(text_9, get(day).dateLabel));
+              append($$anchor4, span_8);
+            };
+            if_block(node_7, ($$render) => {
+              if (get(showDates)) $$render(consequent_6);
+            });
+          }
+          reset(div_9);
+          var node_8 = sibling(div_9, 2);
+          {
+            var consequent_7 = ($$anchor4) => {
+              var div_10 = root_13$2();
+              var node_9 = child(div_10);
+              snippet(node_9, () => get(dayHeaderSnippet), () => ({
+                date: new Date(get(day).ms),
+                isToday: false,
+                dayName: get(day).dayName
+              }));
+              reset(div_10);
+              append($$anchor4, div_10);
+            };
+            if_block(node_8, ($$render) => {
+              if (get(dayHeaderSnippet)) $$render(consequent_7);
+            });
+          }
+          reset(div_8);
+          reset(div_7);
+          template_effect(
+            ($0) => {
+              classes_2 = set_class(div_7, 1, "ag-wday ag-wday--past svelte-uhwfyj", null, classes_2, $0);
+              set_text(text_8, get(day).dayName);
+            },
+            [
+              () => ({ "ag-wday--disabled": get(disabledSet).has(get(day).ms) })
+            ]
+          );
+          append($$anchor3, div_7);
+        };
+        var alternate_2 = ($$anchor3) => {
+          var div_11 = root_14$2();
+          let classes_3;
+          var div_12 = child(div_11);
+          var div_13 = child(div_12);
+          var node_10 = child(div_13);
+          {
+            var consequent_9 = ($$anchor4) => {
+              var span_9 = root_15$1();
+              var text_10 = child(span_9, true);
+              reset(span_9);
+              template_effect(() => set_text(text_10, get(L).today));
+              append($$anchor4, span_9);
+            };
+            var consequent_10 = ($$anchor4) => {
+              var span_10 = root_16$1();
+              var text_11 = child(span_10, true);
+              reset(span_10);
+              template_effect(() => set_text(text_11, get(L).tomorrow));
+              append($$anchor4, span_10);
+            };
+            if_block(node_10, ($$render) => {
+              if (get(day).tier === "today") $$render(consequent_9);
+              else if (get(day).tier === "tomorrow") $$render(consequent_10, 1);
+            });
+          }
+          var span_11 = sibling(node_10, 2);
+          var text_12 = child(span_11, true);
+          reset(span_11);
+          var node_11 = sibling(span_11, 2);
+          {
+            var consequent_11 = ($$anchor4) => {
+              var span_12 = root_17$1();
+              var text_13 = child(span_12, true);
+              reset(span_12);
+              template_effect(() => set_text(text_13, get(day).dateLabel));
+              append($$anchor4, span_12);
+            };
+            if_block(node_11, ($$render) => {
+              if (get(showDates)) $$render(consequent_11);
+            });
+          }
+          reset(div_13);
+          var node_12 = sibling(div_13, 2);
+          {
+            var consequent_12 = ($$anchor4) => {
+              var div_14 = root_18();
+              var node_13 = child(div_14);
+              snippet(node_13, () => get(dayHeaderSnippet), () => ({
+                date: new Date(get(day).ms),
+                isToday: get(day).tier === "today",
+                dayName: get(day).dayName
+              }));
+              reset(div_14);
+              append($$anchor4, div_14);
+            };
+            if_block(node_12, ($$render) => {
+              if (get(dayHeaderSnippet)) $$render(consequent_12);
+            });
+          }
+          reset(div_12);
+          var node_14 = sibling(div_12, 2);
+          {
+            var consequent_13 = ($$anchor4) => {
+              var div_15 = root_19();
+              each(div_15, 21, () => get(day).allDayEvents, (ev) => ev.id, ($$anchor5, ev) => {
+                var div_16 = root_20();
+                let classes_4;
+                let styles_2;
+                var span_13 = sibling(child(div_16), 2);
+                var text_14 = child(span_13, true);
+                reset(span_13);
+                reset(div_16);
+                template_effect(() => {
+                  classes_4 = set_class(div_16, 1, "ag-allday-chip svelte-uhwfyj", null, classes_4, {
+                    "ag-allday-chip--selected": selectedEventId() === get(ev).id
+                  });
+                  set_attribute(div_16, "aria-label", `${get(ev).title ?? ""}, ${get(L).allDay ?? ""}`);
+                  styles_2 = set_style(div_16, "", styles_2, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+                  set_text(text_14, get(ev).title);
+                });
+                delegated("click", div_16, () => handleClick(get(ev)));
+                event("pointerenter", div_16, () => get(oneventhover)?.(get(ev)));
+                delegated("keydown", div_16, (e) => handleKeydown(e, get(ev)));
+                append($$anchor5, div_16);
+              });
+              reset(div_15);
+              append($$anchor4, div_15);
+            };
+            if_block(node_14, ($$render) => {
+              if (get(day).allDayEvents.length > 0) $$render(consequent_13);
+            });
+          }
+          var node_15 = sibling(node_14, 2);
+          {
+            var consequent_14 = ($$anchor4) => {
+              var div_17 = root_21();
+              var text_15 = child(div_17, true);
+              reset(div_17);
+              template_effect(() => set_text(text_15, get(L).noEvents));
+              append($$anchor4, div_17);
+            };
+            var consequent_17 = ($$anchor4) => {
+              var div_18 = root_22();
+              each(div_18, 21, () => get(day).timedEvents, (ev) => ev.id, ($$anchor5, ev) => {
+                var div_19 = root_23();
+                let classes_5;
+                let styles_3;
+                var span_14 = sibling(child(div_19), 2);
+                var text_16 = child(span_14, true);
+                reset(span_14);
+                var span_15 = sibling(span_14, 2);
+                var text_17 = child(span_15, true);
+                reset(span_15);
+                var node_16 = sibling(span_15, 2);
+                {
+                  var consequent_15 = ($$anchor6) => {
+                    var span_16 = root_24();
+                    var text_18 = child(span_16, true);
+                    reset(span_16);
+                    template_effect(() => set_text(text_18, get(ev).subtitle));
+                    append($$anchor6, span_16);
+                  };
+                  if_block(node_16, ($$render) => {
+                    if (get(ev).subtitle) $$render(consequent_15);
+                  });
+                }
+                var node_17 = sibling(node_16, 2);
+                {
+                  var consequent_16 = ($$anchor6) => {
+                    var fragment_3 = comment();
+                    var node_18 = first_child(fragment_3);
+                    each(node_18, 17, () => get(ev).tags, index, ($$anchor7, tag) => {
+                      var span_17 = root_26();
+                      var text_19 = child(span_17, true);
+                      reset(span_17);
+                      template_effect(() => set_text(text_19, get(tag)));
+                      append($$anchor7, span_17);
+                    });
+                    append($$anchor6, fragment_3);
+                  };
+                  if_block(node_17, ($$render) => {
+                    if (get(ev).tags?.length) $$render(consequent_16);
+                  });
+                }
+                var span_18 = sibling(node_17, 2);
+                var text_20 = child(span_18, true);
+                reset(span_18);
+                reset(div_19);
+                template_effect(
+                  ($0, $1, $2, $3) => {
+                    classes_5 = set_class(div_19, 1, "ag-compact svelte-uhwfyj", null, classes_5, {
+                      "ag-compact--selected": selectedEventId() === get(ev).id,
+                      "ag-compact--cancelled": get(ev).status === "cancelled",
+                      "ag-compact--tentative": get(ev).status === "tentative",
+                      "ag-compact--full": get(ev).status === "full",
+                      "ag-compact--limited": get(ev).status === "limited"
+                    });
+                    set_attribute(div_19, "aria-label", `${get(ev).title ?? ""}, ${$0 ?? ""}, ${$1 ?? ""}`);
+                    styles_3 = set_style(div_19, "", styles_3, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+                    set_text(text_16, $2);
+                    set_text(text_17, get(ev).title);
+                    set_text(text_20, $3);
+                  },
+                  [
+                    () => fmt(get(ev).start),
+                    () => duration(get(ev)),
+                    () => fmt(get(ev).start),
+                    () => duration(get(ev))
+                  ]
+                );
+                delegated("click", div_19, () => handleClick(get(ev)));
+                event("pointerenter", div_19, () => get(oneventhover)?.(get(ev)));
+                delegated("keydown", div_19, (e) => handleKeydown(e, get(ev)));
+                append($$anchor5, div_19);
+              });
+              reset(div_18);
+              append($$anchor4, div_18);
+            };
+            var consequent_18 = ($$anchor4) => {
+              var div_20 = root_27();
+              each(div_20, 21, () => groupIntoSlots(get(day).timedEvents), (slot) => slot.startMs, ($$anchor5, slot) => {
+                var div_21 = root_28();
+                var div_22 = child(div_21);
+                let classes_6;
+                each(div_22, 21, () => get(slot).events, (ev) => ev.id, ($$anchor6, ev) => {
+                  eventCard($$anchor6, () => get(ev), () => false);
+                });
+                reset(div_22);
+                reset(div_21);
+                template_effect(() => classes_6 = set_class(div_22, 1, "ag-wslot-cards svelte-uhwfyj", null, classes_6, { "ag-wslot-cards--multi": get(slot).events.length > 1 }));
+                append($$anchor5, div_21);
+              });
+              reset(div_20);
+              append($$anchor4, div_20);
+            };
+            var consequent_21 = ($$anchor4) => {
+              var div_23 = root_30();
+              var node_19 = child(div_23);
+              {
+                var consequent_19 = ($$anchor5) => {
+                  var fragment_5 = comment();
+                  var node_20 = first_child(fragment_5);
+                  each(node_20, 17, () => get(day).currentEvents, (ev) => ev.id, ($$anchor6, ev) => {
+                    var div_24 = root_32();
+                    var div_25 = child(div_24);
+                    var span_19 = child(div_25);
+                    var text_21 = child(span_19, true);
+                    reset(span_19);
+                    reset(div_25);
+                    var node_21 = sibling(div_25, 2);
+                    eventCard(node_21, () => get(ev), () => true);
+                    reset(div_24);
+                    template_effect(() => set_text(text_21, get(L).now));
+                    append($$anchor6, div_24);
+                  });
+                  append($$anchor5, fragment_5);
+                };
+                if_block(node_19, ($$render) => {
+                  if (get(day).currentEvents.length > 0) $$render(consequent_19);
+                });
+              }
+              var node_22 = sibling(node_19, 2);
+              each(node_22, 17, () => groupIntoSlots(get(day).upcomingEvents), (slot) => slot.startMs, ($$anchor5, slot) => {
+                var div_26 = root_33();
+                var div_27 = child(div_26);
+                let classes_7;
+                each(div_27, 21, () => get(slot).events, (ev) => ev.id, ($$anchor6, ev) => {
+                  {
+                    let $0 = /* @__PURE__ */ user_derived(() => get(day).tier === "today" ? eta(get(ev).start.getTime()) : void 0);
+                    eventCard($$anchor6, () => get(ev), () => false, () => get($0));
+                  }
+                });
+                reset(div_27);
+                reset(div_26);
+                template_effect(() => classes_7 = set_class(div_27, 1, "ag-wslot-cards svelte-uhwfyj", null, classes_7, { "ag-wslot-cards--multi": get(slot).events.length > 1 }));
+                append($$anchor5, div_26);
+              });
+              var node_23 = sibling(node_22, 2);
+              {
+                var consequent_20 = ($$anchor5) => {
+                  var div_28 = root_35();
+                  var text_22 = child(div_28);
+                  reset(div_28);
+                  template_effect(($0) => set_text(text_22, `✓ ${$0 ?? ""}`), [() => get(L).nCompleted(get(day).pastEvents.length)]);
+                  append($$anchor5, div_28);
+                };
+                if_block(node_23, ($$render) => {
+                  if (get(day).pastEvents.length > 0) $$render(consequent_20);
+                });
+              }
+              reset(div_23);
+              append($$anchor4, div_23);
+            };
+            var alternate_1 = ($$anchor4) => {
+              var div_29 = root_36();
+              var node_24 = child(div_29);
+              each(node_24, 17, () => get(day).timedEvents.slice(0, 4), (ev) => ev.id, ($$anchor5, ev) => {
+                var div_30 = root_37();
+                let classes_8;
+                let styles_4;
+                var span_20 = sibling(child(div_30), 2);
+                var text_23 = child(span_20, true);
+                reset(span_20);
+                var span_21 = sibling(span_20, 2);
+                var text_24 = child(span_21, true);
+                reset(span_21);
+                var node_25 = sibling(span_21, 2);
+                {
+                  var consequent_22 = ($$anchor6) => {
+                    var span_22 = root_38();
+                    var text_25 = child(span_22, true);
+                    reset(span_22);
+                    template_effect(() => set_text(text_25, get(ev).location));
+                    append($$anchor6, span_22);
+                  };
+                  if_block(node_25, ($$render) => {
+                    if (get(ev).location) $$render(consequent_22);
+                  });
+                }
+                var node_26 = sibling(node_25, 2);
+                {
+                  var consequent_23 = ($$anchor6) => {
+                    var span_23 = root_39();
+                    var text_26 = child(span_23, true);
+                    reset(span_23);
+                    template_effect(() => set_text(text_26, get(ev).subtitle));
+                    append($$anchor6, span_23);
+                  };
+                  if_block(node_26, ($$render) => {
+                    if (get(ev).subtitle) $$render(consequent_23);
+                  });
+                }
+                var node_27 = sibling(node_26, 2);
+                {
+                  var consequent_24 = ($$anchor6) => {
+                    var fragment_7 = comment();
+                    var node_28 = first_child(fragment_7);
+                    each(node_28, 17, () => get(ev).tags, index, ($$anchor7, tag) => {
+                      var span_24 = root_41();
+                      var text_27 = child(span_24, true);
+                      reset(span_24);
+                      template_effect(() => set_text(text_27, get(tag)));
+                      append($$anchor7, span_24);
+                    });
+                    append($$anchor6, fragment_7);
+                  };
+                  if_block(node_27, ($$render) => {
+                    if (get(ev).tags?.length) $$render(consequent_24);
+                  });
+                }
+                var span_25 = sibling(node_27, 2);
+                var text_28 = child(span_25, true);
+                reset(span_25);
+                reset(div_30);
+                template_effect(
+                  ($0, $1, $2, $3) => {
+                    classes_8 = set_class(div_30, 1, "ag-compact svelte-uhwfyj", null, classes_8, {
+                      "ag-compact--selected": selectedEventId() === get(ev).id,
+                      "ag-compact--cancelled": get(ev).status === "cancelled",
+                      "ag-compact--tentative": get(ev).status === "tentative",
+                      "ag-compact--full": get(ev).status === "full",
+                      "ag-compact--limited": get(ev).status === "limited"
+                    });
+                    set_attribute(div_30, "aria-label", `${get(ev).title ?? ""}, ${$0 ?? ""}, ${$1 ?? ""}`);
+                    styles_4 = set_style(div_30, "", styles_4, { "--ev-color": get(ev).color || "var(--dt-accent)" });
+                    set_text(text_23, $2);
+                    set_text(text_24, get(ev).title);
+                    set_text(text_28, $3);
+                  },
+                  [
+                    () => fmt(get(ev).start),
+                    () => duration(get(ev)),
+                    () => fmt(get(ev).start),
+                    () => duration(get(ev))
+                  ]
+                );
+                delegated("click", div_30, () => handleClick(get(ev)));
+                event("pointerenter", div_30, () => get(oneventhover)?.(get(ev)));
+                delegated("keydown", div_30, (e) => handleKeydown(e, get(ev)));
+                append($$anchor5, div_30);
+              });
+              var node_29 = sibling(node_24, 2);
+              {
+                var consequent_25 = ($$anchor5) => {
+                  var div_31 = root_42();
+                  var text_29 = child(div_31, true);
+                  reset(div_31);
+                  template_effect(($0) => set_text(text_29, $0), [() => get(L).nMore(get(day).timedEvents.length - 4)]);
+                  append($$anchor5, div_31);
+                };
+                if_block(node_29, ($$render) => {
+                  if (get(day).timedEvents.length > 4) $$render(consequent_25);
+                });
+              }
+              reset(div_29);
+              append($$anchor4, div_29);
+            };
+            if_block(node_15, ($$render) => {
+              if (get(day).events.length === 0) $$render(consequent_14);
+              else if (get(compact)) $$render(consequent_17, 1);
+              else if (get(equalDays)) $$render(consequent_18, 2);
+              else if (get(expanded)) $$render(consequent_21, 3);
+              else $$render(alternate_1, -1);
+            });
+          }
+          reset(div_11);
+          template_effect(
+            ($0) => {
+              classes_3 = set_class(div_11, 1, "ag-wday svelte-uhwfyj", null, classes_3, $0);
+              set_text(text_12, get(day).dayName);
+            },
+            [
+              () => ({
+                "ag-wday--today": get(day).tier === "today",
+                "ag-wday--tomorrow": get(day).tier === "tomorrow",
+                "ag-wday--equal": get(equalDays),
+                "ag-wday--disabled": get(disabledSet).has(get(day).ms)
+              })
+            ]
+          );
+          append($$anchor3, div_11);
+        };
+        if_block(node_6, ($$render) => {
+          if (get(day).tier === "past") $$render(consequent_8);
+          else $$render(alternate_2, -1);
+        });
+      }
+      append($$anchor2, fragment_2);
+    });
+    reset(div_6);
+    var node_30 = sibling(div_6, 2);
+    {
+      var consequent_26 = ($$anchor2) => {
+        var nav = root_43();
+        var button = child(nav);
+        let classes_9;
+        var text_30 = child(button, true);
+        reset(button);
+        var button_1 = sibling(button, 2);
+        var button_2 = sibling(button_1, 2);
+        reset(nav);
+        template_effect(() => {
+          set_attribute(nav, "aria-label", get(L).weekNavigation);
+          classes_9 = set_class(button, 1, "ag-nav-pill ag-nav-today svelte-uhwfyj", null, classes_9, { "ag-nav-today--hidden": get(isThisWeek) });
+          set_attribute(button, "aria-label", get(L).goToToday);
+          set_attribute(button, "tabindex", get(isThisWeek) ? -1 : 0);
+          set_text(text_30, get(L).today);
+          set_attribute(button_1, "aria-label", get(L).previousWeek);
+          set_attribute(button_2, "aria-label", get(L).nextWeek);
+        });
+        delegated("click", button, () => get(viewState)?.goToday());
+        delegated("click", button_1, () => get(viewState)?.prev());
+        delegated("click", button_2, () => get(viewState)?.next());
+        append($$anchor2, nav);
+      };
+      if_block(node_30, ($$render) => {
+        if (get(showNav) && !get(isMobile)) $$render(consequent_26);
+      });
+    }
+    reset(div_5);
+    template_effect(() => {
+      classes_1 = set_class(div_5, 1, "ag ag--week svelte-uhwfyj", null, classes_1, { "ag--mobile": get(isMobile), "ag--auto": get(autoHeight) });
+      set_style(div_5, style() || void 0);
+      set_attribute(div_6, "aria-label", get(L).weekAhead);
+    });
+    delegated("pointerdown", div_5, onPointerDown);
+    delegated("pointerup", div_5, onPointerUp);
+    append($$anchor, div_5);
+    pop();
+  }
+  delegate(["click", "keydown", "pointerdown", "pointerup"]);
+  function Agenda($$anchor, $$props) {
+    let mode = prop($$props, "mode", 3, "day"), rest = /* @__PURE__ */ rest_props($$props, ["$$slots", "$$events", "$$legacy", "mode"]);
+    var fragment = comment();
+    var node = first_child(fragment);
+    {
+      var consequent = ($$anchor2) => {
+        AgendaDay($$anchor2, spread_props(() => rest));
+      };
+      var alternate = ($$anchor2) => {
+        AgendaWeek($$anchor2, spread_props(() => rest));
+      };
+      if_block(node, ($$render) => {
+        if (mode() === "day") $$render(consequent);
+        else $$render(alternate, -1);
+      });
+    }
+    append($$anchor, fragment);
+  }
+  var root_4$2 = /* @__PURE__ */ from_html(`<span class="mb-allday-span svelte-zbkzcp"> </span>`);
+  var root_3$1 = /* @__PURE__ */ from_html(`<button><span class="mb-allday-dot svelte-zbkzcp"></span> <span class="mb-allday-title svelte-zbkzcp"> </span> <!></button>`);
+  var root_5$2 = /* @__PURE__ */ from_html(`<span class="mb-allday-more svelte-zbkzcp"> </span>`);
+  var root_2$2 = /* @__PURE__ */ from_html(`<div class="mb-allday svelte-zbkzcp"><!> <!></div>`);
+  var root_8$2 = /* @__PURE__ */ from_html(`<span class="mb-blocked-label svelte-zbkzcp"> </span>`);
+  var root_6$2 = /* @__PURE__ */ from_html(`<div><div class="mb-hour-label svelte-zbkzcp"> </div> <div class="mb-hour-line svelte-zbkzcp"></div> <!></div>`);
+  var root_9 = /* @__PURE__ */ from_html(`<div class="mb-now svelte-zbkzcp"><span class="mb-now-label svelte-zbkzcp"> </span> <div class="mb-now-line svelte-zbkzcp"></div></div>`);
+  var root_11$1 = /* @__PURE__ */ from_html(`<span class="mb-ev-time svelte-zbkzcp"> </span>`);
+  var root_12 = /* @__PURE__ */ from_html(`<span class="mb-ev-sub svelte-zbkzcp"> </span>`);
+  var root_13$1 = /* @__PURE__ */ from_html(`<span class="mb-ev-loc svelte-zbkzcp"> </span>`);
+  var root_15 = /* @__PURE__ */ from_html(`<span class="mb-ev-tag svelte-zbkzcp"> </span>`);
+  var root_14$1 = /* @__PURE__ */ from_html(`<div class="mb-ev-tags svelte-zbkzcp"></div>`);
+  var root_16 = /* @__PURE__ */ from_html(`<span class="mb-ev-live svelte-zbkzcp"></span>`);
+  var root_17 = /* @__PURE__ */ from_html(`<span class="mb-ev-next-badge svelte-zbkzcp"> </span>`);
+  var root_10$1 = /* @__PURE__ */ from_html(`<button><div class="mb-ev-stripe svelte-zbkzcp"></div> <div class="mb-ev-body svelte-zbkzcp"><span class="mb-ev-title svelte-zbkzcp"> </span> <!> <!> <!> <!></div> <!></button>`);
+  var root_1$1 = /* @__PURE__ */ from_html(`<div role="region"><!> <div class="mb-grid svelte-zbkzcp" role="grid" tabindex="-1"><div class="mb-grid-inner svelte-zbkzcp"><!> <!> <!></div></div></div>`);
+  function MobileDay($$anchor, $$props) {
+    push($$props, true);
+    const L = /* @__PURE__ */ user_derived(getLabels);
+    let height = prop($$props, "height", 3, null), events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null), readOnly = prop($$props, "readOnly", 3, false);
+    const ctx = useCalendarContext();
+    const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
+    const autoHeight = /* @__PURE__ */ user_derived(() => ctx.autoHeight);
+    const oneventhover = /* @__PURE__ */ user_derived(() => ctx.oneventhover);
+    const disabledSet = /* @__PURE__ */ user_derived(() => ctx.disabledSet);
+    const loadRangeCtx = /* @__PURE__ */ user_derived(() => ctx.loadRange);
+    const minDuration = /* @__PURE__ */ user_derived(() => ctx.minDuration);
+    const blockedSlots = /* @__PURE__ */ user_derived(() => ctx.blockedSlots);
+    const clock = createClock();
+    const HOUR_HEIGHT = 64;
+    const GUTTER_W = 40;
+    const startHour = /* @__PURE__ */ user_derived(() => $$props.visibleHours?.[0] ?? 0);
+    const endHour = /* @__PURE__ */ user_derived(() => $$props.visibleHours?.[1] ?? 24);
+    const hourCount = /* @__PURE__ */ user_derived(() => Math.max(1, get(endHour) - get(startHour)));
+    const gridHeight = /* @__PURE__ */ user_derived(() => get(hourCount) * HOUR_HEIGHT);
+    const dayMs = /* @__PURE__ */ user_derived(() => $$props.focusDate ? sod($$props.focusDate.getTime()) : clock.today);
+    const dayEnd = /* @__PURE__ */ user_derived(() => get(dayMs) + DAY_MS);
+    const isToday = /* @__PURE__ */ user_derived(() => get(dayMs) === clock.today);
+    const isDisabled = /* @__PURE__ */ user_derived(() => get(disabledSet).has(get(dayMs)));
+    user_effect(() => {
+      if (!get(loadRangeCtx)) return;
+      const rangeStart = new Date(get(dayMs) - 2 * DAY_MS);
+      const rangeEnd = new Date(get(dayMs) + 3 * DAY_MS);
+      get(loadRangeCtx).set({ start: rangeStart, end: rangeEnd });
+      return () => get(loadRangeCtx).set(null);
+    });
+    const timedEvents = /* @__PURE__ */ user_derived(() => events().filter((ev) => !isAllDay(ev) && !isMultiDay(ev) && ev.start.getTime() < get(dayEnd) && ev.end.getTime() > get(dayMs)).sort((a, b) => a.start.getTime() - b.start.getTime()));
+    const allDayEvents = /* @__PURE__ */ user_derived(() => {
+      const segs = [];
+      for (const ev of events()) {
+        if (!isAllDay(ev) && !isMultiDay(ev)) continue;
+        const seg = segmentForDay(ev, get(dayMs));
+        if (seg) segs.push(seg);
+      }
+      return segs;
+    });
+    const positionedEvents = /* @__PURE__ */ user_derived(() => {
+      const now = clock.tick;
+      const sorted = [...get(timedEvents)];
+      let nextEventId = null;
+      if (get(isToday)) {
+        for (const ev of [...sorted].sort((a, b) => a.start.getTime() - b.start.getTime())) {
+          const s = ev.start.getTime();
+          if (s > now) {
+            nextEventId = ev.id;
+            break;
+          }
+        }
+      }
+      const infos = sorted.map((ev) => {
+        const sMs = Math.max(ev.start.getTime(), get(dayMs) + get(startHour) * HOUR_MS);
+        const eMs = Math.min(ev.end.getTime(), get(dayMs) + get(endHour) * HOUR_MS);
+        const topH = (sMs - get(dayMs)) / HOUR_MS - get(startHour);
+        const botH = (eMs - get(dayMs)) / HOUR_MS - get(startHour);
+        return {
+          ev,
+          top: topH * HOUR_HEIGHT,
+          height: Math.max(24, (botH - topH) * HOUR_HEIGHT),
+          isCurrent: ev.start.getTime() <= now && ev.end.getTime() > now,
+          isNext: ev.id === nextEventId,
+          startMs: sMs,
+          endMs: eMs,
+          col: 0,
+          totalCols: 1
+        };
+      });
+      const par = infos.map((_, i) => i);
+      function find(i) {
+        while (par[i] !== i) {
+          par[i] = par[par[i]];
+          i = par[i];
+        }
+        return i;
+      }
+      for (let i = 0; i < infos.length; i++) {
+        for (let j = i + 1; j < infos.length; j++) {
+          if (infos[j].startMs < infos[i].endMs) par[find(i)] = find(j);
+          else break;
+        }
+      }
+      const groups = /* @__PURE__ */ new Map();
+      for (let i = 0; i < infos.length; i++) {
+        const root2 = find(i);
+        if (!groups.has(root2)) groups.set(root2, []);
+        groups.get(root2).push(i);
+      }
+      for (const [, indices] of groups) {
+        const rows = [];
+        for (const idx of indices) {
+          let row = 0;
+          for (let r = 0; r < rows.length; r++) {
+            if (rows[r] <= infos[idx].startMs) {
+              row = r;
+              rows[r] = infos[idx].endMs;
+              break;
+            }
+            row = r + 1;
+          }
+          if (row >= rows.length) rows.push(infos[idx].endMs);
+          infos[idx].col = row;
+        }
+        for (const idx of indices) infos[idx].totalCols = rows.length;
+      }
+      return infos.map((info) => ({
+        ev: info.ev,
+        top: info.top,
+        height: info.height,
+        left: `calc(${GUTTER_W}px + ${info.col / info.totalCols * 100}% - ${GUTTER_W * info.col / info.totalCols}px)`,
+        width: `calc(${100 / info.totalCols}% - ${GUTTER_W / info.totalCols + 2}px)`,
+        isCurrent: info.isCurrent,
+        isNext: info.isNext,
+        col: info.col,
+        totalCols: info.totalCols
+      }));
+    });
+    const nowOffset = /* @__PURE__ */ user_derived(() => {
+      if (!get(isToday)) return -1;
+      const h = (clock.tick - get(dayMs)) / HOUR_MS - get(startHour);
+      if (h < 0 || h > get(hourCount)) return -1;
+      return h * HOUR_HEIGHT;
+    });
+    function isBlockedAt(hour) {
+      if (!get(blockedSlots)?.length) return false;
+      const jsDay = new Date(get(dayMs)).getDay();
+      const isoDay = jsDay === 0 ? 7 : jsDay;
+      return get(blockedSlots).some((slot) => {
+        if (slot.day && slot.day !== isoDay) return false;
+        return hour >= slot.start && hour < slot.end;
+      });
+    }
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let swiping = false;
+    let swipeOffset = /* @__PURE__ */ state(0);
+    const SWIPE_THRESHOLD = 50;
+    function onTouchStart(e) {
+      const t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+      swiping = true;
+      set(swipeOffset, 0);
+    }
+    function onTouchMove(e) {
+      if (!swiping) return;
+      const t = e.touches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      if (Math.abs(dy) > Math.abs(dx) * 0.8) {
+        swiping = false;
+        return;
+      }
+      set(swipeOffset, dx);
+    }
+    function onTouchEnd() {
+      if (!swiping) {
+        set(swipeOffset, 0);
+        return;
+      }
+      if (Math.abs(get(swipeOffset)) > SWIPE_THRESHOLD) {
+        if (get(swipeOffset) > 0) {
+          get(viewState)?.prev();
+        } else {
+          get(viewState)?.next();
+        }
+      }
+      set(swipeOffset, 0);
+      swiping = false;
+    }
+    function handleGridClick(e) {
+      if (!$$props.oneventcreate || readOnly() || get(isDisabled)) return;
+      if (e.target.closest(".mb-event")) return;
+      const grid = e.currentTarget;
+      const rect = grid.getBoundingClientRect();
+      const y = e.clientY - rect.top + grid.scrollTop;
+      const hour = get(startHour) + y / HOUR_HEIGHT;
+      if (isBlockedAt(hour)) return;
+      const snapHour = Math.floor(hour);
+      const durMin = get(minDuration) ? Math.max(60, get(minDuration)) : 60;
+      const start = new Date(get(dayMs) + snapHour * HOUR_MS);
+      const end = new Date(start.getTime() + durMin * 6e4);
+      $$props.oneventcreate({ start, end });
+    }
+    let gridEl;
+    onMount(() => {
+      if (get(nowOffset) > 0 && gridEl) {
+        const scrollTarget = Math.max(0, get(nowOffset) - 120);
+        gridEl.scrollTop = scrollTarget;
+      }
+    });
+    var div = root_1$1();
+    let classes;
+    let styles;
+    var node = child(div);
+    {
+      var consequent_2 = ($$anchor2) => {
+        var div_1 = root_2$2();
+        var node_1 = child(div_1);
+        each(node_1, 17, () => get(allDayEvents).slice(0, 3), (seg) => seg.ev.id, ($$anchor3, seg) => {
+          var button = root_3$1();
+          let classes_1;
+          let styles_1;
+          var span = sibling(child(button), 2);
+          var text2 = child(span, true);
+          reset(span);
+          var node_2 = sibling(span, 2);
+          {
+            var consequent = ($$anchor4) => {
+              var span_1 = root_4$2();
+              var text_1 = child(span_1);
+              reset(span_1);
+              template_effect(() => set_text(text_1, `${get(seg).dayIndex ?? ""}/${get(seg).totalDays ?? ""}`));
+              append($$anchor4, span_1);
+            };
+            if_block(node_2, ($$render) => {
+              if (get(seg).totalDays > 1) $$render(consequent);
+            });
+          }
+          reset(button);
+          template_effect(() => {
+            classes_1 = set_class(button, 1, "mb-allday-chip svelte-zbkzcp", null, classes_1, {
+              "mb-allday-chip--selected": selectedEventId() === get(seg).ev.id
+            });
+            styles_1 = set_style(button, "", styles_1, { "--ev-color": get(seg).ev.color ?? "var(--dt-accent)" });
+            set_text(text2, get(seg).ev.title);
+          });
+          delegated("click", button, () => $$props.oneventclick?.(get(seg).ev));
+          append($$anchor3, button);
+        });
+        var node_3 = sibling(node_1, 2);
+        {
+          var consequent_1 = ($$anchor3) => {
+            var span_2 = root_5$2();
+            var text_2 = child(span_2, true);
+            reset(span_2);
+            template_effect(($0) => set_text(text_2, $0), [() => get(L).nMore(get(allDayEvents).length - 3)]);
+            append($$anchor3, span_2);
+          };
+          if_block(node_3, ($$render) => {
+            if (get(allDayEvents).length > 3) $$render(consequent_1);
+          });
+        }
+        reset(div_1);
+        append($$anchor2, div_1);
+      };
+      if_block(node, ($$render) => {
+        if (get(allDayEvents).length > 0) $$render(consequent_2);
+      });
+    }
+    var div_2 = sibling(node, 2);
+    var div_3 = child(div_2);
+    let styles_2;
+    var node_4 = child(div_3);
+    each(node_4, 17, () => ({ length: get(hourCount) }), index, ($$anchor2, _, h) => {
+      const hour = /* @__PURE__ */ user_derived(() => get(startHour) + h);
+      const blocked = /* @__PURE__ */ user_derived(() => isBlockedAt(get(hour)));
+      var div_4 = root_6$2();
+      let classes_2;
+      set_style(div_4, "", {}, { top: `${h * HOUR_HEIGHT}px`, height: "64px" });
+      var div_5 = child(div_4);
+      var text_3 = child(div_5, true);
+      reset(div_5);
+      var node_5 = sibling(div_5, 4);
+      {
+        var consequent_4 = ($$anchor3) => {
+          const slot = /* @__PURE__ */ user_derived(() => get(blockedSlots).find((s) => (!s.day || s.day === (new Date(get(dayMs)).getDay() === 0 ? 7 : new Date(get(dayMs)).getDay())) && get(hour) >= s.start && get(hour) < s.end));
+          var fragment = comment();
+          var node_6 = first_child(fragment);
+          {
+            var consequent_3 = ($$anchor4) => {
+              var span_3 = root_8$2();
+              var text_4 = child(span_3, true);
+              reset(span_3);
+              template_effect(() => set_text(text_4, get(slot).label));
+              append($$anchor4, span_3);
+            };
+            if_block(node_6, ($$render) => {
+              if (get(slot)?.label) $$render(consequent_3);
+            });
+          }
+          append($$anchor3, fragment);
+        };
+        if_block(node_5, ($$render) => {
+          if (get(blocked) && get(blockedSlots)) $$render(consequent_4);
+        });
+      }
+      reset(div_4);
+      template_effect(
+        ($0) => {
+          classes_2 = set_class(div_4, 1, "mb-hour svelte-zbkzcp", null, classes_2, { "mb-hour--blocked": get(blocked) });
+          set_text(text_3, $0);
+        },
+        [() => fmtH(get(hour), $$props.locale)]
+      );
+      append($$anchor2, div_4);
+    });
+    var node_7 = sibling(node_4, 2);
+    {
+      var consequent_5 = ($$anchor2) => {
+        var div_6 = root_9();
+        let styles_3;
+        var span_4 = child(div_6);
+        var text_5 = child(span_4, true);
+        reset(span_4);
+        next(2);
+        reset(div_6);
+        template_effect(() => {
+          styles_3 = set_style(div_6, "", styles_3, { top: `${get(nowOffset) ?? ""}px` });
+          set_text(text_5, clock.hm);
+        });
+        append($$anchor2, div_6);
+      };
+      if_block(node_7, ($$render) => {
+        if (get(nowOffset) >= 0) $$render(consequent_5);
+      });
+    }
+    var node_8 = sibling(node_7, 2);
+    each(node_8, 17, () => get(positionedEvents), (p) => p.ev.id, ($$anchor2, p) => {
+      var button_1 = root_10$1();
+      let classes_3;
+      let styles_4;
+      var div_7 = sibling(child(button_1), 2);
+      var span_5 = child(div_7);
+      var text_6 = child(span_5, true);
+      reset(span_5);
+      var node_9 = sibling(span_5, 2);
+      {
+        var consequent_6 = ($$anchor3) => {
+          var span_6 = root_11$1();
+          var text_7 = child(span_6);
+          reset(span_6);
+          template_effect(($0, $1) => set_text(text_7, `${$0 ?? ""} – ${$1 ?? ""}`), [
+            () => fmtTime$1(get(p).ev.start, $$props.locale),
+            () => fmtTime$1(get(p).ev.end, $$props.locale)
+          ]);
+          append($$anchor3, span_6);
+        };
+        if_block(node_9, ($$render) => {
+          if (get(p).height > 32) $$render(consequent_6);
+        });
+      }
+      var node_10 = sibling(node_9, 2);
+      {
+        var consequent_7 = ($$anchor3) => {
+          var span_7 = root_12();
+          var text_8 = child(span_7, true);
+          reset(span_7);
+          template_effect(() => set_text(text_8, get(p).ev.subtitle));
+          append($$anchor3, span_7);
+        };
+        if_block(node_10, ($$render) => {
+          if (get(p).ev.subtitle && get(p).height > 48) $$render(consequent_7);
+        });
+      }
+      var node_11 = sibling(node_10, 2);
+      {
+        var consequent_8 = ($$anchor3) => {
+          var span_8 = root_13$1();
+          var text_9 = child(span_8, true);
+          reset(span_8);
+          template_effect(() => set_text(text_9, get(p).ev.location));
+          append($$anchor3, span_8);
+        };
+        if_block(node_11, ($$render) => {
+          if (get(p).ev.location && get(p).height > 56) $$render(consequent_8);
+        });
+      }
+      var node_12 = sibling(node_11, 2);
+      {
+        var consequent_9 = ($$anchor3) => {
+          var div_8 = root_14$1();
+          each(div_8, 21, () => get(p).ev.tags, index, ($$anchor4, tag) => {
+            var span_9 = root_15();
+            var text_10 = child(span_9, true);
+            reset(span_9);
+            template_effect(() => set_text(text_10, get(tag)));
+            append($$anchor4, span_9);
+          });
+          reset(div_8);
+          append($$anchor3, div_8);
+        };
+        if_block(node_12, ($$render) => {
+          if (get(p).ev.tags?.length && get(p).height > 56) $$render(consequent_9);
+        });
+      }
+      reset(div_7);
+      var node_13 = sibling(div_7, 2);
+      {
+        var consequent_10 = ($$anchor3) => {
+          var span_10 = root_16();
+          append($$anchor3, span_10);
+        };
+        var consequent_11 = ($$anchor3) => {
+          var span_11 = root_17();
+          var text_11 = child(span_11, true);
+          reset(span_11);
+          template_effect(() => set_text(text_11, get(L).upNext));
+          append($$anchor3, span_11);
+        };
+        if_block(node_13, ($$render) => {
+          if (get(p).isCurrent) $$render(consequent_10);
+          else if (get(p).isNext) $$render(consequent_11, 1);
+        });
+      }
+      reset(button_1);
+      template_effect(() => {
+        classes_3 = set_class(button_1, 1, "mb-event svelte-zbkzcp", null, classes_3, {
+          "mb-event--selected": selectedEventId() === get(p).ev.id,
+          "mb-event--current": get(p).isCurrent,
+          "mb-event--next": get(p).isNext,
+          "mb-event--cancelled": get(p).ev.status === "cancelled",
+          "mb-event--tentative": get(p).ev.status === "tentative",
+          "mb-event--full": get(p).ev.status === "full",
+          "mb-event--limited": get(p).ev.status === "limited"
+        });
+        set_attribute(button_1, "aria-label", `${get(p).ev.title ?? ""}${get(p).ev.status === "cancelled" ? " (cancelled)" : ""}${get(p).ev.status === "tentative" ? " (tentative)" : ""}${get(p).ev.status === "full" ? " (full)" : ""}${get(p).ev.status === "limited" ? " (limited)" : ""}${get(p).isCurrent ? `, ${get(L).inProgress}` : ""}${get(p).isNext ? `, ${get(L).upNext}` : ""}`);
+        styles_4 = set_style(button_1, "", styles_4, {
+          top: `${get(p).top ?? ""}px`,
+          height: `${get(p).height ?? ""}px`,
+          left: get(p).left,
+          width: get(p).width,
+          "--ev-color": get(p).ev.color ?? "var(--dt-accent)"
+        });
+        set_text(text_6, get(p).ev.title);
+      });
+      delegated("click", button_1, (e) => {
+        e.stopPropagation();
+        $$props.oneventclick?.(get(p).ev);
+      });
+      event("pointerenter", button_1, () => get(oneventhover)?.(get(p).ev));
+      append($$anchor2, button_1);
+    });
+    reset(div_3);
+    reset(div_2);
+    bind_this(div_2, ($$value) => gridEl = $$value, () => gridEl);
+    reset(div);
+    template_effect(() => {
+      classes = set_class(div, 1, "mb svelte-zbkzcp", null, classes, { "mb--auto": get(autoHeight) });
+      styles = set_style(div, style() || void 0, styles, {
+        height: get(autoHeight) ? void 0 : height() ? `${height()}px` : "100%"
+      });
+      set_attribute(div, "aria-label", get(L).dayPlanner);
+      styles_2 = set_style(div_3, "", styles_2, { height: `${get(gridHeight) ?? ""}px` });
+    });
+    delegated("touchstart", div, onTouchStart);
+    delegated("touchmove", div, onTouchMove);
+    delegated("touchend", div, onTouchEnd);
+    delegated("click", div_2, handleGridClick);
+    delegated("keydown", div_2, (e) => {
+      if (e.key === "Enter" || e.key === " ") handleGridClick(e);
+    });
+    append($$anchor, div);
+    pop();
+  }
+  delegate(["touchstart", "touchmove", "touchend", "click", "keydown"]);
+  var root_2$1 = /* @__PURE__ */ from_html(`<span> </span>`);
+  var root_3 = /* @__PURE__ */ from_html(`<span class="mw-empty svelte-1d18hkf"> </span>`);
+  var root_6$1 = /* @__PURE__ */ from_html(`<span class="mw-ev-time svelte-1d18hkf"> </span>`);
+  var root_7$1 = /* @__PURE__ */ from_html(`<span class="mw-ev-time svelte-1d18hkf"> </span>`);
+  var root_5$1 = /* @__PURE__ */ from_html(`<button type="button"><span class="mw-ev-stripe svelte-1d18hkf"></span> <div class="mw-ev-body svelte-1d18hkf"><span class="mw-ev-title svelte-1d18hkf"> </span> <!></div></button>`);
+  var root_8$1 = /* @__PURE__ */ from_html(`<span class="mw-ev-more svelte-1d18hkf"> </span>`);
+  var root_4$1 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
+  var root_1 = /* @__PURE__ */ from_html(`<div role="listitem"><button class="mw-row-target svelte-1d18hkf"></button> <div class="mw-date svelte-1d18hkf"><span> </span> <!></div> <div class="mw-events svelte-1d18hkf"><!></div> <svg class="mw-chevron svelte-1d18hkf" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></div>`);
+  var root$1 = /* @__PURE__ */ from_html(`<div role="region"><div class="mw-list svelte-1d18hkf" role="list"></div></div>`);
+  function MobileWeek($$anchor, $$props) {
+    push($$props, true);
+    const L = /* @__PURE__ */ user_derived(getLabels);
+    let mondayStart = prop($$props, "mondayStart", 3, true), height = prop($$props, "height", 3, null), events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null);
+    prop($$props, "readOnly", 3, false);
+    const ctx = useCalendarContext();
+    const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
+    const equalDays = /* @__PURE__ */ user_derived(() => ctx.equalDays);
+    const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
+    const hideDays = /* @__PURE__ */ user_derived(() => ctx.hideDays);
+    const autoHeight = /* @__PURE__ */ user_derived(() => ctx.autoHeight);
+    const oneventhover = /* @__PURE__ */ user_derived(() => ctx.oneventhover);
+    const disabledSet = /* @__PURE__ */ user_derived(() => ctx.disabledSet);
+    const loadRangeCtx = /* @__PURE__ */ user_derived(() => ctx.loadRange);
+    const clock = createClock();
+    const MAX_EVENTS = 3;
+    const customDays = /* @__PURE__ */ user_derived(() => get(viewState)?.dayCount ?? 7);
+    const todayMs = /* @__PURE__ */ user_derived(() => clock.today);
+    const focusMs = /* @__PURE__ */ user_derived(() => $$props.focusDate ? sod($$props.focusDate.getTime()) : get(todayMs));
+    const weekStart = /* @__PURE__ */ user_derived(() => get(customDays) === 7 ? startOfWeek(get(focusMs), mondayStart()) : sod(get(focusMs)));
+    user_effect(() => {
+      if (!get(loadRangeCtx)) return;
+      const rangeStart = new Date(get(weekStart) - 7 * DAY_MS);
+      const rangeEnd = new Date(get(weekStart) + (get(customDays) + 7) * DAY_MS);
+      get(loadRangeCtx).set({ start: rangeStart, end: rangeEnd });
+      return () => get(loadRangeCtx).set(null);
+    });
+    const dayCells = /* @__PURE__ */ user_derived(() => {
+      const result = [];
+      const hideSet = new Set(get(hideDays) ?? []);
+      for (let i = 0; i < get(customDays); i++) {
+        const ms = get(weekStart) + i * DAY_MS;
+        const d = new Date(ms);
+        const jsDay = d.getDay();
+        const isoDay = jsDay === 0 ? 7 : jsDay;
+        if (hideSet.has(isoDay)) continue;
+        const isToday = ms === get(todayMs);
+        const isPast = get(equalDays) ? false : ms < get(todayMs);
+        const isWeekend = jsDay === 0 || jsDay === 6;
+        const isDisabled = get(disabledSet).has(ms);
+        const dayEnd = ms + DAY_MS;
+        const dayEvents = events().filter((ev) => ev.start.getTime() < dayEnd && ev.end.getTime() > ms).sort((a, b) => a.start.getTime() - b.start.getTime());
+        const allDayCount = dayEvents.filter((ev) => isAllDay(ev) || isMultiDay(ev)).length;
+        result.push({
+          ms,
+          dayNum: d.getDate(),
+          dayName: weekdayShort(ms, $$props.locale),
+          isToday,
+          isPast,
+          isDisabled,
+          isWeekend,
+          events: dayEvents,
+          allDayCount,
+          totalCount: dayEvents.length
+        });
+      }
+      return result;
+    });
+    function fmtTime2(d) {
+      return fmtTime$1(d, $$props.locale);
+    }
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let swiping = false;
+    let swipeOffset = /* @__PURE__ */ state(0);
+    const SWIPE_THRESHOLD = 60;
+    function onTouchStart(e) {
+      const t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+      swiping = true;
+      set(swipeOffset, 0);
+    }
+    function onTouchMove(e) {
+      if (!swiping) return;
+      const t = e.touches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      if (Math.abs(dy) > Math.abs(dx) * 0.8) {
+        swiping = false;
+        return;
+      }
+      set(swipeOffset, dx);
+    }
+    function onTouchEnd() {
+      if (!swiping) {
+        set(swipeOffset, 0);
+        return;
+      }
+      if (Math.abs(get(swipeOffset)) > SWIPE_THRESHOLD) {
+        if (get(swipeOffset) > 0) {
+          get(viewState)?.prev();
+        } else {
+          get(viewState)?.next();
+        }
+      }
+      set(swipeOffset, 0);
+      swiping = false;
+    }
+    function handleDayTap(dayMs) {
+      if (get(viewState)) {
+        get(viewState).setFocusDate(new Date(dayMs));
+        const currentView = get(viewState).view;
+        const dayView = currentView.replace("week", "day");
+        get(viewState).setView(dayView);
+      }
+    }
+    function handleDayKeydown(e, dayMs) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      handleDayTap(dayMs);
+    }
+    var div = root$1();
+    let classes;
+    let styles;
+    var div_1 = child(div);
+    each(div_1, 21, () => get(dayCells), (cell) => cell.ms, ($$anchor2, cell) => {
+      var div_2 = root_1();
+      let classes_1;
+      var button = child(div_2);
+      var div_3 = sibling(button, 2);
+      var span = child(div_3);
+      let classes_2;
+      var text2 = child(span, true);
+      reset(span);
+      var node = sibling(span, 2);
+      {
+        var consequent = ($$anchor3) => {
+          var span_1 = root_2$1();
+          let classes_3;
+          var text_1 = child(span_1, true);
+          reset(span_1);
+          template_effect(() => {
+            classes_3 = set_class(span_1, 1, "mw-day-num svelte-1d18hkf", null, classes_3, { "mw-day-num--today": get(cell).isToday });
+            set_text(text_1, get(cell).dayNum);
+          });
+          append($$anchor3, span_1);
+        };
+        if_block(node, ($$render) => {
+          if (get(showDates)) $$render(consequent);
+        });
+      }
+      reset(div_3);
+      var div_4 = sibling(div_3, 2);
+      var node_1 = child(div_4);
+      {
+        var consequent_1 = ($$anchor3) => {
+          var span_2 = root_3();
+          var text_2 = child(span_2, true);
+          reset(span_2);
+          template_effect(() => set_text(text_2, get(L).noEvents));
+          append($$anchor3, span_2);
+        };
+        var alternate_1 = ($$anchor3) => {
+          var fragment = root_4$1();
+          var node_2 = first_child(fragment);
+          each(node_2, 17, () => get(cell).events.slice(0, MAX_EVENTS), (ev) => ev.id, ($$anchor4, ev) => {
+            var button_1 = root_5$1();
+            let classes_4;
+            let styles_1;
+            var div_5 = sibling(child(button_1), 2);
+            var span_3 = child(div_5);
+            var text_3 = child(span_3, true);
+            reset(span_3);
+            var node_3 = sibling(span_3, 2);
+            {
+              var consequent_2 = ($$anchor5) => {
+                var span_4 = root_6$1();
+                var text_4 = child(span_4, true);
+                reset(span_4);
+                template_effect(() => set_text(text_4, get(L).allDay));
+                append($$anchor5, span_4);
+              };
+              var d_1 = /* @__PURE__ */ user_derived(() => isAllDay(get(ev)) || isMultiDay(get(ev)));
+              var alternate = ($$anchor5) => {
+                var span_5 = root_7$1();
+                var text_5 = child(span_5, true);
+                reset(span_5);
+                template_effect(($0) => set_text(text_5, $0), [() => fmtTime2(get(ev).start)]);
+                append($$anchor5, span_5);
+              };
+              if_block(node_3, ($$render) => {
+                if (get(d_1)) $$render(consequent_2);
+                else $$render(alternate, -1);
+              });
+            }
+            reset(div_5);
+            reset(button_1);
+            template_effect(
+              ($0) => {
+                classes_4 = set_class(button_1, 1, "mw-ev svelte-1d18hkf", null, classes_4, $0);
+                styles_1 = set_style(button_1, "", styles_1, { "--ev-color": get(ev).color ?? "var(--dt-accent)" });
+                set_text(text_3, get(ev).title);
+              },
+              [
+                () => ({
+                  "mw-ev--selected": selectedEventId() === get(ev).id,
+                  "mw-ev--allday": isAllDay(get(ev)) || isMultiDay(get(ev)),
+                  "mw-ev--current": !isAllDay(get(ev)) && !isMultiDay(get(ev)) && get(ev).start.getTime() <= clock.tick && get(ev).end.getTime() > clock.tick,
+                  "mw-ev--cancelled": get(ev).status === "cancelled",
+                  "mw-ev--tentative": get(ev).status === "tentative",
+                  "mw-ev--full": get(ev).status === "full",
+                  "mw-ev--limited": get(ev).status === "limited"
+                })
+              ]
+            );
+            delegated("click", button_1, (e) => {
+              e.stopPropagation();
+              $$props.oneventclick?.(get(ev));
+            });
+            delegated("keydown", button_1, (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                $$props.oneventclick?.(get(ev));
+              }
+            });
+            event("pointerenter", button_1, () => get(oneventhover)?.(get(ev)));
+            append($$anchor4, button_1);
+          });
+          var node_4 = sibling(node_2, 2);
+          {
+            var consequent_3 = ($$anchor4) => {
+              var span_6 = root_8$1();
+              var text_6 = child(span_6, true);
+              reset(span_6);
+              template_effect(($0) => set_text(text_6, $0), [() => get(L).nMore(get(cell).totalCount - MAX_EVENTS)]);
+              append($$anchor4, span_6);
+            };
+            if_block(node_4, ($$render) => {
+              if (get(cell).totalCount > MAX_EVENTS) $$render(consequent_3);
+            });
+          }
+          append($$anchor3, fragment);
+        };
+        if_block(node_1, ($$render) => {
+          if (get(cell).events.length === 0) $$render(consequent_1);
+          else $$render(alternate_1, -1);
+        });
+      }
+      reset(div_4);
+      next(2);
+      reset(div_2);
+      template_effect(() => {
+        classes_1 = set_class(div_2, 1, "mw-row svelte-1d18hkf", null, classes_1, {
+          "mw-row--today": get(cell).isToday,
+          "mw-row--past": get(cell).isPast,
+          "mw-row--weekend": get(cell).isWeekend,
+          "mw-row--disabled": get(cell).isDisabled
+        });
+        button.disabled = get(cell).isDisabled;
+        set_attribute(button, "aria-label", `${get(cell).dayName ?? ""} ${get(cell).dayNum ?? ""}`);
+        classes_2 = set_class(span, 1, "mw-day-name svelte-1d18hkf", null, classes_2, { "mw-day-name--today": get(cell).isToday });
+        set_text(text2, get(cell).dayName);
+      });
+      delegated("click", button, () => handleDayTap(get(cell).ms));
+      delegated("keydown", button, (e) => handleDayKeydown(e, get(cell).ms));
+      append($$anchor2, div_2);
+    });
+    reset(div_1);
+    reset(div);
+    template_effect(() => {
+      classes = set_class(div, 1, "mw svelte-1d18hkf", null, classes, { "mw--auto": get(autoHeight) });
+      styles = set_style(div, style() || void 0, styles, {
+        height: get(autoHeight) ? void 0 : height() ? `${height()}px` : "100%"
+      });
+      set_attribute(div, "aria-label", get(L).weekAhead);
+    });
+    delegated("touchstart", div, onTouchStart);
+    delegated("touchmove", div, onTouchMove);
+    delegated("touchend", div, onTouchEnd);
+    append($$anchor, div);
+    pop();
+  }
+  delegate(["touchstart", "touchmove", "touchend", "click", "keydown"]);
+  function Mobile($$anchor, $$props) {
+    let mode = prop($$props, "mode", 3, "day"), rest = /* @__PURE__ */ rest_props($$props, ["$$slots", "$$events", "$$legacy", "mode"]);
+    var fragment = comment();
+    var node = first_child(fragment);
+    {
+      var consequent = ($$anchor2) => {
+        MobileDay($$anchor2, spread_props(() => rest));
+      };
+      var alternate = ($$anchor2) => {
+        MobileWeek($$anchor2, spread_props(() => rest));
+      };
+      if_block(node, ($$render) => {
+        if (mode() === "day") $$render(consequent);
+        else $$render(alternate, -1);
+      });
+    }
+    append($$anchor, fragment);
+  }
+  var root_4 = /* @__PURE__ */ from_html(`<button class="cal-m-nav svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M10 3 5 8l5 5" class="svelte-1b53e7w"></path></svg></button>`);
+  var root_6 = /* @__PURE__ */ from_html(`<button> </button>`);
+  var root_5 = /* @__PURE__ */ from_html(`<div class="cal-m-pills svelte-1b53e7w" role="group"></div>`);
+  var root_7 = /* @__PURE__ */ from_html(`<button class="cal-m-nav svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M6 3l5 5-5 5" class="svelte-1b53e7w"></path></svg></button>`);
+  var root_8 = /* @__PURE__ */ from_html(`<div class="cal-m-today-bar svelte-1b53e7w"><button class="cal-m-today svelte-1b53e7w"> </button></div>`);
+  var root_2 = /* @__PURE__ */ from_html(`<div class="cal-m-hd svelte-1b53e7w"><div class="cal-m-left svelte-1b53e7w"><!> <!></div> <span class="cal-m-title svelte-1b53e7w"> </span> <div class="cal-m-right svelte-1b53e7w"><!></div></div> <!>`, 1);
+  var root_11 = /* @__PURE__ */ from_html(`<button> </button>`);
+  var root_10 = /* @__PURE__ */ from_html(`<div class="cal-pills svelte-1b53e7w" role="group"></div>`);
+  var root_13 = /* @__PURE__ */ from_html(`<div class="cal-empty svelte-1b53e7w">No views registered.</div>`);
+  var root_14 = /* @__PURE__ */ from_html(`<div class="cal-loading svelte-1b53e7w"></div>`);
+  var root = /* @__PURE__ */ from_html(`<div role="region"><!> <div class="cal-body svelte-1b53e7w"><!></div> <!></div>`);
+  function Calendar($$anchor, $$props) {
+    push($$props, true);
+    const MOBILE_BREAKPOINT = 768;
+    const DEFAULT_VIEWS = [
+      {
+        id: "day-planner",
+        label: "Planner",
+        mode: "day",
+        component: Planner
+      },
+      {
+        id: "week-planner",
+        label: "Planner",
+        mode: "week",
+        component: Planner
+      },
+      {
+        id: "day-agenda",
+        label: "Agenda",
+        mode: "day",
+        component: Agenda
+      },
+      {
+        id: "week-agenda",
+        label: "Agenda",
+        mode: "week",
+        component: Agenda
+      },
+      {
+        id: "day-mobile",
+        label: "Mobile",
+        mode: "day",
+        component: Mobile
+      },
+      {
+        id: "week-mobile",
+        label: "Mobile",
+        mode: "week",
+        component: Mobile
+      }
+    ];
+    let views = prop($$props, "views", 3, DEFAULT_VIEWS), theme = prop($$props, "theme", 3, auto), mondayStart = prop($$props, "mondayStart", 3, true), heightProp = prop($$props, "height", 3, 600), borderRadius = prop($$props, "borderRadius", 3, 12), readOnly = prop($$props, "readOnly", 3, false), snapInterval = prop($$props, "snapInterval", 3, 15), showModePills = prop($$props, "showModePills", 3, true), showNavigation = prop($$props, "showNavigation", 3, true), equalDays = prop($$props, "equalDays", 3, false), showDates = prop($$props, "showDates", 3, true), compact = prop($$props, "compact", 3, false), mobileProp = prop($$props, "mobile", 3, "auto");
+    const effectiveCreate = /* @__PURE__ */ user_derived(() => readOnly() ? void 0 : $$props.oneventcreate);
+    const effectiveMove = /* @__PURE__ */ user_derived(() => readOnly() ? void 0 : $$props.oneventmove);
+    let containerWidth = /* @__PURE__ */ state(0);
+    const isMobileContainer = /* @__PURE__ */ user_derived(() => get(containerWidth) > 0 && get(containerWidth) < MOBILE_BREAKPOINT);
+    const useMobile = /* @__PURE__ */ user_derived(() => mobileProp() === "auto" ? get(isMobileContainer) : Boolean(mobileProp()));
+    let calEl = /* @__PURE__ */ state(void 0);
+    let probedTheme = /* @__PURE__ */ state("");
+    const needsProbe = /* @__PURE__ */ user_derived(() => theme() === auto && $$props.autoTheme !== false);
+    onMount(() => {
+      if (!get(calEl)) return;
+      set(containerWidth, get(calEl).clientWidth, true);
+      const ro = new ResizeObserver((entries) => {
+        set(containerWidth, Math.round(entries[0].contentRect.width), true);
+      });
+      ro.observe(get(calEl));
+      if (!get(needsProbe)) return () => ro.disconnect();
+      const opts = typeof $$props.autoTheme === "object" ? $$props.autoTheme : {};
+      const stopTheme = observeHostTheme(
+        get(calEl),
+        (vars) => {
+          set(probedTheme, vars, true);
+        },
+        opts
+      );
+      return () => {
+        ro.disconnect();
+        stopTheme?.();
+      };
+    });
+    const effectiveTheme = /* @__PURE__ */ user_derived(() => theme() === auto && $$props.autoTheme !== false ? get(probedTheme) : theme());
+    const store = /* @__PURE__ */ user_derived(() => createEventStore($$props.adapter));
+    const viewState = createViewState(untrack(() => ({
+      view: $$props.view ?? views()[0]?.id,
+      mondayStart: mondayStart(),
+      initialDate: $$props.initialDate,
+      dayCount: $$props.days,
+      modeForView: (viewId) => views().find((v) => v.id === viewId)?.mode
+    })));
+    const selection = createSelection();
+    const drag = createDragState();
+    async function commitDrag() {
+      if (readOnly()) {
+        drag.cancel();
+        return;
+      }
+      const mode = drag.mode;
+      const payload = drag.commit();
+      if (!payload) return;
+      let { start, end } = payload;
+      if (mode === "create" || mode === "resize-start" || mode === "resize-end") {
+        const durationMs = end.getTime() - start.getTime();
+        const durationMin = durationMs / 6e4;
+        if ($$props.minDuration && durationMin < $$props.minDuration) {
+          if (mode === "resize-start") {
+            start = new Date(end.getTime() - $$props.minDuration * 6e4);
+          } else {
+            end = new Date(start.getTime() + $$props.minDuration * 6e4);
+          }
+        }
+        if ($$props.maxDuration && durationMin > $$props.maxDuration) {
+          if (mode === "resize-start") {
+            start = new Date(end.getTime() - $$props.maxDuration * 6e4);
+          } else {
+            end = new Date(start.getTime() + $$props.maxDuration * 6e4);
+          }
+        }
+      }
+      if ($$props.disabledDates?.length) {
+        const startDay = new Date(start);
+        startDay.setHours(0, 0, 0, 0);
+        const endDay = new Date(end.getTime() - 1);
+        endDay.setHours(0, 0, 0, 0);
+        for (const dd of $$props.disabledDates) {
+          const dt = new Date(dd);
+          dt.setHours(0, 0, 0, 0);
+          const ts = dt.getTime();
+          if (ts >= startDay.getTime() && ts <= endDay.getTime()) return;
+        }
+      }
+      if ($$props.blockedSlots?.length) {
+        const startH = start.getHours() + start.getMinutes() / 60;
+        const endH = end.getHours() + end.getMinutes() / 60 + (end.getDate() !== start.getDate() ? 24 : 0);
+        const jsDay = start.getDay();
+        const isoDay = jsDay === 0 ? 7 : jsDay;
+        for (const slot of $$props.blockedSlots) {
+          if (slot.day && slot.day !== isoDay) continue;
+          if (startH < slot.end && endH > slot.start) return;
+        }
+      }
+      if ((mode === "move" || mode === "resize-start" || mode === "resize-end") && payload.eventId) {
+        try {
+          await get(store).move(payload.eventId, start, end);
+          const ev = get(store).byId(payload.eventId);
+          if (ev) get(effectiveMove)?.(ev, start, end);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "";
+          if (!msg.includes("read-only") && !msg.includes("not found")) {
+            console.warn("[calendar] drag commit failed:", e);
+          }
+        }
+      } else if (mode === "create") {
+        get(effectiveCreate)?.({ start, end });
+      }
+    }
+    let viewLoadRange = /* @__PURE__ */ state(null);
+    setContext("calendar", {
+      // Engine objects (hold $state internally)
+      get store() {
+        return get(store);
+      },
+      viewState,
+      selection,
+      drag,
+      commitDrag,
+      // Callbacks
+      get oneventclick() {
+        return $$props.oneventclick;
+      },
+      get oneventcreate() {
+        return get(effectiveCreate);
+      },
+      get oneventmove() {
+        return get(effectiveMove);
+      },
+      get oneventhover() {
+        return $$props.oneventhover;
+      },
+      // Config (reactive via getters)
+      get readOnly() {
+        return readOnly();
+      },
+      get visibleHours() {
+        return $$props.visibleHours;
+      },
+      get snapInterval() {
+        return snapInterval();
+      },
+      get eventSnippet() {
+        return $$props.event;
+      },
+      get emptySnippet() {
+        return $$props.empty;
+      },
+      get showNavigation() {
+        return showNavigation();
+      },
+      get equalDays() {
+        return equalDays();
+      },
+      get showDates() {
+        return showDates();
+      },
+      get hideDays() {
+        return $$props.hideDays;
+      },
+      get blockedSlots() {
+        return $$props.blockedSlots;
+      },
+      get dayHeaderSnippet() {
+        return $$props.dayHeader;
+      },
+      get minDuration() {
+        return $$props.minDuration;
+      },
+      get maxDuration() {
+        return $$props.maxDuration;
+      },
+      get disabledDates() {
+        return $$props.disabledDates;
+      },
+      get mobile() {
+        return get(useMobile);
+      },
+      get autoHeight() {
+        return heightProp() === "auto";
+      },
+      get compact() {
+        return compact();
+      },
+      // Load range (read/write)
+      get loadRange() {
+        return get(viewLoadRange);
+      },
+      setLoadRange(range) {
+        set(viewLoadRange, range, true);
+      }
+    });
+    user_effect(() => {
+      const range = get(viewLoadRange) ?? viewState.range;
+      get(store).load({ start: range.start, end: range.end });
+    });
+    untrack(() => get(store).load({ start: viewState.range.start, end: viewState.range.end }));
+    user_effect(() => {
+      if ($$props.view) viewState.setView($$props.view);
+    });
+    user_effect(() => {
+      if ($$props.currentDate) viewState.setFocusDate($$props.currentDate);
+    });
+    user_effect(() => {
+      if ($$props.days !== void 0 && viewState.dayCount !== $$props.days) viewState.setDayCount($$props.days);
+    });
+    user_effect(() => {
+      const d = viewState.focusDate;
+      $$props.ondatechange?.(d);
+    });
+    user_effect(() => {
+      if (viewState.mondayStart !== mondayStart()) {
+        viewState.setMondayStart(mondayStart());
+      }
+    });
+    user_effect(() => {
+      $$props.onviewchange?.(viewState.view);
+    });
+    const resolvedView = /* @__PURE__ */ user_derived(() => {
+      const requested = views().find((v) => v.id === viewState.view) ?? views()[0];
+      if (!get(useMobile) || !requested) return requested;
+      if (requested.id.endsWith("-mobile")) return requested;
+      if (requested.label === "Agenda") return requested;
+      const mobileVariant = views().find((v) => v.id === `${requested.mode}-mobile`);
+      return mobileVariant ?? requested;
+    });
+    const activeView = /* @__PURE__ */ user_derived(() => get(resolvedView));
+    const desktopViews = /* @__PURE__ */ user_derived(() => views().filter((v) => !v.id.endsWith("-mobile")));
+    const dateLabel = /* @__PURE__ */ user_derived(() => {
+      if (!showDates()) {
+        if (viewState.mode === "day") {
+          return viewState.focusDate.toLocaleDateString($$props.locale, { weekday: "long" });
+        }
+        return "";
+      }
+      if (viewState.mode === "day") {
+        return viewState.focusDate.toLocaleDateString($$props.locale, { weekday: "long", month: "short", day: "numeric" });
+      }
+      return viewState.focusDate.toLocaleDateString($$props.locale, { month: "long", year: "numeric" });
+    });
+    const modes = /* @__PURE__ */ user_derived(() => {
+      const g = new Set(get(desktopViews).map((v) => v.mode));
+      return ["day", "week"].filter((key) => g.has(key));
+    });
+    const L = /* @__PURE__ */ user_derived(getLabels);
+    function switchMode(g) {
+      const currentLabel = get(desktopViews).find((v) => v.id === viewState.view)?.label ?? get(activeView)?.label;
+      const match = get(desktopViews).find((v) => v.mode === g && v.label === currentLabel);
+      const fallback = get(desktopViews).find((v) => v.mode === g);
+      const target = match ?? fallback;
+      if (target) viewState.setView(target.id);
+    }
+    const viewIncludesToday = /* @__PURE__ */ user_derived(() => {
+      const now = Date.now();
+      const { start, end } = viewState.range;
+      return now >= start.getTime() && now < end.getTime();
+    });
+    const headerCtx = /* @__PURE__ */ user_derived(() => ({
+      dateLabel: get(dateLabel),
+      mode: viewState.mode,
+      modes: get(modes),
+      switchMode,
+      prev: () => viewState.prev(),
+      next: () => viewState.next(),
+      goToday: () => viewState.goToday(),
+      isViewOnToday: get(viewIncludesToday),
+      focusDate: viewState.focusDate
+    }));
+    const navCtx = /* @__PURE__ */ user_derived(() => ({
+      prev: () => viewState.prev(),
+      next: () => viewState.next(),
+      goToday: () => viewState.goToday(),
+      isViewOnToday: get(viewIncludesToday),
+      focusDate: viewState.focusDate,
+      mode: viewState.mode
+    }));
+    var div = root();
+    let classes;
+    var node = child(div);
+    {
+      var consequent = ($$anchor2) => {
+        var fragment = comment();
+        var node_1 = first_child(fragment);
+        snippet(node_1, () => $$props.header, () => get(headerCtx));
+        append($$anchor2, fragment);
+      };
+      var consequent_6 = ($$anchor2) => {
+        var fragment_1 = root_2();
+        var div_1 = first_child(fragment_1);
+        var div_2 = child(div_1);
+        var node_2 = child(div_2);
+        {
+          var consequent_1 = ($$anchor3) => {
+            var fragment_2 = comment();
+            var node_3 = first_child(fragment_2);
+            snippet(node_3, () => $$props.navigation, () => get(navCtx));
+            append($$anchor3, fragment_2);
+          };
+          var consequent_2 = ($$anchor3) => {
+            var button = root_4();
+            template_effect(() => set_attribute(button, "aria-label", viewState.mode === "day" ? get(L).previousDay : get(L).previousWeek));
+            delegated("click", button, () => viewState.prev());
+            append($$anchor3, button);
+          };
+          if_block(node_2, ($$render) => {
+            if ($$props.navigation) $$render(consequent_1);
+            else if (showNavigation()) $$render(consequent_2, 1);
+          });
+        }
+        var node_4 = sibling(node_2, 2);
+        {
+          var consequent_3 = ($$anchor3) => {
+            var div_3 = root_5();
+            each(div_3, 21, () => get(modes), index, ($$anchor4, g) => {
+              var button_1 = root_6();
+              let classes_1;
+              var text2 = child(button_1, true);
+              reset(button_1);
+              template_effect(() => {
+                classes_1 = set_class(button_1, 1, "cal-m-pill svelte-1b53e7w", null, classes_1, { "cal-m-pill--active": viewState.mode === get(g) });
+                set_attribute(button_1, "aria-pressed", viewState.mode === get(g));
+                set_text(text2, get(g) === "day" ? get(L).day : get(L).week);
+              });
+              delegated("click", button_1, () => switchMode(get(g)));
+              append($$anchor4, button_1);
+            });
+            reset(div_3);
+            template_effect(() => set_attribute(div_3, "aria-label", get(L).viewMode));
+            append($$anchor3, div_3);
+          };
+          if_block(node_4, ($$render) => {
+            if (showModePills() && get(modes).length > 1) $$render(consequent_3);
+          });
+        }
+        reset(div_2);
+        var span = sibling(div_2, 2);
+        var text_1 = child(span, true);
+        reset(span);
+        var div_4 = sibling(span, 2);
+        var node_5 = child(div_4);
+        {
+          var consequent_4 = ($$anchor3) => {
+            var button_2 = root_7();
+            template_effect(() => set_attribute(button_2, "aria-label", viewState.mode === "day" ? get(L).nextDay : get(L).nextWeek));
+            delegated("click", button_2, () => viewState.next());
+            append($$anchor3, button_2);
+          };
+          if_block(node_5, ($$render) => {
+            if (!$$props.navigation && showNavigation()) $$render(consequent_4);
+          });
+        }
+        reset(div_4);
+        reset(div_1);
+        var node_6 = sibling(div_1, 2);
+        {
+          var consequent_5 = ($$anchor3) => {
+            var div_5 = root_8();
+            var button_3 = child(div_5);
+            var text_2 = child(button_3, true);
+            reset(button_3);
+            reset(div_5);
+            template_effect(() => set_text(text_2, get(L).today));
+            delegated("click", button_3, () => viewState.goToday());
+            append($$anchor3, div_5);
+          };
+          if_block(node_6, ($$render) => {
+            if (!$$props.navigation && showNavigation() && !get(viewIncludesToday)) $$render(consequent_5);
+          });
+        }
+        template_effect(() => set_text(text_1, get(dateLabel)));
+        append($$anchor2, fragment_1);
+      };
+      var alternate = ($$anchor2) => {
+        var fragment_3 = comment();
+        var node_7 = first_child(fragment_3);
+        {
+          var consequent_7 = ($$anchor3) => {
+            var div_6 = root_10();
+            each(div_6, 21, () => get(modes), index, ($$anchor4, g) => {
+              var button_4 = root_11();
+              let classes_2;
+              var text_3 = child(button_4, true);
+              reset(button_4);
+              template_effect(() => {
+                classes_2 = set_class(button_4, 1, "cal-pill svelte-1b53e7w", null, classes_2, { "cal-pill--active": viewState.mode === get(g) });
+                set_attribute(button_4, "aria-pressed", viewState.mode === get(g));
+                set_text(text_3, get(g) === "day" ? get(L).day : get(L).week);
+              });
+              delegated("click", button_4, () => switchMode(get(g)));
+              append($$anchor4, button_4);
+            });
+            reset(div_6);
+            template_effect(() => set_attribute(div_6, "aria-label", get(L).viewMode));
+            append($$anchor3, div_6);
+          };
+          if_block(node_7, ($$render) => {
+            if (showModePills() && get(modes).length > 1 && get(activeView)?.label !== "Agenda") $$render(consequent_7);
+          });
+        }
+        append($$anchor2, fragment_3);
+      };
+      if_block(node, ($$render) => {
+        if ($$props.header) $$render(consequent);
+        else if (get(useMobile)) $$render(consequent_6, 1);
+        else $$render(alternate, -1);
+      });
+    }
+    var div_7 = sibling(node, 2);
+    var node_8 = child(div_7);
+    {
+      var consequent_8 = ($$anchor2) => {
+        const Comp = /* @__PURE__ */ user_derived(() => get(activeView).component);
+        var fragment_4 = comment();
+        var node_9 = first_child(fragment_4);
+        component(node_9, () => get(Comp), ($$anchor3, Comp_1) => {
+          Comp_1($$anchor3, spread_props(
+            {
+              get events() {
+                return get(store).events;
+              },
+              get style() {
+                return get(effectiveTheme);
+              },
+              height: null,
+              get mode() {
+                return get(activeView).mode;
+              },
+              get mondayStart() {
+                return viewState.mondayStart;
+              },
+              get locale() {
+                return $$props.locale;
+              },
+              get focusDate() {
+                return viewState.focusDate;
+              },
+              get oneventclick() {
+                return $$props.oneventclick;
+              },
+              get oneventcreate() {
+                return get(effectiveCreate);
+              },
+              get readOnly() {
+                return readOnly();
+              },
+              get visibleHours() {
+                return $$props.visibleHours;
+              },
+              get selectedEventId() {
+                return selection.selectedId;
+              }
+            },
+            () => get(activeView).props ?? {}
+          ));
+        });
+        append($$anchor2, fragment_4);
+      };
+      var alternate_1 = ($$anchor2) => {
+        var div_8 = root_13();
+        append($$anchor2, div_8);
+      };
+      if_block(node_8, ($$render) => {
+        if (get(activeView)) $$render(consequent_8);
+        else $$render(alternate_1, -1);
+      });
+    }
+    reset(div_7);
+    var node_10 = sibling(div_7, 2);
+    {
+      var consequent_9 = ($$anchor2) => {
+        var div_9 = root_14();
+        append($$anchor2, div_9);
+      };
+      if_block(node_10, ($$render) => {
+        if (get(store).loading) $$render(consequent_9);
+      });
+    }
+    reset(div);
+    bind_this(div, ($$value) => set(calEl, $$value), () => get(calEl));
+    template_effect(() => {
+      classes = set_class(div, 1, "cal svelte-1b53e7w", null, classes, { "cal--auto": heightProp() === "auto" });
+      set_style(div, `${get(effectiveTheme) ?? ""}; ${heightProp() === "auto" ? "" : `--cal-h: ${heightProp()}px;`} --cal-r: ${borderRadius() ?? ""}px`);
+      set_attribute(div, "aria-label", get(L).calendar);
+      set_attribute(div, "dir", $$props.dir);
+      set_attribute(div, "lang", $$props.locale);
+      div.dir = div.dir;
+    });
+    append($$anchor, div);
+    pop();
+  }
+  delegate(["click"]);
+  function createRestAdapter(options) {
+    const { baseUrl, headers = {} } = options;
+    const mapEvents = options.mapEvents ?? ((data) => data);
+    const mapEvent = options.mapEvent ?? ((data) => data);
+    async function request(path, init) {
+      const res = await fetch(`${baseUrl}${path}`, {
+        ...init,
+        headers: {
+          "Content-Type": "application/json",
+          ...headers,
+          ...init?.headers ?? {}
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`Calendar API error: ${res.status} ${res.statusText}`);
+      }
+      if (res.status === 204) return void 0;
+      try {
+        return await res.json();
+      } catch {
+        throw new Error(`Calendar API error: invalid JSON response from ${path}`);
+      }
+    }
+    return {
+      async fetchEvents(range) {
+        const params = new URLSearchParams({
+          start: range.start.toISOString(),
+          end: range.end.toISOString()
+        });
+        const data = await request(`/events?${params}`);
+        return mapEvents(data);
+      },
+      async createEvent(event2) {
+        const data = await request("/events", {
+          method: "POST",
+          body: JSON.stringify(event2)
+        });
+        return mapEvent(data);
+      },
+      async updateEvent(id, patch) {
+        const data = await request(`/events/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(patch)
+        });
+        return mapEvent(data);
+      },
+      async deleteEvent(id) {
+        await request(`/events/${id}`, { method: "DELETE" });
+      }
+    };
+  }
+  const VIVID_PALETTE = [
+    "#ef4444",
+    "#f97316",
+    "#eab308",
+    "#22c55e",
+    "#14b8a6",
+    "#3b82f6",
+    "#6366f1",
+    "#a855f7",
+    "#ec4899",
+    "#f43f5e",
+    "#06b6d4",
+    "#84cc16",
+    "#d946ef",
+    "#0ea5e9",
+    "#10b981"
+  ];
+  let counter = 0;
+  function uid() {
+    return `mem-${Date.now()}-${++counter}`;
+  }
+  function createMemoryAdapter(initial = [], options) {
+    const events = [...initial];
+    const palette = VIVID_PALETTE;
+    const colorAssignments = /* @__PURE__ */ new Map();
+    let colorIndex = 0;
+    function resolveColor(ev) {
+      if (ev.color) return ev.color;
+      const key = ev.category ?? ev.title;
+      if (!colorAssignments.has(key)) {
+        colorAssignments.set(key, palette[colorIndex % palette.length]);
+        colorIndex++;
+      }
+      return colorAssignments.get(key);
+    }
+    function withColor(ev) {
+      const color = resolveColor(ev);
+      return color ? { ...ev, color } : ev;
+    }
+    function overlaps(ev, range) {
+      return ev.start < range.end && ev.end > range.start;
+    }
+    return {
+      async fetchEvents(range) {
+        return events.filter((ev) => overlaps(ev, range)).map(withColor);
+      },
+      async createEvent(data) {
+        const ev = { ...data, id: uid() };
+        events.push(ev);
+        return withColor(ev);
+      },
+      async updateEvent(id, patch) {
+        const idx = events.findIndex((e) => e.id === id);
+        if (idx < 0) throw new Error(`Event not found: ${id}`);
+        events[idx] = { ...events[idx], ...patch, id };
+        return withColor(events[idx]);
+      },
+      async deleteEvent(id) {
+        const idx = events.findIndex((e) => e.id === id);
+        if (idx < 0) throw new Error(`Event not found: ${id}`);
+        events.splice(idx, 1);
+      }
+    };
+  }
+  function CalendarWidget($$anchor, $$props) {
+    push($$props, true);
+    let theme = prop($$props, "theme", 3, "neutral"), view = prop($$props, "view", 3, "week-planner"), height = prop($$props, "height", 3, "600"), mondaystart = prop($$props, "mondaystart", 3, "true");
+    const heightPx = /* @__PURE__ */ user_derived(() => parseInt(height(), 10) || 600);
+    const isMondayStart = /* @__PURE__ */ user_derived(() => mondaystart() !== "false");
+    const themeStyle = /* @__PURE__ */ user_derived(() => presets[theme()] || presets.neutral);
+    const dirValue = /* @__PURE__ */ user_derived(() => $$props.dir === "rtl" || $$props.dir === "ltr" || $$props.dir === "auto" ? $$props.dir : void 0);
+    function parseHeaders(json) {
+      if (!json) return void 0;
+      try {
+        const parsed = JSON.parse(json);
+        const out = {};
+        for (const [k, v] of Object.entries(parsed)) {
+          out[k] = String(v);
+        }
+        return out;
+      } catch {
+        console.warn("[day-calendar] Failed to parse headers JSON:", json);
+        return void 0;
+      }
+    }
+    function toEvent(raw, fallbackId) {
+      const start = new Date(String(raw.start ?? ""));
+      const end = new Date(String(raw.end ?? ""));
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+        return null;
+      }
+      return {
+        id: String(raw.id ?? fallbackId),
+        title: String(raw.title ?? "Untitled"),
+        start,
+        end,
+        color: raw.color ? String(raw.color) : void 0
+      };
+    }
+    function parseEvents(json) {
+      if (!json) return [];
+      try {
+        const raw = JSON.parse(json);
+        const parsed = raw.map((e, idx) => toEvent(e, `inline-${idx}`)).filter((ev) => ev !== null);
+        if (parsed.length !== raw.length) {
+          console.warn(`[day-calendar] Ignored ${raw.length - parsed.length} invalid event(s) from events JSON.`);
+        }
+        return parsed;
+      } catch {
+        console.warn("[day-calendar] Failed to parse events JSON:", json);
+        return [];
+      }
+    }
+    const adapter = /* @__PURE__ */ user_derived(() => {
+      if ($$props.api) {
+        const parsedHeaders = parseHeaders($$props.headers);
+        return createRestAdapter({
+          baseUrl: $$props.api,
+          headers: parsedHeaders,
+          mapEvents: (data) => {
+            const arr = Array.isArray(data) ? data : data.events ?? [];
+            return arr.map((e, idx) => toEvent(e, `api-${idx}`)).filter((ev) => ev !== null);
+          }
+        });
+      }
+      return createMemoryAdapter(parseEvents($$props.events));
+    });
+    Calendar($$anchor, {
+      get adapter() {
+        return get(adapter);
+      },
+      get view() {
+        return view();
+      },
+      get theme() {
+        return get(themeStyle);
+      },
+      get height() {
+        return get(heightPx);
+      },
+      get mondayStart() {
+        return get(isMondayStart);
+      },
+      get dir() {
+        return get(dirValue);
+      },
+      get locale() {
+        return $$props.locale;
+      }
+    });
+    pop();
+  }
+  const CalendarWidgetClass = asClassComponent(CalendarWidget);
+  class DayCalendarElement extends HTMLElement {
+    instance = null;
+    static get observedAttributes() {
+      return ["api", "events", "theme", "view", "height", "locale", "dir", "mondaystart", "headers"];
+    }
+    connectedCallback() {
+      if (this.instance) return;
+      this.instance = new CalendarWidgetClass({
+        target: this,
+        props: this.readProps()
+      });
+    }
+    disconnectedCallback() {
+      this.instance?.$destroy();
+      this.instance = null;
+    }
+    attributeChangedCallback(name, _oldValue, newValue) {
+      if (!this.instance) return;
+      this.instance.$set({
+        [name]: newValue ?? void 0
+      });
+    }
+    readProps() {
+      return {
+        api: this.getAttribute("api") ?? void 0,
+        events: this.getAttribute("events") ?? void 0,
+        theme: this.getAttribute("theme") ?? void 0,
+        view: this.getAttribute("view") ?? void 0,
+        height: this.getAttribute("height") ?? void 0,
+        locale: this.getAttribute("locale") ?? void 0,
+        dir: this.getAttribute("dir") ?? void 0,
+        mondaystart: this.getAttribute("mondaystart") ?? void 0,
+        headers: this.getAttribute("headers") ?? void 0
+      };
+    }
+  }
+  if (!customElements.get("day-calendar")) {
+    customElements.define("day-calendar", DayCalendarElement);
+  }
+})();
