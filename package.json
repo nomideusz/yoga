@@ -13,6 +13,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"db:push": "drizzle-kit push",
 		"db:detect-schedule": "tsx scripts/detect-schedule-type.ts",
+		"db:photo-placeholders": "tsx scripts/generate-photo-placeholders.ts",
 		"db:migrate-search": "tsx scripts/migrate-search.ts",
 		"db:migrate-search:dry": "tsx scripts/migrate-search.ts --dry-run"
 	},
@@ -35,6 +36,7 @@
 		"@fontsource-variable/playfair-display": "^5.2.8",
 		"@libsql/client": "^0.17.0",
 		"@nomideusz/svelte-calendar": "file:packages/svelte-calendar",
+		"@nomideusz/svelte-geometrize": "file:packages/svelte-geometrize",
 		"@nomideusz/svelte-i18n": "file:packages/svelte-i18n",
 		"@nomideusz/svelte-search": "file:packages/svelte-search",
 		"@sentry/sveltekit": "^10.62.0",

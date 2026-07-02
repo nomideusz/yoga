@@ -33,6 +33,7 @@ export const schools = sqliteTable('schools', {
   photoReference: text('photo_reference').default(''),
   photoAuthor: text('photo_author').default(''),
   photoAuthorUrl: text('photo_author_url').default(''),
+  photoPlaceholder: text('photo_placeholder'),  // GeometrizePlaceholder JSON (scripts/generate-photo-placeholders.ts)
 
   neighborhood: text('neighborhood').default(''),
   latitude: real('latitude'),

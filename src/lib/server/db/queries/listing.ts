@@ -10,6 +10,15 @@ import type {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
+function parsePlaceholder(json: string | null): Listing["photoPlaceholder"] {
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
 function mapScheduleRow(
   row: typeof scheduleEntries.$inferSelect,
 ): ScheduleEntryData {
@@ -74,6 +83,7 @@ function buildListing(
     photoReference: school.photoReference,
     photoAuthor: school.photoAuthor,
     photoAuthorUrl: school.photoAuthorUrl,
+    photoPlaceholder: parsePlaceholder(school.photoPlaceholder),
     neighborhood: school.neighborhood,
     latitude: school.latitude,
     longitude: school.longitude,

@@ -20,6 +20,7 @@
     import Globe from "lucide-svelte/icons/globe";
     import MapPin from "lucide-svelte/icons/map-pin";
     import Phone from "lucide-svelte/icons/phone";
+    import { GeometrizedImage } from "@nomideusz/svelte-geometrize";
 
     let {
         listing,
@@ -216,7 +217,42 @@
     </header>
 
     <!-- ═══ HERO PHOTO ═══ -->
-    {#if listing.photoReference && !photoFailed}
+    {#if listing.photoPlaceholder && (listing.photoReference || listing.imageUrl)}
+        <!-- Geometrized placeholder paints instantly (SSR-inlined SVG), the photo
+             dissolves in when loaded. No onerror fallback: if the photo fails,
+             the shapes persist — better than the text placeholder. -->
+        <figure class="ld-hero">
+            <GeometrizedImage
+                placeholder={listing.photoPlaceholder}
+                src={listing.photoReference
+                    ? `/api/photo/${listing.id}?v=2`
+                    : listing.imageUrl!}
+                alt={listing.name}
+                class="ld-hero-geo"
+                loading="eager"
+                fetchpriority="high"
+            />
+            {#if listing.photoReference}
+                <figcaption class="ld-hero-attr">
+                    {#if listing.photoAuthor}
+                        <span class="ld-hero-author">
+                            {#if listing.photoAuthorUrl}
+                                <a
+                                    href={listing.photoAuthorUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer">{listing.photoAuthor}</a
+                                >
+                            {:else}
+                                {listing.photoAuthor}
+                            {/if}
+                        </span>
+                        <span class="ld-hero-sep">·</span>
+                    {/if}
+                    <span class="ld-hero-gm" translate="no">Google Maps</span>
+                </figcaption>
+            {/if}
+        </figure>
+    {:else if listing.photoReference && !photoFailed}
         <figure class="ld-hero">
             <img
                 src="/api/photo/{listing.id}?v=2"
@@ -749,6 +785,14 @@
         /* Bias the crop upward so faces/heads stay in frame */
         object-position: center 25%;
         display: block;
+    }
+    /* GeometrizedImage wrapper: giving it a definite height makes it fill the
+       square hero (its inline aspect-ratio is ignored once both sizes are set) */
+    .ld-hero :global(.ld-hero-geo) {
+        height: 100%;
+    }
+    .ld-hero :global(.ld-hero-geo img) {
+        object-position: center 25%;
     }
     .ld-hero-attr {
         position: absolute;

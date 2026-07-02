@@ -1,3 +1,5 @@
+import type { GeometrizePlaceholder } from '@nomideusz/svelte-geometrize';
+
 export interface ScheduleEntryData {
   id: number;
   schoolId: string;
@@ -56,6 +58,7 @@ export interface Listing {
   photoReference: string | null;
   photoAuthor: string | null;
   photoAuthorUrl: string | null;
+  photoPlaceholder: GeometrizePlaceholder | null;
   neighborhood: string | null;
   latitude: number | null;
   longitude: number | null;
