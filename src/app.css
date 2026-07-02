@@ -341,6 +341,11 @@ body {
   max-width: var(--sf-container);
   margin: 0 auto;
   padding: clamp(32px, 5vh, 56px) var(--sf-gutter) var(--spacing-xxl);
+  /* The shell is a column-flex item of <main> whose auto margins disable
+     stretch, so width:auto resolves to fit-content — any nowrap content
+     (e.g. long schedule class names) then inflates the whole page via
+     min-content. Explicit width keeps it viewport-bound. */
+  width: 100%;
 }
 
 /* ── Card base ───────────────────────── */
