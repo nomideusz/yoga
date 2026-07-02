@@ -794,6 +794,20 @@
     .ld-hero :global(.ld-hero-geo img) {
         object-position: center 25%;
     }
+    /* On narrow screens the square 1/1 crop zooms landscape photos absurdly —
+       let the photo's own aspect ratio drive the hero height instead.
+       (Scoped to figure: div.ld-hero--placeholder keeps its fixed ratio.) */
+    @media (max-width: 768px) {
+        figure.ld-hero {
+            aspect-ratio: auto;
+        }
+        .ld-hero-img {
+            height: auto;
+        }
+        .ld-hero :global(.ld-hero-geo) {
+            height: auto;
+        }
+    }
     .ld-hero-attr {
         position: absolute;
         bottom: 7px;
