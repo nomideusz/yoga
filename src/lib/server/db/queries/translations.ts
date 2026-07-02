@@ -1,5 +1,5 @@
 import { db } from '../index';
-import { schoolTranslations, cityTranslations } from '../schema';
+import { schoolTranslations, cityTranslations, cities } from '../schema';
 import { eq, and, sql } from 'drizzle-orm';
 import type { Listing } from './types';
 
@@ -120,6 +120,27 @@ export async function getCityTranslations(
     });
   }
   return map;
+}
+
+/** Get the editorial city intro for a locale, falling back to Polish. */
+export async function getCityIntro(
+  slug: string,
+  locale: string,
+): Promise<string | null> {
+  if (locale !== 'pl') {
+    const [row] = await db
+      .select({ intro: cityTranslations.intro })
+      .from(cityTranslations)
+      .where(and(eq(cityTranslations.slug, slug), eq(cityTranslations.locale, locale)))
+      .limit(1);
+    if (row?.intro) return row.intro;
+  }
+  const [row] = await db
+    .select({ intro: cities.intro })
+    .from(cities)
+    .where(eq(cities.slug, slug))
+    .limit(1);
+  return row?.intro ?? null;
 }
 
 /** Get translation for a single city */

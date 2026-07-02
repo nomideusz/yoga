@@ -2,6 +2,7 @@ import { error, redirect } from "@sveltejs/kit";
 import {
   getListingsByCity,
   getUniqueCities,
+  getCityIntro,
 } from "$lib/server/db/queries/index";
 import { normalize } from "$lib/search";
 import { localizeHref } from "@nomideusz/svelte-i18n";
@@ -43,7 +44,10 @@ export const load: PageServerLoad = async ({ params, url, parent, locals }) => {
     throw redirect(301, localizeHref(`/${resolvedCitySlug}${url.search}`, locals.locale, i18nRouting));
   }
 
-  const cityListing = await getListingsByCity(exactCityName);
+  const [cityListing, cityIntro] = await Promise.all([
+    getListingsByCity(exactCityName),
+    getCityIntro(resolvedCitySlug, locals.locale),
+  ]);
 
   const lat = parseFloat(url.searchParams.get("lat") ?? "");
   const lng = parseFloat(url.searchParams.get("lng") ?? "");
@@ -54,6 +58,7 @@ export const load: PageServerLoad = async ({ params, url, parent, locals }) => {
     city: exactCityName,
     citySlug: resolvedCitySlug,
     schools: cityListing,
+    cityIntro,
     location,
     lookups,
   };

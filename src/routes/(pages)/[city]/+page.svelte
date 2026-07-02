@@ -2006,6 +2006,18 @@
         {/if}
     </div>
 
+    <!-- ── City intro (editorial, unique per-city SEO copy) ── -->
+    {#if data.cityIntro}
+        <section class="city-intro">
+            <h2 class="city-intro-kicker">
+                {t("city_intro_heading", { cityLoc: cityLocDisplay(data.city) })}
+            </h2>
+            {#each data.cityIntro.split(/\n\n+/) as para}
+                <p>{para}</p>
+            {/each}
+        </section>
+    {/if}
+
     <!-- ── FAQ (visible, matches JSON-LD) ── -->
     {#if faqItems.length > 0}
         <footer class="city-faq">
@@ -2562,6 +2574,31 @@
 
     /* ── Reduced motion ── */
     /* ── FAQ ── */
+    .city-intro {
+        border-top: 1px solid var(--sf-line);
+        margin-top: 16px;
+        padding: 32px 0 16px;
+    }
+
+    .city-intro-kicker {
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--sf-muted);
+        font-weight: 600;
+        margin: 0 0 16px;
+    }
+
+    .city-intro p {
+        font-family: var(--font-body);
+        font-size: 0.88rem;
+        line-height: 1.7;
+        color: var(--sf-dark);
+        max-width: 72ch;
+        margin: 0 0 12px;
+    }
+
     .city-faq {
         border-top: 1px solid var(--sf-line);
         margin-top: 16px;

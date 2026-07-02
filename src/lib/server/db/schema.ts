@@ -236,6 +236,7 @@ export const cities = sqliteTable('cities', {
   lng: real('lng').notNull(),
   schoolCount: integer('school_count').notNull().default(0),
   districts: text('districts').notNull().default('[]'),  // JSON array of district names
+  intro: text('intro'),                        // editorial city intro (Polish), LLM-generated from DB stats
 });
 
 // ── Search synonyms (misspellings → canonical terms) ────────────────────────
@@ -295,6 +296,7 @@ export const cityTranslations = sqliteTable('city_translations', {
   locale: text('locale').notNull(),  // 'en' | 'uk'
   name: text('name').notNull(),
   nameLoc: text('name_loc'),
+  intro: text('intro'),              // localized editorial city intro
 }, (table) => ({
   pk: unique().on(table.slug, table.locale),
   idxLocale: index('idx_city_translations_locale').on(table.locale),

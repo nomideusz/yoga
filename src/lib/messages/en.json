@@ -281,6 +281,7 @@
   "cat_faq_cities_q": "Where in Poland can I find {style} classes?",
   "cat_faq_cities_a": "{style} classes are available in {count} cities: {cities}.",
 
+  "city_intro_heading": "Yoga in {cityLoc}",
   "faq_heading": "Frequently asked questions",
   "faq_price_q": "How much does yoga cost in {cityLoc}?",
   "faq_price_a": "A monthly pass in {cityLoc} averages {avg} zł, ranging from {min} zł to {max} zł.",

@@ -280,6 +280,7 @@
   "cat_faq_cities_q": "Gdzie w Polsce są zajęcia {style}?",
   "cat_faq_cities_a": "Zajęcia {style} znajdziesz w {count} miastach: {cities}.",
 
+  "city_intro_heading": "Joga w {cityLoc}",
   "faq_heading": "Często zadawane pytania",
   "faq_price_q": "Ile kosztuje joga w {cityLoc}?",
   "faq_price_a": "Średni miesięczny karnet w {cityLoc} to {avg} zł. Ceny zaczynają się od {min} zł i sięgają {max} zł.",
