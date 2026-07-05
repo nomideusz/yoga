@@ -14,7 +14,8 @@ const NON_YOGA_STYLE_TOKENS = new Set([
 /** Is this a yoga place (vs pilates/meditation-only)? Works with display
  *  style names ("Pilates Mat") and normalized tokens ("pilates mat") alike. */
 export function isYogaPlace(name: string, styles: string[]): boolean {
-  if (/joga|yoga|jogi/i.test(name)) return true;
+  // joga + Polish declensions (jogi, jodze, jogę/joge, jogą)
+  if (/jog[aię]|joge|jodze|yoga|yogi/i.test(name)) return true;
   return styles
     .flatMap((s) => s.toLowerCase().split(/\s+/))
     .some((t) => t.length > 0 && !NON_YOGA_STYLE_TOKENS.has(t));

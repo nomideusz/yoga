@@ -6,8 +6,8 @@
 import type { Client } from '@libsql/client';
 import { createSearchEngine, type SchemaAdapter, type SearchParams as BaseSearchParams, type SearchResponse, type SearchResult as BaseSearchResult, type DatabaseClient } from '@nomideusz/svelte-search';
 import { plLocale } from '@nomideusz/svelte-search/locales/pl';
-import { haversineKm, walkingMinutes, normalize } from '@nomideusz/svelte-search';
-import { yogaFirst, wantsNonYoga } from './rank';
+import { haversineKm, walkingMinutes, normalize, levenshteinSimilarity } from '@nomideusz/svelte-search';
+import { isYogaPlace, wantsNonYoga } from './rank';
 
 /** Yoga search params — backward compat with citySlug/styleSlug */
 export interface SearchParams extends Omit<BaseSearchParams, 'locationSlug' | 'categorySlug'> {
@@ -61,9 +61,13 @@ const yogaAdapter: SchemaAdapter<SearchResult> = {
       distanceKm = haversineKm(lat, lng, row.latitude as number, row.longitude as number);
       walkingMin = walkingMinutes(distanceKm);
     }
+    // schools has no styles column — styles_n is the real source here.
+    // (row.styles only exists if a caller joins it in.)
     let styles: string[];
     try {
-      styles = row.styles ? JSON.parse(row.styles as string) : [];
+      styles = row.styles
+        ? JSON.parse(row.styles as string)
+        : ((row.styles_n as string) || '').split(/\s+/).filter(Boolean);
     } catch {
       styles = ((row.styles_n as string) || '').split(/\s+/).filter(Boolean);
     }
@@ -134,6 +138,11 @@ function getEngine(client: Client) {
     db: wrapClient(client),
     adapter: yogaSearchAdapter,
     locale: plLocale,
+    // bm25 weights in schools_fts column order:
+    // name_n, styles_n, city_n, district_n, street_n, postcode, description_n
+    // Name dominates; description barely counts — otherwise a word repeated
+    // in a long description outranks an exact name match.
+    ftsColumnWeights: [10, 4, 4, 4, 3, 2, 0.5],
   });
   _engineClient = client;
   return _engine;
@@ -156,7 +165,17 @@ export async function search(db: Client, params: SearchParams): Promise<SearchRe
     limit: boostYoga ? Math.min(50, limit * 3) : limit,
   });
   if (boostYoga) {
-    resp.results = yogaFirst(resp.results, (r) => ({ name: r.name, styles: r.styles })).slice(0, limit);
+    // Navigational exemption: a result whose whole name closely matches the
+    // query is what the user is looking for — never demote it, even if it's
+    // a meditation/massage place ("Drzewo życia", "Shambhala").
+    const qn = normalize(params.query, plLocale);
+    const top: SearchResult[] = [];
+    const rest: SearchResult[] = [];
+    for (const r of resp.results) {
+      const navigational = levenshteinSimilarity(qn, r.name, plLocale) >= 0.5;
+      (navigational || isYogaPlace(r.name, r.styles) ? top : rest).push(r);
+    }
+    resp.results = [...top, ...rest].slice(0, limit);
   }
   return resp;
 }

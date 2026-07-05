@@ -3,7 +3,7 @@
 // Geo utilities
 export { haversineKm, walkingMinutes, boundingBox, formatDistance, formatWalkingTime, walkingRoute, } from './core/geo.js';
 // Normalization & similarity
-export { normalize, stripDiacriticsGeneric, trigrams, trigramSimilarity, levenshtein, levenshteinSimilarity, isPostcode, hasGeoIntent, stripGeoIntent, stripStopWords, MIN_SEARCH_TOKEN_LENGTH, } from './core/normalize.js';
+export { normalize, stripDiacriticsGeneric, trigrams, trigramSimilarity, levenshtein, levenshteinSimilarity, bestWordSimilarity, isPostcode, hasGeoIntent, stripGeoIntent, stripStopWords, MIN_SEARCH_TOKEN_LENGTH, } from './core/normalize.js';
 // Search engine
 export { createSearchEngine } from './core/engine.js';
 // Indexer

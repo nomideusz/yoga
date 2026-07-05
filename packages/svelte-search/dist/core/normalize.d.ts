@@ -11,6 +11,13 @@ export declare function trigramSimilarity(a: string, b: string, locale?: SearchL
 export declare function levenshtein(a: string, b: string): number;
 /** Normalized Levenshtein similarity. 0..1, higher = more similar. */
 export declare function levenshteinSimilarity(a: string, b: string, locale?: SearchLocale): number;
+/**
+ * Best Levenshtein similarity of `query` against a multi-word field: the max
+ * of whole-field similarity and per-word similarity. A typo of one word in a
+ * long field ("triranta" vs "triratna warszawa buddyzm...") scores near 0
+ * against the whole field but 0.75 against the word it matches.
+ */
+export declare function bestWordSimilarity(query: string, field: string, locale?: SearchLocale): number;
 /** Detect postcode format: XX-XXX or XXXXX (Polish default, override via locale). */
 export declare function isPostcode(text: string): boolean;
 /** Detect "near me" intent using locale geo patterns. */

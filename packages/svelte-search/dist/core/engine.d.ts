@@ -19,6 +19,13 @@ export interface SearchEngineConfig<TResult extends SearchResult = SearchResult>
     qualityThreshold?: number;
     /** Max FTS terms per query (default: 6) */
     maxFtsTerms?: number;
+    /**
+     * Per-column bm25 weights for FTS ranking, in FTS table column order
+     * (SQLite only). Without this, all columns weigh equally — a term repeated
+     * in a long description outranks an exact name match. Weight name-like
+     * columns high and description-like columns low.
+     */
+    ftsColumnWeights?: number[];
 }
 export declare function createSearchEngine<TResult extends SearchResult = SearchResult>(config: SearchEngineConfig<TResult>): {
     search: (params: SearchParams) => Promise<SearchResponse<TResult>>;

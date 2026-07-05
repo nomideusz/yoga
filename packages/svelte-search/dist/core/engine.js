@@ -12,7 +12,7 @@
 // Dialect support:
 //   - 'sqlite' (default): FTS5 MATCH, custom trigram tables, rowid joins
 //   - 'postgres': tsvector/tsquery @@, pg_trgm similarity(), PK joins
-import { normalize, trigrams, trigramSimilarity, levenshteinSimilarity, hasGeoIntent, stripGeoIntent } from './normalize.js';
+import { normalize, trigrams, trigramSimilarity, levenshteinSimilarity, bestWordSimilarity, hasGeoIntent, stripGeoIntent } from './normalize.js';
 import { haversineKm, walkingMinutes, boundingBox } from './geo.js';
 // ── Query timeout helper ───────────────────────────────────
 function withTimeout(promise, ms, fallback) {
@@ -36,7 +36,7 @@ function ph(index, dialect) {
 }
 // ── Create search engine ───────────────────────────────────
 export function createSearchEngine(config) {
-    const { db, adapter, locale, dialect = 'sqlite', ftsTimeoutMs = 5000, fuzzyTimeoutMs = 3000, primaryRadiusKm = 15, nearbyRadiusKm = 30, maxNearby = 5, qualityThreshold = 0.75, maxFtsTerms = 6, } = config;
+    const { db, adapter, locale, dialect = 'sqlite', ftsTimeoutMs = 5000, fuzzyTimeoutMs = 3000, primaryRadiusKm = 15, nearbyRadiusKm = 30, maxNearby = 5, qualityThreshold = 0.75, maxFtsTerms = 6, ftsColumnWeights, } = config;
     const { tables, columns, trigramColumns } = adapter;
     // ── Main search ────────────────────────────────────────
     async function search(params) {
@@ -72,11 +72,13 @@ export function createSearchEngine(config) {
         // Merge, score, and rank
         const merged = deduplicateById([...ftsResults, ...fuzzyResults]);
         const scored = scoreResults(merged, normalized, lat, lng, geoIntent);
-        // Quality gate — fuzzy-only results need high Levenshtein similarity
+        // Quality gate — fuzzy-only results need high Levenshtein similarity.
+        // Per-word: a typo of one word in a multi-word name ("triranta" for
+        // "Triratna Warszawa ...") must qualify against the word, not the field.
         const qualified = scored.filter(r => {
             if (r._hasFts)
                 return true;
-            const best = Math.max(levenshteinSimilarity(normalized, r._nameN || '', locale), levenshteinSimilarity(normalized, r._locationN || '', locale), levenshteinSimilarity(normalized, r._categoriesN || '', locale));
+            const best = Math.max(bestWordSimilarity(normalized, r._nameN || '', locale), bestWordSimilarity(normalized, r._locationN || '', locale), bestWordSimilarity(normalized, r._categoriesN || '', locale));
             return best >= qualityThreshold;
         });
         qualified.sort((a, b) => b.score - a.score);
@@ -128,8 +130,12 @@ export function createSearchEngine(config) {
         return ftsSearchSqlite(ftsQuery, locationSlug, categorySlug, limit);
     }
     async function ftsSearchSqlite(ftsQuery, locationSlug, categorySlug, limit) {
+        // Weighted bm25 when configured — same semantics as rank (lower = better)
+        const rankExpr = ftsColumnWeights?.length
+            ? `bm25(${tables.fts}, ${ftsColumnWeights.join(', ')})`
+            : 'fts.rank';
         let sql = `
-      SELECT s.*, fts.rank AS _ftsRank
+      SELECT s.*, ${rankExpr} AS _ftsRank
       FROM ${tables.fts} fts
       JOIN ${tables.entities} s ON s.rowid = fts.rowid
       WHERE ${tables.fts} MATCH ?
@@ -144,7 +150,7 @@ export function createSearchEngine(config) {
             sql += ` AND s.${columns.categoriesNormalized} LIKE ?`;
             args.push(`%${catName}%`);
         }
-        sql += ' ORDER BY fts.rank LIMIT ?';
+        sql += ' ORDER BY _ftsRank LIMIT ?';
         args.push(limit);
         const result = await db.execute({ sql, args });
         return result.rows;
