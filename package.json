@@ -19,30 +19,30 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
-		"@sveltejs/adapter-node": "^5.2.9",
-		"@sveltejs/kit": "^2.53.4",
+		"@sveltejs/adapter-node": "^5.5.7",
+		"@sveltejs/kit": "^2.69.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
-		"@types/google.maps": "^3.58.1",
-		"@types/node": "^25.3.3",
-		"drizzle-kit": "^0.31.9",
-		"svelte": "^5.53.6",
-		"svelte-check": "^4.4.4",
-		"tsx": "^4.21.0",
+		"@types/google.maps": "^3.65.2",
+		"@types/node": "^25.9.4",
+		"drizzle-kit": "^0.31.10",
+		"svelte": "^5.56.4",
+		"svelte-check": "^4.7.1",
+		"tsx": "^4.23.0",
 		"typescript": "^5.9.3",
-		"vite": "^7.3.1"
+		"vite": "^7.3.6"
 	},
 	"dependencies": {
 		"@fontsource-variable/karla": "^5.2.8",
 		"@fontsource-variable/playfair-display": "^5.2.8",
-		"@libsql/client": "^0.17.0",
+		"@libsql/client": "^0.17.4",
 		"@nomideusz/svelte-calendar": "file:packages/svelte-calendar",
 		"@nomideusz/svelte-geometrize": "file:packages/svelte-geometrize",
 		"@nomideusz/svelte-i18n": "file:packages/svelte-i18n",
 		"@nomideusz/svelte-search": "file:packages/svelte-search",
-		"@sentry/sveltekit": "^10.62.0",
-		"dotenv": "^17.3.1",
-		"drizzle-orm": "^0.45.1",
+		"@sentry/sveltekit": "^10.63.0",
+		"dotenv": "^17.4.2",
+		"drizzle-orm": "^0.45.2",
 		"lucide-svelte": "^1.0.1",
-		"resend": "^6.9.3"
+		"resend": "^6.17.1"
 	}
 }
