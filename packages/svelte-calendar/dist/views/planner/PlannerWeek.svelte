@@ -499,6 +499,8 @@
 										{#each visibleAllDaySegments as seg (seg.ev.id)}
 											<div
 												animate:flip={{ duration: ANIM }}
+												in:previewReceive={{ key: `${seg.ev.id}:${seg.dayIndex}` }}
+												out:previewSend={{ key: `${seg.ev.id}:${seg.dayIndex}` }}
 												class="wg-ad"
 												class:wg-ad--start={seg.isStart}
 												class:wg-ad--end={seg.isEnd}
@@ -515,8 +517,8 @@
 											</div>
 										{/each}
 										{#if previewSegment}
-											<!-- key by dayIndex: multi-day previews render one segment per cell,
-											     and each must pair with its own counterpart when the drag shifts -->
+											<!-- key by event id + dayIndex: multi-day previews render one segment
+											     per cell, and each pairs with its own real-card counterpart -->
 											<div
 												class="wg-ad wg-ad--drag-preview"
 												class:wg-ad--start={previewSegment.isStart}
@@ -524,8 +526,8 @@
 												class:wg-ad--mid={!previewSegment.isStart && !previewSegment.isEnd}
 												style:--ev-color={previewSegment.ev.color ?? 'var(--dt-accent)'}
 												aria-hidden="true"
-												in:previewReceive={{ key: `ad-preview-${previewSegment.dayIndex}` }}
-												out:previewSend={{ key: `ad-preview-${previewSegment.dayIndex}` }}
+												in:previewReceive={{ key: `${previewSegment.ev.id}:${previewSegment.dayIndex}` }}
+												out:previewSend={{ key: `${previewSegment.ev.id}:${previewSegment.dayIndex}` }}
 											>
 												{@render allDaySegmentContent(previewSegment)}
 											</div>
@@ -536,8 +538,12 @@
 								<!-- Timed events -->
 								<div class="wg-cell-events">
 									{#each visibleTimedEvents.slice(0, MAX_EVENTS_SHOWN) as ev (ev.id)}
+										<!-- send/receive keyed by event id pair the card with the drag ghost:
+										     drag start morphs card → ghost, drop morphs ghost → placed card -->
 										<div
 											animate:flip={{ duration: ANIM }}
+											in:previewReceive={{ key: ev.id }}
+											out:previewSend={{ key: ev.id }}
 											class="wg-ev"
 											class:wg-ev--selected={selectedEventId === ev.id}
 											class:wg-ev--current={ev.start.getTime() <= clock.tick && ev.end.getTime() > clock.tick}
@@ -563,8 +569,8 @@
 											class="wg-ev wg-ev--drag-preview"
 											style:--ev-color={previewTimedEvent.color ?? 'var(--dt-accent)'}
 											aria-hidden="true"
-											in:previewReceive={{ key: 'ev-preview' }}
-											out:previewSend={{ key: 'ev-preview' }}
+											in:previewReceive={{ key: previewTimedEvent.id }}
+											out:previewSend={{ key: previewTimedEvent.id }}
 										>
 											{@render timedEventContent(previewTimedEvent)}
 										</div>
