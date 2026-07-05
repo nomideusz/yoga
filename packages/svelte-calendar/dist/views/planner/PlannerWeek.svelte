@@ -55,7 +55,6 @@
 	const commitDragCtx = $derived(ctx.commitDrag);
 	const viewState = $derived(ctx.viewState);
 	const loadRangeCtx = $derived(ctx.loadRange);
-	const showNav = $derived(ctx.showNav);
 	const equalDays = $derived(ctx.equalDays);
 	const showDates = $derived(ctx.showDates);
 	const hideDays = $derived(ctx.hideDays);
@@ -79,7 +78,6 @@
 	let lastExternalMs = _initMs;
 
 	let el: HTMLDivElement;
-	let scrolled = $state(false);
 
 	function scrollWeekIntoContainer(targetMs?: number, behavior: ScrollBehavior = 'auto') {
 		if (!el) return;
@@ -231,24 +229,31 @@
 		if (ext !== lastExternalMs) {
 			lastExternalMs = ext;
 			internalFocusMs = ext;
-			tick().then(() => scrollWeekIntoContainer(ext, 'smooth'));
+			tick().then(() => scrollWeekIntoContainer(ext));
 		}
 	});
 
-	// ─── Scroll state ─────────────────────────────────────
-	function isCurrentWeekVisible(): boolean {
-		if (!el) return false;
-		const current = el.querySelector<HTMLElement>('.wg-week--current');
-		if (!current) return false;
-		const top = current.offsetTop - el.scrollTop;
-		const bottom = top + current.offsetHeight;
-		return bottom > 0 && top < el.clientHeight;
+	/** Push the week at the viewport centre to viewState (drives the header label + Today button). */
+	function syncFocusFromScroll() {
+		if (!el || !viewState) return;
+		const centerY = el.scrollTop + el.clientHeight / 2;
+		const rows = el.querySelectorAll<HTMLElement>('[data-week]');
+		for (const row of rows) {
+			if (row.offsetTop + row.offsetHeight >= centerY) {
+				const ms = Number(row.dataset.week);
+				if (Number.isFinite(ms) && ms !== lastExternalMs) {
+					lastExternalMs = ms;
+					viewState.setFocusDate(new Date(ms));
+				}
+				return;
+			}
+		}
 	}
 
 	let extending = false;
 
 	function handleUserScroll() {
-		scrolled = !isCurrentWeekVisible();
+		syncFocusFromScroll();
 		if (!el || extending) return;
 		// Extend buffer when user scrolls near the edge
 		if (el.scrollTop < EDGE_PX) {
@@ -266,16 +271,6 @@
 				bufferAfter += EXTEND_BY;
 			}
 		}
-	}
-
-	function jumpToday() {
-		internalFocusMs = clock.today;
-		lastExternalMs = clock.today;
-		viewState?.goToday();
-		scrolled = false;
-		tick().then(() => {
-			scrollWeekIntoContainer(clock.today, 'smooth');
-		});
 	}
 
 	function handleDayCellClick(ms: number, e: Event) {
@@ -570,17 +565,6 @@
 		{/each}
 	</div>
 
-	{#if showNav && scrolled}
-		<nav class="wg-nav" aria-label={L.weekNavigation}>
-			<button
-				class="wg-nav-pill"
-				onclick={jumpToday}
-				aria-label={L.goToToday}
-			>
-				{L.today}
-			</button>
-		</nav>
-	{/if}
 </div>
 
 <style>
@@ -601,7 +585,6 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		box-sizing: border-box;
-		padding-top: 48px;
 		scrollbar-width: thin;
 		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.08)) transparent;
 	}
@@ -946,49 +929,6 @@
 
 	.wg-ev-more:hover {
 		color: var(--dt-text-2, rgba(0, 0, 0, 0.55));
-	}
-
-	/* ─── Navigation pill ────────────────────────────── */
-	.wg-nav {
-		position: absolute;
-		top: 22px;
-		right: 14px;
-		z-index: 20;
-		display: flex;
-		gap: 2px;
-		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
-		backdrop-filter: blur(6px);
-		-webkit-backdrop-filter: blur(6px);
-		border-radius: 8px;
-		padding: 2px;
-		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
-		animation: wg-nav-in 200ms ease both;
-	}
-	@keyframes wg-nav-in {
-		from { opacity: 0; transform: translateY(-6px); }
-		to   { opacity: 1; transform: translateY(0); }
-	}
-	.wg-nav-pill {
-		border: none;
-		background: transparent;
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
-		cursor: pointer;
-		font: 600 11px / 1 var(--dt-sans, system-ui, sans-serif);
-		padding: 6px 12px;
-		border-radius: 6px;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		transition: background 100ms, color 100ms;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.wg-nav-pill:hover {
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
-	}
-	.wg-nav-pill:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
-		outline-offset: 2px;
 	}
 
 	/* ─── Focus-visible ──────────────────────────────── */

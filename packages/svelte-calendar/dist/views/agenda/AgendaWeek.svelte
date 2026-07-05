@@ -44,7 +44,6 @@
 
 	const clock = createClock();
 	const viewState = $derived(ctx.viewState);
-	const showNav = $derived(ctx.showNav);
 	const equalDays = $derived(ctx.equalDays);
 	const showDates = $derived(ctx.showDates);
 	const hideDays = $derived(ctx.hideDays);
@@ -123,12 +122,6 @@
 	);
 
 	const customDays = $derived(viewState?.dayCount ?? 7);
-
-	const isThisWeek = $derived(
-		customDays === 7
-			? weekStartMs === startOfWeek(clock.today, mondayStart)
-			: clock.today >= weekStartMs && clock.today < weekStartMs + customDays * DAY_MS,
-	);
 
 	const weekDays = $derived.by((): DayGroup[] => {
 		const now = clock.tick;
@@ -445,88 +438,9 @@
 		{/each}
 	</div>
 
-	<!-- ── Floating nav pills (desktop only — mobile uses Calendar header) ── -->
-	{#if showNav && !isMobile}
-	<nav class="ag-nav" aria-label={L.weekNavigation}>
-		<button
-			class="ag-nav-pill ag-nav-today"
-			class:ag-nav-today--hidden={isThisWeek}
-			onclick={() => viewState?.goToday()}
-			aria-label={L.goToToday}
-			tabindex={isThisWeek ? -1 : 0}
-		>
-			{L.today}
-		</button>
-		<button
-			class="ag-nav-pill"
-			onclick={() => viewState?.prev()}
-			aria-label={L.previousWeek}
-		>
-			<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
-		</button>
-		<button
-			class="ag-nav-pill"
-			onclick={() => viewState?.next()}
-			aria-label={L.nextWeek}
-		>
-			<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>
-		</button>
-	</nav>
-	{/if}
 </div>
 
 <style>
-	/* ═══ Floating nav pills ═══ */
-	.ag-nav {
-		position: absolute;
-		top: 10px;
-		right: 14px;
-		z-index: 20;
-		display: flex;
-		gap: 2px;
-		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
-		backdrop-filter: blur(6px);
-		-webkit-backdrop-filter: blur(6px);
-		border-radius: 8px;
-		padding: 2px;
-		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
-	}
-	.ag-nav-pill {
-		border: none;
-		background: transparent;
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
-		cursor: pointer;
-		font: 600 11px / 1 var(--dt-sans, system-ui, sans-serif);
-		padding: 6px 12px;
-		border-radius: 6px;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		transition: background 100ms, color 100ms;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.ag-nav-pill:hover {
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
-	}
-	.ag-nav-today {
-		max-width: 60px;
-		overflow: hidden;
-		white-space: nowrap;
-		transition: max-width 250ms ease, padding 250ms ease, opacity 200ms ease;
-	}
-	.ag-nav-today--hidden {
-		max-width: 0;
-		padding-left: 0;
-		padding-right: 0;
-		opacity: 0;
-		pointer-events: none;
-	}
-	.ag-nav-pill:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
-		outline-offset: 2px;
-	}
-
 	/* ═══ Container ═══ */
 	.ag {
 		position: relative;
@@ -553,7 +467,7 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 		box-sizing: border-box;
-		padding-top: 44px;
+		padding-top: 8px;
 		scrollbar-width: thin;
 		scrollbar-color: var(--dt-border) transparent;
 	}
@@ -977,9 +891,6 @@
 	}
 	.ag--mobile .ag-compact-time {
 		font-size: 12px;
-	}
-	.ag--mobile .ag-nav-pill {
-		padding: 10px 16px;
 	}
 	.ag--mobile .ag-wslot-cards--multi {
 		grid-template-columns: 1fr;

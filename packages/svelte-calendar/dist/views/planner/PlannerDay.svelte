@@ -66,8 +66,6 @@
 	const commitDragCtx = $derived(ctx.commitDrag);
 	const viewState = $derived(ctx.viewState);
 	const loadRangeCtx = $derived(ctx.loadRange);
-	const showNav = $derived(ctx.showNav);
-	const showDates = $derived(ctx.showDates);
 	const blockedSlots = $derived(ctx.blockedSlots);
 	const dayHeaderSnippet = $derived(ctx.dayHeaderSnippet);
 	const minDuration = $derived(ctx.minDuration);
@@ -104,18 +102,6 @@
 	const endHour = $derived(visibleHours?.[1] ?? 24);
 	const hourCount = $derived(Math.max(1, endHour - startHour));
 	const DAY_GAP = 2;
-
-	const dateLabel = $derived(
-		showDates
-			? new Date(visibleDayMs).toLocaleDateString(locale ?? 'en-US', {
-				weekday: 'long',
-				month: 'long',
-				day: 'numeric',
-			})
-			: new Date(visibleDayMs).toLocaleDateString(locale ?? 'en-US', {
-				weekday: 'long',
-			})
-	);
 
 	const count = 1 + 2 * BUFFER_DAYS;
 	const origin = $derived(internalCenterMs - BUFFER_DAYS * DAY_MS);
@@ -346,7 +332,8 @@
 			lastExternalMs = ext;
 			internalCenterMs = ext;
 			visibleDayMs = ext;
-			following = false;
+			// Landing on today (e.g. header "Today" button) resumes auto-follow.
+			following = ext === clock.today;
 			// After DOM update, recenter scroll on focus day.
 			tick().then(() => {
 				if (el) {
@@ -716,35 +703,6 @@
 		</div>
 	{/if}
 
-	<div class="fs-date-label">{dateLabel}</div>
-
-	{#if showNav}
-	<nav class="fs-nav" aria-label={L.dayNavigation}>
-		<button
-			class="fs-nav-pill fs-nav-today"
-			class:fs-nav-today--hidden={following}
-			onclick={() => { internalCenterMs = clock.today; lastExternalMs = clock.today; viewState?.goToday(); following = true; }}
-			aria-label={L.goToToday}
-			tabindex={following ? -1 : 0}
-		>
-			{L.today}
-		</button>
-		<button
-			class="fs-nav-pill"
-			onclick={() => { const prev = internalCenterMs - DAY_MS; internalCenterMs = prev; lastExternalMs = prev; viewState?.prev(); following = false; }}
-			aria-label={L.previousDay}
-		>
-			<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
-		</button>
-		<button
-			class="fs-nav-pill"
-			onclick={() => { const next = internalCenterMs + DAY_MS; internalCenterMs = next; lastExternalMs = next; viewState?.next(); following = false; }}
-			aria-label={L.nextDay}
-		>
-			<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>
-		</button>
-	</nav>
-	{/if}
 </div>
 
 <style>
@@ -914,78 +872,6 @@
 		font-weight: 400;
 		opacity: 0.5;
 		font-size: 10px;
-	}
-
-	/* ─── Floating date label ────────────────────────── */
-	.fs-date-label {
-		position: absolute;
-		top: 22px;
-		left: 50%;
-		transform: translateX(-50%);
-		z-index: 20;
-		font: 600 11px/1 var(--dt-sans, system-ui, sans-serif);
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
-		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
-		backdrop-filter: blur(6px);
-		-webkit-backdrop-filter: blur(6px);
-		padding: 8px 16px;
-		border-radius: 8px;
-		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
-		pointer-events: none;
-		white-space: nowrap;
-	}
-
-	/* ─── Navigation pills ────────────────────────────── */
-	.fs-nav {
-		position: absolute;
-		top: 22px;
-		right: 14px;
-		z-index: 20;
-		display: flex;
-		gap: 2px;
-		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
-		backdrop-filter: blur(6px);
-		-webkit-backdrop-filter: blur(6px);
-		border-radius: 8px;
-		padding: 2px;
-		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
-	}
-	.fs-nav-pill {
-		border: none;
-		background: transparent;
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
-		cursor: pointer;
-		font: 600 11px / 1 var(--dt-sans, system-ui, sans-serif);
-		padding: 6px 12px;
-		border-radius: 6px;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		transition: background 100ms, color 100ms;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.fs-nav-pill:hover {
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
-	}
-	.fs-nav-today {
-		max-width: 60px;
-		overflow: hidden;
-		white-space: nowrap;
-		transition: max-width 250ms ease, padding 250ms ease, opacity 200ms ease;
-	}
-	.fs-nav-today--hidden {
-		max-width: 0;
-		padding-left: 0;
-		padding-right: 0;
-		opacity: 0;
-		pointer-events: none;
-	}
-	.fs-nav-pill:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
-		outline-offset: 2px;
 	}
 
 	/* ─── All-day strip ─────────────────────────────── */

@@ -18,7 +18,6 @@ export function useCalendarContext() {
         get drag() { return raw?.drag; },
         get commitDrag() { return raw?.commitDrag; },
         get snapInterval() { return raw?.snapInterval ?? 15; },
-        get showNav() { return raw?.showNavigation ?? true; },
         get equalDays() { return raw?.equalDays ?? false; },
         get showDates() { return raw?.showDates ?? true; },
         get hideDays() { return raw?.hideDays; },

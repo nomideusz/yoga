@@ -353,7 +353,6 @@
 		get snapInterval() { return snapInterval; },
 		get eventSnippet() { return eventSnippet; },
 		get emptySnippet() { return emptySnippet; },
-		get showNavigation() { return showNavigation; },
 		get equalDays() { return equalDays; },
 		get showDates() { return showDates; },
 		get hideDays() { return hideDays; },
@@ -571,23 +570,44 @@
 			</div>
 		{/if}
 
-	<!-- ─── Desktop chrome ─── -->
-	{:else}
-		<!-- Floating mode pills (hidden for Agenda views) -->
-		{#if showModePills && modes.length > 1 && activeView?.label !== 'Agenda'}
-			<div class="cal-pills" role="group" aria-label={L.viewMode}>
-				{#each modes as g}
-					<button
-						class="cal-pill"
-						class:cal-pill--active={viewState.mode === g}
-						aria-pressed={viewState.mode === g}
-						onclick={() => switchMode(g)}
-					>
-						{g === 'day' ? L.day : L.week}
+	<!-- ─── Desktop header ─── -->
+	{:else if showNavigation || (showModePills && modes.length > 1) || dateLabel}
+		<div class="cal-hd">
+			<div class="cal-hd-side">
+				{#if navigationSnippet}
+					{@render navigationSnippet(navCtx)}
+				{:else if showNavigation}
+					{#if !viewIncludesToday}
+						<button class="cal-hd-today" onclick={() => viewState.goToday()} title={L.goToToday}>
+							{L.today}
+						</button>
+					{/if}
+					<button class="cal-hd-btn" onclick={() => viewState.prev()} aria-label={viewState.mode === 'day' ? L.previousDay : L.previousWeek}>
+						<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
 					</button>
-				{/each}
+					<button class="cal-hd-btn" onclick={() => viewState.next()} aria-label={viewState.mode === 'day' ? L.nextDay : L.nextWeek}>
+						<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>
+					</button>
+				{/if}
 			</div>
-		{/if}
+			<span class="cal-hd-title">{dateLabel}</span>
+			<div class="cal-hd-side cal-hd-side--end">
+				{#if showModePills && modes.length > 1}
+					<div class="cal-pills" role="group" aria-label={L.viewMode}>
+						{#each modes as g}
+							<button
+								class="cal-pill"
+								class:cal-pill--active={viewState.mode === g}
+								aria-pressed={viewState.mode === g}
+								onclick={() => switchMode(g)}
+							>
+								{g === 'day' ? L.day : L.week}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		</div>
 	{/if}
 
 	<div class="cal-body">
@@ -638,21 +658,90 @@
 	}
 
 
-	/* ── Floating pills ── */
+	/* ── Desktop header ── */
+	.cal-hd {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 12px;
+		min-height: 48px;
+		box-sizing: border-box;
+		border-bottom: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		flex-shrink: 0;
+	}
+
+	.cal-hd-side {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.cal-hd-side--end {
+		justify-content: flex-end;
+	}
+
+	.cal-hd-title {
+		font: 600 14px/1.2 var(--dt-sans, system-ui, sans-serif);
+		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.cal-hd-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border: none;
+		background: transparent;
+		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		border-radius: 6px;
+		cursor: pointer;
+		transition: background 120ms, color 120ms;
+	}
+
+	.cal-hd-btn:hover {
+		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		background: color-mix(in srgb, var(--dt-text, rgba(226, 232, 240, 0.85)) 8%, transparent);
+	}
+
+	.cal-hd-btn:focus-visible,
+	.cal-hd-today:focus-visible,
+	.cal-pill:focus-visible {
+		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
+		outline-offset: 2px;
+	}
+
+	.cal-hd-today {
+		font: 500 12px/1 var(--dt-sans, system-ui, sans-serif);
+		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		background: transparent;
+		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		padding: 6px 10px;
+		border-radius: 6px;
+		cursor: pointer;
+		white-space: nowrap;
+		margin-right: 2px;
+		transition: background 120ms, color 120ms, border-color 120ms;
+	}
+
+	.cal-hd-today:hover {
+		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		border-color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+	}
+
 	.cal-pills {
-		position: absolute;
-		top: 22px;
-		bottom: auto;
-		left: 10px;
-		z-index: 20;
 		display: flex;
 		gap: 2px;
 		background: color-mix(in srgb, var(--dt-surface, var(--dt-bg, #ffffff)) 85%, transparent);
-		backdrop-filter: blur(6px);
-		-webkit-backdrop-filter: blur(6px);
 		border-radius: 8px;
 		padding: 2px;
 		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		flex-shrink: 0;
 	}
 
 	.cal-pill {
@@ -660,11 +749,9 @@
 		background: transparent;
 		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
 		cursor: pointer;
-		font: 600 11px / 1 var(--dt-sans, system-ui, sans-serif);
-		padding: 6px 12px;
+		font: 500 12px/1 var(--dt-sans, system-ui, sans-serif);
+		padding: 5px 12px;
 		border-radius: 6px;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
 		transition: background 100ms, color 100ms;
 	}
 
@@ -675,11 +762,6 @@
 	.cal-pill--active {
 		background: var(--dt-accent, #2563eb);
 		color: var(--dt-btn-text, #fff);
-	}
-
-	.cal-pill:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--dt-accent, #2563eb) 55%, transparent);
-		outline-offset: 2px;
 	}
 
 	.cal-body {
