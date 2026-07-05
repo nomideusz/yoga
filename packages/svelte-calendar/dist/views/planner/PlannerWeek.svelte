@@ -10,6 +10,9 @@
 -->
 <script lang="ts">
 	import { onMount, tick, untrack } from 'svelte';
+	import { flip } from 'svelte/animate';
+	import { crossfade } from 'svelte/transition';
+	import { prefersReducedMotion } from 'svelte/motion';
 	import { useCalendarContext } from '../shared/context.svelte.js';
 	import { createClock } from '../../core/clock.svelte.js';
 	import type { TimelineEvent, BlockedSlot } from '../../core/types.js';
@@ -51,6 +54,11 @@
 
 	const ctx = useCalendarContext();
 	const clock = createClock();
+
+	// Drag ghost flies between day cells instead of teleporting.
+	// No fallback: without a counterpart (drag start/end) it appears/disappears instantly.
+	const ANIM = $derived(prefersReducedMotion.current ? 0 : 180);
+	const [previewSend, previewReceive] = crossfade({ duration: () => (prefersReducedMotion.current ? 0 : 160) });
 	const drag = $derived(ctx.drag);
 	const commitDragCtx = $derived(ctx.commitDrag);
 	const viewState = $derived(ctx.viewState);
@@ -490,6 +498,7 @@
 									<div class="wg-allday">
 										{#each visibleAllDaySegments as seg (seg.ev.id)}
 											<div
+												animate:flip={{ duration: ANIM }}
 												class="wg-ad"
 												class:wg-ad--start={seg.isStart}
 												class:wg-ad--end={seg.isEnd}
@@ -506,6 +515,8 @@
 											</div>
 										{/each}
 										{#if previewSegment}
+											<!-- key by dayIndex: multi-day previews render one segment per cell,
+											     and each must pair with its own counterpart when the drag shifts -->
 											<div
 												class="wg-ad wg-ad--drag-preview"
 												class:wg-ad--start={previewSegment.isStart}
@@ -513,6 +524,8 @@
 												class:wg-ad--mid={!previewSegment.isStart && !previewSegment.isEnd}
 												style:--ev-color={previewSegment.ev.color ?? 'var(--dt-accent)'}
 												aria-hidden="true"
+												in:previewReceive={{ key: `ad-preview-${previewSegment.dayIndex}` }}
+												out:previewSend={{ key: `ad-preview-${previewSegment.dayIndex}` }}
 											>
 												{@render allDaySegmentContent(previewSegment)}
 											</div>
@@ -524,6 +537,7 @@
 								<div class="wg-cell-events">
 									{#each visibleTimedEvents.slice(0, MAX_EVENTS_SHOWN) as ev (ev.id)}
 										<div
+											animate:flip={{ duration: ANIM }}
 											class="wg-ev"
 											class:wg-ev--selected={selectedEventId === ev.id}
 											class:wg-ev--current={ev.start.getTime() <= clock.tick && ev.end.getTime() > clock.tick}
@@ -549,6 +563,8 @@
 											class="wg-ev wg-ev--drag-preview"
 											style:--ev-color={previewTimedEvent.color ?? 'var(--dt-accent)'}
 											aria-hidden="true"
+											in:previewReceive={{ key: 'ev-preview' }}
+											out:previewSend={{ key: 'ev-preview' }}
 										>
 											{@render timedEventContent(previewTimedEvent)}
 										</div>
