@@ -60,6 +60,12 @@ scripts/
   renormalize-search.ts  — re-derive all _n columns, trigrams, and FTS5; also backfills
                            missing slug / city_slug / postcode (run after changing normalize()
                            OR after any bulk school import that bypasses normalization)
+  refresh-cities.ts      — rebuild cities school_count/districts, insert new cities
+                           (run after renormalize when schools were imported or (un)listed)
+
+  Both run automatically after the nightly scraper session via
+  tools/yoga-scraper/post_scrape.sh (yoga-scrape.service ExecStartPost) —
+  the scraper writes raw rows only and relies on this re-derivation.
   add-city-locative.ts   — populate cities.name_loc with Polish locative forms (--dry-run to preview)
 
 src/routes/
