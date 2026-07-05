@@ -51,13 +51,15 @@ src/lib/search/
   normalize.ts   — diacritics, normalization, trigrams, geo intent, stop words, Polish stemming/locative
   resolver.ts    — decides WHAT TO DO per page context (route vs filter vs prompt)
   engine.ts      — server-side FTS5 + trigram search + scoring
-  indexer.ts     — write ops: school inserts, trigram builds, resolver lookup loading
+  indexer.ts     — write ops: renormalization, trigram builds, resolver lookup loading
   geo.ts         — haversine, walking time, bounding box, OSRM helper
   track.ts       — search event tracking (fire-and-forget, no PII)
   index.ts       — barrel re-exports
 
 scripts/
-  renormalize-search.ts  — re-derive all _n columns, trigrams, and FTS5 (run after changing normalize())
+  renormalize-search.ts  — re-derive all _n columns, trigrams, and FTS5; also backfills
+                           missing slug / city_slug / postcode (run after changing normalize()
+                           OR after any bulk school import that bypasses normalization)
   add-city-locative.ts   — populate cities.name_loc with Polish locative forms (--dry-run to preview)
 
 src/routes/
@@ -279,7 +281,7 @@ Sends users somewhere. Doesn't display results itself.
 | `kraków hatha` | same (order independent) | → `/krakow?style=hatha` |
 | `korzeniowskiego kraków` | `geocode_address` | geocode street → `/krakow?lat=X&lng=Y&label=korzeniowskiego, Kraków` |
 | `inowrocław` (not in DB) | `needs_server` → Google Places | place-redirect: "Inowrocław → Toruń (34 km, N szkół)"; click → `/torun` |
-| `mokotów` | district lookup → Warsaw | → `/warszawa` (most likely city) |
+| `mokotów` | district lookup → Warsaw | → `/warszawa?district=mokotow` (district filter pre-applied) |
 | `30-001` | `filter_postcode` | geocode → nearest city |
 | `blisko` | `sort_by_distance` | geolocate → nearest city |
 | `blisko hatha` | `sort_by_distance` + filter | geolocate → city + style filter |

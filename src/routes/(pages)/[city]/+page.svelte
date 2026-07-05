@@ -165,7 +165,22 @@
     let activeStyles = $state<string[]>(
         _initStyleParam ? [resolveStyleName(_initStyleParam)] : [],
     );
-    let activeDistrict = $state<string | undefined>(_initDistrict ?? undefined);
+
+    // Resolve a normalized district ("mokotow") to its display form ("Mokotów")
+    function resolveDistrictName(param: string): string {
+        const n = normalizePolish(param).toLowerCase();
+        return (
+            data.schools
+                .map((s) => s.neighborhood)
+                .find(
+                    (d) => d && normalizePolish(d).toLowerCase() === n,
+                ) ?? param
+        );
+    }
+
+    let activeDistrict = $state<string | undefined>(
+        _initDistrict ? resolveDistrictName(_initDistrict) : undefined,
+    );
     let chipScrollEl: HTMLElement | undefined = $state();
 
     $effect(() => {
@@ -779,7 +794,7 @@
                 clearSuggestions();
                 break;
             case "filter_district":
-                activeDistrict = action.district;
+                activeDistrict = resolveDistrictName(action.district);
                 clearSuggestions();
                 break;
             case "sort_by_distance":

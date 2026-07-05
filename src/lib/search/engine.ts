@@ -116,6 +116,14 @@ function wrapClient(client: Client): DatabaseClient {
 
 // ── Cached engine per client ───────────────────────────────
 
+// Search queries go through the schools_listed view (is_listed = 1) so
+// unlisted schools never surface in results. The indexer keeps using the
+// raw schools table (see indexer.ts) so all rows stay normalized/indexed.
+const yogaSearchAdapter: SchemaAdapter<SearchResult> = {
+  ...yogaAdapter,
+  tables: { ...yogaAdapter.tables, entities: 'schools_listed' },
+};
+
 let _engine: ReturnType<typeof createSearchEngine<SearchResult>> | null = null;
 let _engineClient: Client | null = null;
 
@@ -123,7 +131,7 @@ function getEngine(client: Client) {
   if (_engine && _engineClient === client) return _engine;
   _engine = createSearchEngine<SearchResult>({
     db: wrapClient(client),
-    adapter: yogaAdapter,
+    adapter: yogaSearchAdapter,
     locale: plLocale,
   });
   _engineClient = client;
@@ -206,7 +214,7 @@ async function addGlobalStyleSuggestions(db: Client, n: string, out: Autocomplet
 
 async function addGlobalSchoolSuggestions(db: Client, n: string, out: AutocompleteResult[]) {
   const r = await db.execute({
-    sql: 'SELECT id, slug, name, city FROM schools WHERE name_n LIKE ? LIMIT 4',
+    sql: 'SELECT id, slug, name, city FROM schools WHERE is_listed = 1 AND name_n LIKE ? LIMIT 4',
     args: [`${n}%`],
   });
   for (const row of r.rows as any[]) {
@@ -216,7 +224,7 @@ async function addGlobalSchoolSuggestions(db: Client, n: string, out: Autocomple
 
 async function addDistrictSuggestions(db: Client, n: string, citySlug: string, out: AutocompleteResult[]) {
   const r = await db.execute({
-    sql: 'SELECT DISTINCT neighborhood FROM schools WHERE city_slug = ? AND district_n LIKE ? LIMIT 4',
+    sql: 'SELECT DISTINCT neighborhood FROM schools WHERE is_listed = 1 AND city_slug = ? AND district_n LIKE ? LIMIT 4',
     args: [citySlug, `${n}%`],
   });
   for (const row of r.rows as any[]) {
@@ -241,7 +249,7 @@ async function addStyleSuggestionsInCity(db: Client, n: string, citySlug: string
 async function addSchoolSuggestionsInCity(db: Client, n: string, citySlug: string, out: AutocompleteResult[]) {
   const r = await db.execute({
     sql: `SELECT id, slug, name, address, neighborhood FROM schools
-          WHERE city_slug = ? AND (name_n LIKE ? OR street_n LIKE ? OR district_n LIKE ?)
+          WHERE is_listed = 1 AND city_slug = ? AND (name_n LIKE ? OR street_n LIKE ? OR district_n LIKE ?)
           LIMIT 4`,
     args: [citySlug, `%${n}%`, `%${n}%`, `%${n}%`],
   });
@@ -254,7 +262,7 @@ async function addCitiesWithStyle(db: Client, n: string, styleSlug: string, out:
   const styleName = normalize(styleSlug.replace('-yoga', ''), plLocale);
   const r = await db.execute({
     sql: `SELECT DISTINCT city, city_slug FROM schools
-          WHERE styles_n LIKE ? AND city_n LIKE ?
+          WHERE is_listed = 1 AND styles_n LIKE ? AND city_n LIKE ?
           LIMIT 4`,
     args: [`%${styleName}%`, `${n}%`],
   });
@@ -266,7 +274,7 @@ async function addCitiesWithStyle(db: Client, n: string, styleSlug: string, out:
 async function addSchoolsWithStyle(db: Client, n: string, styleSlug: string, out: AutocompleteResult[]) {
   const styleName = normalize(styleSlug.replace('-yoga', ''), plLocale);
   const r = await db.execute({
-    sql: `SELECT slug, name, city FROM schools WHERE styles_n LIKE ? AND name_n LIKE ? LIMIT 4`,
+    sql: `SELECT slug, name, city FROM schools WHERE is_listed = 1 AND styles_n LIKE ? AND name_n LIKE ? LIMIT 4`,
     args: [`%${styleName}%`, `${n}%`],
   });
   for (const row of r.rows as any[]) {

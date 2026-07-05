@@ -10,25 +10,6 @@ import { plLocale } from '@nomideusz/svelte-search/locales/pl';
 import { yogaAdapter, wrapClient } from './engine';
 import type { YogaResolverLookups } from './types';
 
-// ── Types ──────────────────────────────────────────────────
-
-export interface SchoolInput {
-  name: string;
-  styles: string[];
-  street?: string | null;
-  district?: string | null;
-  city: string;
-  citySlug: string;
-  voivodeship?: string | null;
-  postcode?: string | null;
-  lat?: number | null;
-  lng?: number | null;
-  phone?: string | null;
-  email?: string | null;
-  website?: string | null;
-  description?: string | null;
-}
-
 // ── Cached indexer ─────────────────────────────────────────
 
 let _indexer: ReturnType<typeof createIndexer> | null = null;
@@ -43,51 +24,6 @@ function getIndexer(client: Client) {
   });
   _indexerClient = client;
   return _indexer;
-}
-
-// ── Insert a school ────────────────────────────────────────
-
-function makeSlug(name: string, city: string): string {
-  const base = normalize(`${name} ${city}`, plLocale).replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  return `${base}-${Math.random().toString(36).slice(2, 6)}`;
-}
-
-export async function insertSchool(db: Client, input: SchoolInput): Promise<number> {
-  const slug = makeSlug(input.name, input.city);
-  const stylesJson = JSON.stringify(input.styles);
-  const stylesNorm = input.styles.map(s => normalize(s, plLocale)).join(' ');
-
-  const result = await db.execute({
-    sql: `INSERT INTO schools (
-      name, name_n, slug, styles, styles_n,
-      street, street_n, district, district_n,
-      city, city_n, city_slug, voivodeship, voivodeship_n,
-      postcode, lat, lng, phone, email, website, description, description_n
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    args: [
-      input.name, normalize(input.name, plLocale), slug, stylesJson, stylesNorm,
-      input.street ?? null, normalize(input.street ?? '', plLocale),
-      input.district ?? null, normalize(input.district ?? '', plLocale),
-      input.city, normalize(input.city, plLocale), input.citySlug,
-      input.voivodeship ?? null, normalize(input.voivodeship ?? '', plLocale),
-      input.postcode ?? null, input.lat ?? null, input.lng ?? null,
-      input.phone ?? null, input.email ?? null, input.website ?? null,
-      input.description ?? null, normalize(input.description ?? '', plLocale),
-    ],
-  });
-
-  const schoolId = Number(result.lastInsertRowid);
-  // Index trigrams via the generic indexer
-  await getIndexer(db).indexTrigrams(schoolId, {
-    name: input.name,
-    styles: JSON.stringify(input.styles),
-    city: input.city,
-    neighborhood: input.district,
-    address: input.street,
-    city_slug: input.citySlug,
-    voivodeship: input.voivodeship,
-  });
-  return schoolId;
 }
 
 // ── Delegated operations ───────────────────────────────────
@@ -113,19 +49,50 @@ export async function checkFtsSync(db: Client): Promise<{
 }
 
 export async function renormalizeAll(db: Client): Promise<number> {
+  // Styles live in the school_styles join table (schools has no styles column);
+  // city slugs come from the cities table. Prefetch both.
+  const [styleRows, cityRows] = await Promise.all([
+    db.execute('SELECT ss.school_id, st.name FROM school_styles ss JOIN styles st ON st.id = ss.style_id'),
+    db.execute('SELECT name_n, slug FROM cities'),
+  ]);
+  const stylesBySchool = new Map<string, string[]>();
+  for (const row of styleRows.rows as any[]) {
+    const arr = stylesBySchool.get(row.school_id as string) ?? [];
+    arr.push(row.name as string);
+    stylesBySchool.set(row.school_id as string, arr);
+  }
+  const citySlugByNameN = new Map<string, string>();
+  for (const row of cityRows.rows as any[]) citySlugByNameN.set(row.name_n as string, row.slug as string);
+
+  // Full rebuild semantics: school_trigrams has no unique index, so
+  // re-indexing without clearing would duplicate rows and skew match counts.
+  await db.execute('DELETE FROM school_trigrams');
+
   return getIndexer(db).renormalizeAll(async (wrappedDb, row) => {
-    const styles: string[] = (() => { try { return JSON.parse((row.styles as string) || '[]'); } catch { return []; } })();
+    const styles = stylesBySchool.get(row.id as string) ?? [];
+    // Patch the row so the indexer's trigramFields sees styles too
+    row.styles = JSON.stringify(styles);
+
+    const cityN = normalize((row.city as string) || '', plLocale);
+    const citySlug = (row.city_slug as string)
+      || citySlugByNameN.get(cityN)
+      || cityN.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slug = (row.slug as string) || (citySlug ? `${row.id}-${citySlug}` : (row.id as string));
+    const postcode = (row.postcode as string)
+      || ((row.address as string) || '').match(/\b\d{2}-\d{3}\b/)?.[0]
+      || null;
+
     await wrappedDb.execute({
-      sql: `UPDATE schools SET name_n=?, city_n=?, street_n=?, district_n=?, voivodeship_n=?, description_n=?, styles_n=?
+      sql: `UPDATE schools SET name_n=?, city_n=?, street_n=?, district_n=?, description_n=?, styles_n=?, city_slug=?, slug=?, postcode=?
             WHERE id=?`,
       args: [
         normalize((row.name as string) || '', plLocale),
-        normalize((row.city as string) || '', plLocale),
+        cityN,
         normalize((row.address as string) || '', plLocale),
         normalize((row.neighborhood as string) || '', plLocale),
-        normalize((row.voivodeship as string) || '', plLocale),
         normalize((row.description as string) || '', plLocale),
         styles.map(s => normalize(s, plLocale)).join(' '),
+        citySlug, slug, postcode,
         row.id,
       ],
     });

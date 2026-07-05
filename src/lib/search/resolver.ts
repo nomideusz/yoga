@@ -16,7 +16,7 @@ export type SearchContext =
   | { page: 'style'; styleSlug: string; styleName: string };
 
 export type SearchAction =
-  | { action: 'route_to_city'; citySlug: string; styleFilter?: string }
+  | { action: 'route_to_city'; citySlug: string; styleFilter?: string; districtFilter?: string }
   | { action: 'route_to_style'; styleSlug: string; cityFilter?: string }
   | { action: 'route_to_school'; schoolSlug: string }
   | { action: 'filter'; query: string }
@@ -120,11 +120,12 @@ function resolveMain(
     return { action: 'route_to_style', styleSlug: style.slug, cityFilter: rest.join(' ') };
   }
 
-  // Check if rest matches a district
+  // Check if rest matches a district — carry it so the city page can filter
   const fullQuery = rest.join(' ');
   for (const [locSlug, areas] of lookups.areaMap.entries()) {
-    if (areas.some(a => matchesArea(fullQuery, a))) {
-      return { action: 'route_to_city', citySlug: locSlug };
+    const matched = areas.find(a => matchesArea(fullQuery, a));
+    if (matched) {
+      return { action: 'route_to_city', citySlug: locSlug, districtFilter: matched };
     }
   }
 

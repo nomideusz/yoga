@@ -197,6 +197,15 @@ async function createNewTables() {
   console.log('  + search_synonyms table');
 
   await exec('CREATE INDEX IF NOT EXISTS idx_synonyms_alias ON search_synonyms(alias)');
+
+  // Search engine reads through this view so unlisted schools never surface.
+  // rowid must be exposed explicitly (views have no implicit rowid) — the
+  // engine joins schools_fts ON s.rowid = fts.rowid.
+  await exec(`
+    CREATE VIEW IF NOT EXISTS schools_listed AS
+    SELECT rowid AS rowid, * FROM schools WHERE is_listed = 1
+  `);
+  console.log('  + schools_listed view');
 }
 
 // ── Step 4: Backfill normalized columns on schools ──────────────────────────

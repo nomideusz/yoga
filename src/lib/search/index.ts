@@ -35,5 +35,5 @@ export { plLocale, polishLocative, polishLocationStems as polishCityStems } from
 export { type YogaResolverLookups, type YogaResolverLookups as ResolverLookups } from './types';
 export { resolveSearch, findNearestCityWithSchools, type SearchContext, type SearchAction } from './resolver';
 export { search, autocomplete } from './engine';
-export { insertSchool, loadResolverLookups, reindexAllTrigrams, rebuildFts, renormalizeAll, checkFtsSync, type SchoolInput } from './indexer';
+export { loadResolverLookups, reindexAllTrigrams, rebuildFts, renormalizeAll, checkFtsSync } from './indexer';
 export { trackSearch, type TrackSearchEvent } from './track';

@@ -1192,10 +1192,12 @@
                     goto(`/${nearest.slug}`);
                     break;
                 }
-                const filter = action.styleFilter
-                    ? `?style=${encodeURIComponent(action.styleFilter)}`
-                    : "";
-                goto(`/${cityUrlSlug(action.citySlug)}${filter}`);
+                const params = new URLSearchParams();
+                if (action.styleFilter) params.set("style", action.styleFilter);
+                if (action.districtFilter)
+                    params.set("district", action.districtFilter);
+                const qs = params.size > 0 ? `?${params}` : "";
+                goto(`/${cityUrlSlug(action.citySlug)}${qs}`);
                 break;
             }
             case "route_to_style":
