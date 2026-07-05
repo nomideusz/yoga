@@ -724,12 +724,12 @@
 		touch-action: pan-x;
 		cursor: default;
 		scrollbar-width: thin;
-		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.08)) transparent;
+		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.1)) transparent;
 	}
 	.fs--auto .fs-scroll { height: auto; overflow: visible; }
 	.fs-scroll::-webkit-scrollbar { height: 5px; }
 	.fs-scroll::-webkit-scrollbar-thumb {
-		background: var(--dt-scrollbar, rgba(0, 0, 0, 0.08));
+		background: var(--dt-scrollbar, rgba(0, 0, 0, 0.1));
 		border-radius: 4px;
 	}
 	.fs-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -746,11 +746,11 @@
 		position: absolute;
 		top: 0;
 		height: 100%;
-		border-left: 1px solid var(--dt-border-day, rgba(148, 163, 184, 0.14));
+		border-left: 1px solid var(--dt-border-day, rgba(0, 0, 0, 0.14));
 		box-sizing: border-box;
 	}
 	.fs-day:first-of-type { border-left: none; }
-	.fs-today { background: var(--dt-today-bg, rgba(239, 68, 68, 0.025)); }
+	.fs-today { background: var(--dt-today-bg, rgba(37, 99, 235, 0.04)); }
 	.fs-past { opacity: 0.7; }
 
 	/* ─── Disabled day ───────────────────────────────── */
@@ -760,8 +760,8 @@
 			45deg,
 			transparent,
 			transparent 6px,
-			var(--dt-border, rgba(148, 163, 184, 0.07)) 6px,
-			var(--dt-border, rgba(148, 163, 184, 0.07)) 7px
+			var(--dt-border, rgba(0, 0, 0, 0.08)) 6px,
+			var(--dt-border, rgba(0, 0, 0, 0.08)) 7px
 		) !important;
 	}
 
@@ -773,8 +773,8 @@
 		z-index: 3;
 		background: repeating-linear-gradient(
 			-45deg,
-			color-mix(in srgb, var(--dt-text, rgba(148, 163, 184, 0.85)) 4%, transparent),
-			color-mix(in srgb, var(--dt-text, rgba(148, 163, 184, 0.85)) 4%, transparent) 4px,
+			color-mix(in srgb, var(--dt-text, rgba(0, 0, 0, 0.87)) 4%, transparent),
+			color-mix(in srgb, var(--dt-text, rgba(0, 0, 0, 0.87)) 4%, transparent) 4px,
 			transparent 4px,
 			transparent 8px
 		);
@@ -788,7 +788,7 @@
 
 	.fs-blocked-label {
 		font: 500 9px/1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
 		white-space: nowrap;
@@ -818,14 +818,14 @@
 		top: 18px;
 		bottom: 0;
 		width: 1px;
-		background: var(--dt-border, rgba(148, 163, 184, 0.07));
+		background: var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
 	.fs-tick-lb {
 		position: absolute;
 		top: 2px;
 		left: 5px;
 		font: 500 10px/1 var(--dt-mono, ui-monospace, monospace);
-		color: var(--dt-text-3, rgba(100, 116, 139, 0.7));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		white-space: nowrap;
 		pointer-events: none;
 	}
@@ -853,7 +853,7 @@
 		left: 0;
 		width: 2px;
 		background: var(--dt-accent, #2563eb);
-		box-shadow: 0 0 8px var(--dt-glow, rgba(239, 68, 68, 0.35));
+		box-shadow: 0 0 8px var(--dt-glow, rgba(37, 99, 235, 0.25));
 	}
 	.fs-now-tag {
 		position: absolute;
@@ -862,7 +862,7 @@
 		font: 700 11px/1 var(--dt-mono, ui-monospace, monospace);
 		color: var(--dt-accent, #2563eb);
 		background: color-mix(in srgb, var(--dt-bg, #ffffff) 92%, var(--dt-accent, #2563eb));
-		border: 1px solid var(--dt-accent-dim, rgba(239, 68, 68, 0.18));
+		border: 1px solid var(--dt-accent-dim, rgba(37, 99, 235, 0.12));
 		padding: 3px 6px;
 		border-radius: 4px;
 		white-space: nowrap;
@@ -925,7 +925,7 @@
 	.fs-ad-title {
 		font-size: 0.7rem;
 		font-weight: 500;
-		color: var(--dt-text, #e2e8f0);
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		max-width: 120px;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -933,7 +933,7 @@
 
 	.fs-ad-span {
 		font-size: 0.6rem;
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		flex-shrink: 0;
 	}
 
@@ -1029,7 +1029,7 @@
 	}
 	.fs-ev-title {
 		font: 600 13px/1.15 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(226, 232, 240, 0.92));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -1038,14 +1038,14 @@
 	}
 	.fs-ev-time {
 		font: 400 10px/1 var(--dt-mono, ui-monospace, monospace);
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.72));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		opacity: 0.7;
 		white-space: nowrap;
 		flex-shrink: 0;
 	}
 	.fs-ev-sub {
 		font: 400 11px/1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.72));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		opacity: 0.6;
 		white-space: nowrap;
 		overflow: hidden;
@@ -1055,7 +1055,7 @@
 	}
 	.fs-ev-loc {
 		font: 400 10px/1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(148, 163, 184, 0.5));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;

@@ -295,7 +295,7 @@
 		overflow-y: auto;
 		-webkit-overflow-scrolling: touch;
 		scrollbar-width: thin;
-		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.08)) transparent;
+		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.1)) transparent;
 	}
 	.mw--auto .mw-list { overflow-y: visible; }
 
@@ -311,7 +311,7 @@
 		text-align: left;
 		width: 100%;
 		-webkit-tap-highlight-color: transparent;
-		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.06));
+		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 		min-height: 56px;
 	}
 	.mw-row:last-child {
@@ -405,7 +405,7 @@
 
 	.mw-empty {
 		font: 400 12px/1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(0, 0, 0, 0.25));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		font-style: italic;
 	}
 
@@ -497,7 +497,7 @@
 	/* ─── Chevron ────────────────────────────────────── */
 	.mw-chevron {
 		flex-shrink: 0;
-		color: var(--dt-text-3, rgba(0, 0, 0, 0.2));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		position: relative;
 		z-index: 1;
 		pointer-events: none;

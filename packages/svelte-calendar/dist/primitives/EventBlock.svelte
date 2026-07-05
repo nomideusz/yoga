@@ -226,7 +226,7 @@
 		align-items: center;
 		gap: 5px;
 		font: 400 11px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -253,7 +253,7 @@
 		display: flex;
 		border-radius: 8px;
 		background: var(--dt-surface, var(--dt-bg, #ffffff));
-		border: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		border: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 		overflow: hidden;
 	}
 	.eb-card .eb-stripe {
@@ -270,18 +270,18 @@
 	}
 	.eb-card .eb-title {
 		font: 500 12px / 1.3 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 	.eb-card .eb-time {
 		font: 400 10px / 1 var(--dt-mono, 'SF Mono', monospace);
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 	}
 	.eb-card .eb-dur {
 		font: 300 10px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 	}
 
 	/* ── Row ── */
@@ -290,7 +290,7 @@
 		align-items: center;
 		gap: 10px;
 		padding: 6px 12px;
-		border-bottom: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
 	.eb-row .eb-stripe {
 		width: 3px;
@@ -302,13 +302,13 @@
 	}
 	.eb-row .eb-time {
 		font: 400 10px / 1 var(--dt-mono, 'SF Mono', monospace);
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		flex-shrink: 0;
 		width: 90px;
 	}
 	.eb-row .eb-title {
 		font: 400 12px / 1.3 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		flex: 1;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -316,14 +316,14 @@
 	}
 	.eb-row .eb-dur {
 		font: 300 10px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 	}
 
 	/* ── Shared ── */
 	.eb-subtitle {
 		font: 400 10px / 1.2 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.65));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -345,7 +345,7 @@
 	}
 	.eb-location {
 		font: 400 9px / 1.2 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -361,8 +361,8 @@
 		width: fit-content;
 	}
 	.eb-cancelled-badge {
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.65));
-		background: color-mix(in srgb, var(--dt-text-2, rgba(148, 163, 184, 0.3)) 15%, transparent);
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
+		background: color-mix(in srgb, var(--dt-text-2, rgba(0, 0, 0, 0.54)) 15%, transparent);
 	}
 	.eb-tentative-badge {
 		color: var(--_color);

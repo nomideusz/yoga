@@ -452,7 +452,7 @@
 		width: 100%;
 		min-width: 0;
 		box-sizing: border-box;
-		color: var(--dt-text, rgba(255, 255, 255, 0.92));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		font-family: var(--dt-sans, system-ui, sans-serif);
 	}
 	.ag--auto {
@@ -521,7 +521,7 @@
 	}
 	.ag-allday-title {
 		font: 500 0.7rem/1.2 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		white-space: nowrap;
 	}
 
@@ -531,7 +531,7 @@
 		align-items: stretch;
 		border-radius: 6px;
 		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, var(--dt-bg, #ffffff)));
-		border: 1px solid color-mix(in srgb, var(--ev-color) 8%, var(--dt-border, rgba(255, 255, 255, 0.06)));
+		border: 1px solid color-mix(in srgb, var(--ev-color) 8%, var(--dt-border, rgba(0, 0, 0, 0.08)));
 		overflow: hidden;
 		cursor: pointer;
 		transition: background 150ms, border-color 150ms;
@@ -585,13 +585,13 @@
 		display: flex;
 		align-items: center;
 		font-size: 11px;
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		font-family: var(--dt-mono, monospace);
 		line-height: 1;
 	}
 	.ag-card-dur {
 		margin-left: 6px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 	}
 	.ag-card-eta {
 		margin-left: auto;
@@ -603,12 +603,12 @@
 	}
 	.ag-card-sub {
 		font-size: 11px;
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.45));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		line-height: 1;
 	}
 	.ag-card-loc {
 		font-size: 10px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.35));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		line-height: 1;
 	}
 	.ag-card-tags {
@@ -626,7 +626,7 @@
 	}
 	.ag-card-progress {
 		height: 3px;
-		background: var(--dt-border, rgba(255, 255, 255, 0.06));
+		background: var(--dt-border, rgba(0, 0, 0, 0.08));
 		border-radius: 2px;
 		overflow: hidden;
 		margin-top: 2px;
@@ -640,7 +640,7 @@
 
 	/* ═══ Week day groups ═══ */
 	.ag-wday {
-		border-bottom: 1px solid var(--dt-border, rgba(255, 255, 255, 0.06));
+		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
 	.ag-wday--today {
 		background: color-mix(in srgb, var(--dt-accent, #2563eb) 2%, transparent);
@@ -696,10 +696,10 @@
 		border-radius: 3px;
 	}
 	.ag-wday-badge--muted {
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		background: color-mix(
 			in srgb,
-			var(--dt-text-2, rgba(255, 255, 255, 0.5)) 10%,
+			var(--dt-text-2, rgba(0, 0, 0, 0.54)) 10%,
 			transparent
 		);
 	}
@@ -710,13 +710,13 @@
 	.ag-wday-date {
 		font-size: 11px;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 	}
 
 	.ag-wday-empty {
 		padding: 2px 20px 6px;
 		font-size: 11px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.2));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		font-style: italic;
 	}
 
@@ -752,7 +752,7 @@
 	}
 	.ag-wday-past-line {
 		font-size: 10px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		padding: 6px 0 0;
 		opacity: 0.5;
 	}
@@ -793,7 +793,7 @@
 	.ag-compact-time {
 		font-size: 11px;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		min-width: 40px;
 		flex-shrink: 0;
 		white-space: nowrap;
@@ -801,7 +801,7 @@
 	.ag-compact-title {
 		font-size: 12px;
 		font-weight: 500;
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		flex: 1;
 		min-width: 0;
 		white-space: nowrap;
@@ -812,13 +812,13 @@
 	.ag-compact-dur {
 		font-size: 10px;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 		white-space: nowrap;
 	}
 	.ag-compact-sub {
 		font-size: 10px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.35));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 		white-space: nowrap;
 		overflow: hidden;
@@ -827,7 +827,7 @@
 	}
 	.ag-compact-loc {
 		font-size: 9px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 		white-space: nowrap;
 		overflow: hidden;

@@ -123,7 +123,7 @@
 		height: 10px;
 		border-radius: 50%;
 		background: var(--ni-color, var(--dt-accent, #2563eb));
-		box-shadow: 0 0 6px var(--ni-color, var(--dt-glow, rgba(239, 68, 68, 0.35)));
+		box-shadow: 0 0 6px var(--ni-color, var(--dt-glow, rgba(37, 99, 235, 0.25)));
 	}
 	.ni-dot.vertical .ni-dot-circle {
 		margin-left: -5px;

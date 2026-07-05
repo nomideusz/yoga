@@ -586,7 +586,7 @@
 		overflow-x: hidden;
 		box-sizing: border-box;
 		scrollbar-width: thin;
-		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.08)) transparent;
+		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.1)) transparent;
 	}
 	.wg--auto .wg-body { overflow-y: visible; }
 
@@ -607,7 +607,7 @@
 	}
 
 	.wg-week--current {
-		background: var(--dt-today-bg, rgba(239, 68, 68, 0.02));
+		background: var(--dt-today-bg, rgba(37, 99, 235, 0.04));
 		border: 2.5px solid var(--dt-accent, #2563eb);
 		box-shadow: 0 0 0 1px color-mix(in srgb, var(--dt-accent, #2563eb) 15%, transparent);
 	}
@@ -631,7 +631,7 @@
 		position: relative;
 		min-height: 170px;
 		padding: 4px 4px 8px;
-		border-right: 1px solid var(--dt-border, rgba(0, 0, 0, 0.06));
+		border-right: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 		cursor: pointer;
 		transition: background 0.15s;
 	}
@@ -639,8 +639,8 @@
 	.wg-cell:last-child { border-right: none; }
 	.wg-cell:hover { background: var(--dt-hover, rgba(0, 0, 0, 0.015)); }
 
-	.wg-cell--today { background: var(--dt-today-bg, rgba(239, 68, 68, 0.03)); }
-	.wg-cell--today:hover { background: rgba(239, 68, 68, 0.05); }
+	.wg-cell--today { background: var(--dt-today-bg, rgba(37, 99, 235, 0.04)); }
+	.wg-cell--today:hover { background: color-mix(in srgb, var(--dt-accent, #2563eb) 6%, transparent); }
 
 	/* Dim all cells by default; current week overrides to full brightness */
 	.wg-cell { opacity: 0.55; }
@@ -659,8 +659,8 @@
 			45deg,
 			transparent,
 			transparent 6px,
-			var(--dt-border, rgba(0, 0, 0, 0.06)) 6px,
-			var(--dt-border, rgba(0, 0, 0, 0.06)) 7px
+			var(--dt-border, rgba(0, 0, 0, 0.08)) 6px,
+			var(--dt-border, rgba(0, 0, 0, 0.08)) 7px
 		) !important;
 	}
 
@@ -673,8 +673,8 @@
 		border-radius: 3px;
 		background: repeating-linear-gradient(
 			-45deg,
-			color-mix(in srgb, var(--dt-text, rgba(0,0,0,0.85)) 4%, transparent),
-			color-mix(in srgb, var(--dt-text, rgba(0,0,0,0.85)) 4%, transparent) 3px,
+			color-mix(in srgb, var(--dt-text, rgba(0, 0, 0, 0.87)) 4%, transparent),
+			color-mix(in srgb, var(--dt-text, rgba(0, 0, 0, 0.87)) 4%, transparent) 3px,
 			transparent 3px,
 			transparent 6px
 		);
@@ -684,7 +684,7 @@
 
 	.wg-blocked-label {
 		font: 500 8px/1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(0, 0, 0, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
 		white-space: nowrap;
@@ -709,11 +709,11 @@
 		font: 400 10px / 1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		color: var(--dt-text-3, rgba(0, 0, 0, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 	}
 
 	.wg-week--current .wg-day-wd {
-		color: var(--dt-text-2, rgba(0, 0, 0, 0.5));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 	}
 
 	.wg-cell-hd--today .wg-day-wd {
@@ -723,11 +723,11 @@
 
 	.wg-day-num {
 		font: 700 14px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(0, 0, 0, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 	}
 
 	.wg-week--current .wg-day-num {
-		color: var(--dt-text, rgba(0, 0, 0, 0.95));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 	}
 
 	.wg-day-num--today {
@@ -745,13 +745,13 @@
 		font: 800 22px / 1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.02em;
 		text-transform: uppercase;
-		color: color-mix(in srgb, var(--dt-text, rgba(255,255,255,0.85)) 4%, transparent);
+		color: color-mix(in srgb, var(--dt-text, rgba(0, 0, 0, 0.87)) 4%, transparent);
 		pointer-events: none;
 		white-space: nowrap;
 	}
 
 	.wg-week--current .wg-cell-month {
-		color: color-mix(in srgb, var(--dt-text, rgba(255,255,255,0.85)) 8%, transparent);
+		color: color-mix(in srgb, var(--dt-text, rgba(0, 0, 0, 0.87)) 8%, transparent);
 	}
 
 	/* ─── All-day / multi-day events ─────────────────── */
@@ -809,7 +809,7 @@
 
 	.wg-ad-title {
 		font: 500 10px / 1.1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(0, 0, 0, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -898,14 +898,14 @@
 
 	.wg-ev-time {
 		font: 400 10px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(0, 0, 0, 0.4));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 		white-space: nowrap;
 	}
 
 	.wg-ev-title {
 		font: 500 12px / 1.1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(0, 0, 0, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -913,7 +913,7 @@
 
 	.wg-ev-loc {
 		font: 400 9px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(0, 0, 0, 0.35));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -922,13 +922,13 @@
 
 	.wg-ev-more {
 		font: 500 10px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(0, 0, 0, 0.35));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		padding: 2px 8px;
 		cursor: pointer;
 	}
 
 	.wg-ev-more:hover {
-		color: var(--dt-text-2, rgba(0, 0, 0, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 	}
 
 	/* ─── Focus-visible ──────────────────────────────── */

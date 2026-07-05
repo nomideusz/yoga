@@ -417,7 +417,7 @@
 		padding: 4px 8px;
 		overflow-x: auto;
 		scrollbar-width: none;
-		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.06));
+		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 		flex-shrink: 0;
 		align-items: center;
 	}
@@ -481,7 +481,7 @@
 		overflow-x: hidden;
 		-webkit-overflow-scrolling: touch;
 		scrollbar-width: thin;
-		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.08)) transparent;
+		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.1)) transparent;
 		position: relative;
 		padding-top: 8px;
 	}
@@ -668,7 +668,7 @@
 
 	.mb-ev-loc {
 		font: 400 10px/1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-3, rgba(0, 0, 0, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;

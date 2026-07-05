@@ -64,18 +64,18 @@
 		font: 500 10px / 1 var(--dt-sans, system-ui, sans-serif);
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 	}
 	.dh-name-long {
 		font-size: 12px;
 		text-transform: none;
 		letter-spacing: 0.01em;
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 	}
 
 	.dh-num {
 		font: 600 14px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		width: 28px;
 		height: 28px;
 		display: flex;
@@ -90,12 +90,12 @@
 
 	.dh-date {
 		font: 400 10px / 1 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 	}
 
 	.dh-rel {
 		font: 500 12px / 1.3 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 	}
 	.dh-today .dh-rel {
 		color: var(--dt-accent, #2563eb);

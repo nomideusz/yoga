@@ -68,7 +68,7 @@
 		top: 0;
 		bottom: 0;
 		width: 0;
-		border-left: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		border-left: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
 	.tg-tick-half {
 		border-left-style: dashed;
@@ -79,7 +79,7 @@
 		top: 4px;
 		left: 6px;
 		font: 400 9px / 1 var(--dt-mono, 'SF Mono', 'Fira Code', monospace);
-		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		white-space: nowrap;
 	}
 
@@ -96,10 +96,10 @@
 		align-items: flex-start;
 		justify-content: flex-end;
 		padding: 2px 8px 0 0;
-		border-top: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		border-top: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
 	.tg-v .tg-label {
 		font: 400 9px / 1 var(--dt-mono, 'SF Mono', 'Fira Code', monospace);
-		color: var(--dt-text-3, rgba(100, 116, 139, 0.55));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 	}
 </style>

@@ -64,13 +64,13 @@
 		min-height: 24px;
 	}
 	.es:hover {
-		border-color: var(--dt-accent-dim, rgba(239, 68, 68, 0.18));
-		background: var(--dt-accent-dim, rgba(239, 68, 68, 0.05));
+		border-color: var(--dt-accent-dim, rgba(37, 99, 235, 0.12));
+		background: var(--dt-accent-dim, rgba(37, 99, 235, 0.12));
 	}
 	.es:focus-visible {
 		outline: 2px solid var(--dt-accent, #2563eb);
 		outline-offset: 2px;
-		border-color: var(--dt-accent-dim, rgba(239, 68, 68, 0.18));
+		border-color: var(--dt-accent-dim, rgba(37, 99, 235, 0.12));
 	}
 
 	.es-hint {
@@ -93,7 +93,7 @@
 	}
 	.es-range {
 		font: 400 10px / 1 var(--dt-mono, 'SF Mono', monospace);
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 	}
 
 	.es-v {

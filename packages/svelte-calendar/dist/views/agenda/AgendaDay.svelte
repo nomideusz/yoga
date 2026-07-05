@@ -402,7 +402,7 @@
 		width: 100%;
 		min-width: 0;
 		box-sizing: border-box;
-		color: var(--dt-text, rgba(255, 255, 255, 0.92));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		font-family: var(--dt-sans, system-ui, sans-serif);
 	}
 
@@ -413,8 +413,8 @@
 			135deg,
 			transparent,
 			transparent 6px,
-			color-mix(in srgb, var(--dt-text, rgba(255, 255, 255, 0.92)) 4%, transparent) 6px,
-			color-mix(in srgb, var(--dt-text, rgba(255, 255, 255, 0.92)) 4%, transparent) 12px
+			color-mix(in srgb, var(--dt-text, rgba(0, 0, 0, 0.87)) 4%, transparent) 6px,
+			color-mix(in srgb, var(--dt-text, rgba(0, 0, 0, 0.87)) 4%, transparent) 12px
 		);
 	}
 
@@ -446,13 +446,13 @@
 		align-items: center;
 		gap: 8px;
 		padding: 6px 16px;
-		border-bottom: 1px solid var(--dt-border, rgba(148, 163, 184, 0.07));
+		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
 	.ag-allday-label {
 		font: 600 10px/1 var(--dt-sans, system-ui, sans-serif);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		color: var(--dt-text-2, rgba(148, 163, 184, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		white-space: nowrap;
 		flex-shrink: 0;
 	}
@@ -493,7 +493,7 @@
 	}
 	.ag-allday-title {
 		font: 500 0.75rem/1.2 var(--dt-sans, system-ui, sans-serif);
-		color: var(--dt-text, rgba(226, 232, 240, 0.85));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		white-space: nowrap;
 	}
 
@@ -503,7 +503,7 @@
 		align-items: stretch;
 		border-radius: 10px;
 		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, var(--dt-bg, #ffffff)));
-		border: 1px solid color-mix(in srgb, var(--ev-color) 10%, var(--dt-border, rgba(255, 255, 255, 0.06)));
+		border: 1px solid color-mix(in srgb, var(--ev-color) 10%, var(--dt-border, rgba(0, 0, 0, 0.08)));
 		overflow: hidden;
 		cursor: pointer;
 		transition: background 150ms, border-color 150ms;
@@ -562,22 +562,22 @@
 	}
 	.ag-card-meta {
 		font-size: 11px;
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		font-family: var(--dt-mono, monospace);
 		line-height: 1;
 	}
 	.ag-card-dur {
 		margin-left: 6px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 	}
 	.ag-card-sub {
 		font-size: 11px;
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.45));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		line-height: 1;
 	}
 	.ag-card-loc {
 		font-size: 10px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.35));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		line-height: 1;
 	}
 	.ag-card-tags {
@@ -644,7 +644,7 @@
 	.ag-card-order {
 		font-size: 10px;
 		font-weight: 700;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.2));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		font-family: var(--dt-mono, monospace);
 		flex-shrink: 0;
 	}
@@ -683,7 +683,7 @@
 	}
 	.ag--mobile .ag-q-status {
 		border-right: none;
-		border-bottom: 1px solid var(--dt-border, rgba(255, 255, 255, 0.06));
+		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 		padding-bottom: 10px;
 		margin-bottom: 8px;
 		overflow-y: visible;
@@ -723,7 +723,7 @@
 		font-weight: 600;
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.25));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		margin-bottom: 8px;
 		padding: 0 12px;
 		font-family: var(--dt-sans, system-ui, sans-serif);
@@ -735,13 +735,13 @@
 		flex: 1;
 		font-size: 13px;
 		font-weight: 300;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.25));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 	}
 
 	/* ── NOW column (includes Done above) ── */
 	.ag-q-status {
 		padding: 0 10px 0 14px;
-		border-right: 1px solid var(--dt-border, rgba(255, 255, 255, 0.06));
+		border-right: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 		display: flex;
 		flex-direction: column;
 		overflow-y: auto;
@@ -753,7 +753,7 @@
 	.ag-q-done-section {
 		margin-bottom: 10px;
 		padding-bottom: 8px;
-		border-bottom: 1px solid var(--dt-border, rgba(255, 255, 255, 0.06));
+		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
 	.ag-q-clock {
 		font-size: 10px;
@@ -798,7 +798,7 @@
 		font-size: 11px;
 		font-weight: 600;
 		line-height: 1.2;
-		color: var(--dt-text, rgba(255, 255, 255, 0.92));
+		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -807,12 +807,12 @@
 	.ag-q-now-time {
 		font-size: 9px;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.35));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		margin-bottom: 6px;
 	}
 	.ag-q-now-track {
 		height: 2px;
-		background: var(--dt-border, rgba(255, 255, 255, 0.06));
+		background: var(--dt-border, rgba(0, 0, 0, 0.08));
 		border-radius: 1px;
 		overflow: hidden;
 	}
@@ -829,7 +829,7 @@
 	.ag-q-free-label {
 		font-size: 12px;
 		font-weight: 300;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.25));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		margin-bottom: 2px;
 	}
 
@@ -867,18 +867,18 @@
 	}
 	.ag-q-done-check {
 		font-size: 9px;
-		color: var(--dt-success, rgba(120, 200, 140, 0.7));
+		color: var(--dt-success, rgba(22, 163, 74, 0.7));
 		flex-shrink: 0;
 	}
 	.ag-q-done-title {
 		font-size: 10px;
 		line-height: 1.2;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.35));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		text-decoration: line-through;
-		text-decoration-color: var(--dt-text-3, rgba(255, 255, 255, 0.15));
+		text-decoration-color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 	}
 
 	/* ═══ Past Day: "The Log" ═══ */
@@ -897,7 +897,7 @@
 		align-items: center;
 		gap: 10px;
 		padding: 8px 0;
-		border-bottom: 1px solid var(--dt-border, rgba(255, 255, 255, 0.04));
+		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 		cursor: pointer;
 		transition: opacity 150ms;
 	}
@@ -920,13 +920,13 @@
 	}
 	.ag-log-check {
 		font-size: 10px;
-		color: var(--dt-success, rgba(120, 200, 140, 0.5));
+		color: var(--dt-success, rgba(22, 163, 74, 0.7));
 		flex-shrink: 0;
 	}
 	.ag-log-time {
 		font-size: 11px;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		width: 64px;
 		flex-shrink: 0;
 	}
@@ -941,18 +941,18 @@
 		font-size: 13px;
 		font-weight: 500;
 		line-height: 1.2;
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.55));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		flex: 1;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		text-decoration: line-through;
-		text-decoration-color: var(--dt-border, rgba(255, 255, 255, 0.08));
+		text-decoration-color: var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
 	.ag-log-dur {
 		font-size: 10px;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.2));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 	}
 
@@ -992,14 +992,14 @@
 	.ag-compact-row-time {
 		font-size: 11px;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		min-width: 64px;
 		flex-shrink: 0;
 	}
 	.ag-compact-row-title {
 		font-size: 12px;
 		font-weight: 500;
-		color: var(--dt-text-2, rgba(255, 255, 255, 0.5));
+		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		flex: 1;
 		white-space: nowrap;
 		overflow: hidden;
@@ -1009,12 +1009,12 @@
 	.ag-compact-row-dur {
 		font-size: 10px;
 		font-family: var(--dt-mono, monospace);
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.3));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 	}
 	.ag-compact-row-sub {
 		font-size: 10px;
-		color: var(--dt-text-3, rgba(255, 255, 255, 0.35));
+		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 	}
 	.ag-compact-row-tag {
