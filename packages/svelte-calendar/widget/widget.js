@@ -15,6 +15,7 @@
   const INERT = 1 << 13;
   const DESTROYED = 1 << 14;
   const REACTION_RAN = 1 << 15;
+  const DESTROYING = 1 << 25;
   const EFFECT_TRANSPARENT = 1 << 16;
   const EAGER_EFFECT = 1 << 17;
   const HEAD_EFFECT = 1 << 18;
@@ -28,6 +29,10 @@
   const STATE_SYMBOL = /* @__PURE__ */ Symbol("$state");
   const LEGACY_PROPS = /* @__PURE__ */ Symbol("legacy props");
   const LOADING_ATTR_SYMBOL = /* @__PURE__ */ Symbol("");
+  const ATTRIBUTES_CACHE = /* @__PURE__ */ Symbol("attributes");
+  const CLASS_CACHE = /* @__PURE__ */ Symbol("class");
+  const STYLE_CACHE = /* @__PURE__ */ Symbol("style");
+  const TEXT_CACHE = /* @__PURE__ */ Symbol("text");
   const STALE_REACTION = new class StaleReactionError extends Error {
     name = "StaleReactionError";
     message = "The reaction that called `getAbortSignal()` was re-run or destroyed";
@@ -160,7 +165,7 @@
   const HYDRATION_START_FAILED = "[?";
   const HYDRATION_END = "]";
   const HYDRATION_ERROR = {};
-  const UNINITIALIZED = /* @__PURE__ */ Symbol();
+  const UNINITIALIZED = /* @__PURE__ */ Symbol("uninitialized");
   const NAMESPACE_HTML = "http://www.w3.org/1999/xhtml";
   let component_context = null;
   function set_component_context(context) {
@@ -187,6 +192,10 @@
       e: null,
       s: props,
       x: null,
+      r: (
+        /** @type {Effect} */
+        active_effect
+      ),
       l: null
     };
   }
@@ -247,6 +256,11 @@
   function flush_tasks() {
     while (micro_tasks.length > 0) {
       run_micro_tasks();
+    }
+  }
+  function derived_inert() {
+    {
+      console.warn(`https://svelte.dev/e/derived_inert`);
     }
   }
   function hydration_mismatch(location) {
@@ -534,14 +548,13 @@
     first_child_getter = get_descriptor(node_prototype, "firstChild").get;
     next_sibling_getter = get_descriptor(node_prototype, "nextSibling").get;
     if (is_extensible(element_prototype)) {
-      element_prototype.__click = void 0;
-      element_prototype.__className = void 0;
-      element_prototype.__attributes = null;
-      element_prototype.__style = void 0;
+      element_prototype[CLASS_CACHE] = void 0;
+      element_prototype[ATTRIBUTES_CACHE] = null;
+      element_prototype[STYLE_CACHE] = void 0;
       element_prototype.__e = void 0;
     }
     if (is_extensible(text_prototype)) {
-      text_prototype.__t = void 0;
+      text_prototype[TEXT_CACHE] = void 0;
     }
   }
   function create_text(value = "") {
@@ -640,11 +653,12 @@
     return false;
   }
   function create_element(tag, namespace, is) {
-    let options = void 0;
-    return (
-      /** @type {T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : Element} */
-      document.createElementNS(NAMESPACE_HTML, tag, options)
-    );
+    {
+      return (
+        /** @type {T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : Element} */
+        is ? document.createElement(tag, { is }) : document.createElement(tag)
+      );
+    }
   }
   function merge_text_nodes(text2) {
     if (
@@ -673,6 +687,9 @@
     invoke_error_boundary(error, effect2);
   }
   function invoke_error_boundary(error, effect2) {
+    if (effect2 !== null && (effect2.f & DESTROYED) !== 0) {
+      return;
+    }
     while (effect2 !== null) {
       if ((effect2.f & BOUNDARY_EFFECT) !== 0) {
         if ((effect2.f & REACTION_RAN) === 0) {
@@ -722,530 +739,14 @@
     clear_marked(effect2.deps);
     set_signal_status(effect2, CLEAN);
   }
-  const batches = /* @__PURE__ */ new Set();
-  let current_batch = null;
-  let batch_values = null;
-  let queued_root_effects = [];
-  let last_scheduled_effect = null;
-  let is_flushing_sync = false;
-  let collected_effects = null;
-  let uid$1 = 1;
-  class Batch {
-    // for debugging. TODO remove once async is stable
-    id = uid$1++;
-    /**
-     * The current values of any sources that are updated in this batch
-     * They keys of this map are identical to `this.#previous`
-     * @type {Map<Source, any>}
-     */
-    current = /* @__PURE__ */ new Map();
-    /**
-     * The values of any sources that are updated in this batch _before_ those updates took place.
-     * They keys of this map are identical to `this.#current`
-     * @type {Map<Source, any>}
-     */
-    previous = /* @__PURE__ */ new Map();
-    /**
-     * When the batch is committed (and the DOM is updated), we need to remove old branches
-     * and append new ones by calling the functions added inside (if/each/key/etc) blocks
-     * @type {Set<(batch: Batch) => void>}
-     */
-    #commit_callbacks = /* @__PURE__ */ new Set();
-    /**
-     * If a fork is discarded, we need to destroy any effects that are no longer needed
-     * @type {Set<(batch: Batch) => void>}
-     */
-    #discard_callbacks = /* @__PURE__ */ new Set();
-    /**
-     * The number of async effects that are currently in flight
-     */
-    #pending = 0;
-    /**
-     * The number of async effects that are currently in flight, _not_ inside a pending boundary
-     */
-    #blocking_pending = 0;
-    /**
-     * A deferred that resolves when the batch is committed, used with `settled()`
-     * TODO replace with Promise.withResolvers once supported widely enough
-     * @type {{ promise: Promise<void>, resolve: (value?: any) => void, reject: (reason: unknown) => void } | null}
-     */
-    #deferred = null;
-    /**
-     * Deferred effects (which run after async work has completed) that are DIRTY
-     * @type {Set<Effect>}
-     */
-    #dirty_effects = /* @__PURE__ */ new Set();
-    /**
-     * Deferred effects that are MAYBE_DIRTY
-     * @type {Set<Effect>}
-     */
-    #maybe_dirty_effects = /* @__PURE__ */ new Set();
-    /**
-     * A map of branches that still exist, but will be destroyed when this batch
-     * is committed — we skip over these during `process`.
-     * The value contains child effects that were dirty/maybe_dirty before being reset,
-     * so they can be rescheduled if the branch survives.
-     * @type {Map<Effect, { d: Effect[], m: Effect[] }>}
-     */
-    #skipped_branches = /* @__PURE__ */ new Map();
-    is_fork = false;
-    #decrement_queued = false;
-    #is_deferred() {
-      return this.is_fork || this.#blocking_pending > 0;
-    }
-    /**
-     * Add an effect to the #skipped_branches map and reset its children
-     * @param {Effect} effect
-     */
-    skip_effect(effect2) {
-      if (!this.#skipped_branches.has(effect2)) {
-        this.#skipped_branches.set(effect2, { d: [], m: [] });
-      }
-    }
-    /**
-     * Remove an effect from the #skipped_branches map and reschedule
-     * any tracked dirty/maybe_dirty child effects
-     * @param {Effect} effect
-     */
-    unskip_effect(effect2) {
-      var tracked = this.#skipped_branches.get(effect2);
-      if (tracked) {
-        this.#skipped_branches.delete(effect2);
-        for (var e of tracked.d) {
-          set_signal_status(e, DIRTY);
-          schedule_effect(e);
-        }
-        for (e of tracked.m) {
-          set_signal_status(e, MAYBE_DIRTY);
-          schedule_effect(e);
-        }
-      }
-    }
-    /**
-     *
-     * @param {Effect[]} root_effects
-     */
-    process(root_effects) {
-      queued_root_effects = [];
-      this.apply();
-      var effects = collected_effects = [];
-      var render_effects = [];
-      for (const root2 of root_effects) {
-        this.#traverse_effect_tree(root2, effects, render_effects);
-      }
-      collected_effects = null;
-      if (this.#is_deferred()) {
-        this.#defer_effects(render_effects);
-        this.#defer_effects(effects);
-        for (const [e, t] of this.#skipped_branches) {
-          reset_branch(e, t);
-        }
-      } else {
-        current_batch = null;
-        for (const fn of this.#commit_callbacks) fn(this);
-        this.#commit_callbacks.clear();
-        if (this.#pending === 0) {
-          this.#commit();
-        }
-        flush_queued_effects(render_effects);
-        flush_queued_effects(effects);
-        this.#dirty_effects.clear();
-        this.#maybe_dirty_effects.clear();
-        this.#deferred?.resolve();
-      }
-      batch_values = null;
-    }
-    /**
-     * Traverse the effect tree, executing effects or stashing
-     * them for later execution as appropriate
-     * @param {Effect} root
-     * @param {Effect[]} effects
-     * @param {Effect[]} render_effects
-     */
-    #traverse_effect_tree(root2, effects, render_effects) {
-      root2.f ^= CLEAN;
-      var effect2 = root2.first;
-      while (effect2 !== null) {
-        var flags2 = effect2.f;
-        var is_branch = (flags2 & (BRANCH_EFFECT | ROOT_EFFECT)) !== 0;
-        var is_skippable_branch = is_branch && (flags2 & CLEAN) !== 0;
-        var inert = (flags2 & INERT) !== 0;
-        var skip = is_skippable_branch || this.#skipped_branches.has(effect2);
-        if (!skip && effect2.fn !== null) {
-          if (is_branch) {
-            if (!inert) effect2.f ^= CLEAN;
-          } else if ((flags2 & EFFECT) !== 0) {
-            effects.push(effect2);
-          } else if ((flags2 & (RENDER_EFFECT | MANAGED_EFFECT)) !== 0 && inert) {
-            render_effects.push(effect2);
-          } else if (is_dirty(effect2)) {
-            update_effect(effect2);
-            if ((flags2 & BLOCK_EFFECT) !== 0) {
-              this.#maybe_dirty_effects.add(effect2);
-              if (inert) set_signal_status(effect2, DIRTY);
-            }
-          }
-          var child2 = effect2.first;
-          if (child2 !== null) {
-            effect2 = child2;
-            continue;
-          }
-        }
-        while (effect2 !== null) {
-          var next2 = effect2.next;
-          if (next2 !== null) {
-            effect2 = next2;
-            break;
-          }
-          effect2 = effect2.parent;
-        }
-      }
-    }
-    /**
-     * @param {Effect[]} effects
-     */
-    #defer_effects(effects) {
-      for (var i = 0; i < effects.length; i += 1) {
-        defer_effect(effects[i], this.#dirty_effects, this.#maybe_dirty_effects);
-      }
-    }
-    /**
-     * Associate a change to a given source with the current
-     * batch, noting its previous and current values
-     * @param {Source} source
-     * @param {any} value
-     */
-    capture(source2, value) {
-      if (value !== UNINITIALIZED && !this.previous.has(source2)) {
-        this.previous.set(source2, value);
-      }
-      if ((source2.f & ERROR_VALUE) === 0) {
-        this.current.set(source2, source2.v);
-        batch_values?.set(source2, source2.v);
-      }
-    }
-    activate() {
-      current_batch = this;
-      this.apply();
-    }
-    deactivate() {
-      if (current_batch !== this) return;
-      current_batch = null;
-      batch_values = null;
-    }
-    flush() {
-      if (queued_root_effects.length > 0) {
-        current_batch = this;
-        flush_effects();
-      } else if (this.#pending === 0 && !this.is_fork) {
-        for (const fn of this.#commit_callbacks) fn(this);
-        this.#commit_callbacks.clear();
-        this.#commit();
-        this.#deferred?.resolve();
-      }
-      this.deactivate();
-    }
-    discard() {
-      for (const fn of this.#discard_callbacks) fn(this);
-      this.#discard_callbacks.clear();
-    }
-    #commit() {
-      if (batches.size > 1) {
-        this.previous.clear();
-        var previous_batch = current_batch;
-        var previous_batch_values = batch_values;
-        var is_earlier = true;
-        for (const batch of batches) {
-          if (batch === this) {
-            is_earlier = false;
-            continue;
-          }
-          const sources = [];
-          for (const [source2, value] of this.current) {
-            if (batch.current.has(source2)) {
-              if (is_earlier && value !== batch.current.get(source2)) {
-                batch.current.set(source2, value);
-              } else {
-                continue;
-              }
-            }
-            sources.push(source2);
-          }
-          if (sources.length === 0) {
-            continue;
-          }
-          const others = [...batch.current.keys()].filter((s) => !this.current.has(s));
-          if (others.length > 0) {
-            var prev_queued_root_effects = queued_root_effects;
-            queued_root_effects = [];
-            const marked = /* @__PURE__ */ new Set();
-            const checked = /* @__PURE__ */ new Map();
-            for (const source2 of sources) {
-              mark_effects(source2, others, marked, checked);
-            }
-            if (queued_root_effects.length > 0) {
-              current_batch = batch;
-              batch.apply();
-              for (const root2 of queued_root_effects) {
-                batch.#traverse_effect_tree(root2, [], []);
-              }
-              batch.deactivate();
-            }
-            queued_root_effects = prev_queued_root_effects;
-          }
-        }
-        current_batch = previous_batch;
-        batch_values = previous_batch_values;
-      }
-      this.#skipped_branches.clear();
-      batches.delete(this);
-    }
-    /**
-     *
-     * @param {boolean} blocking
-     */
-    increment(blocking) {
-      this.#pending += 1;
-      if (blocking) this.#blocking_pending += 1;
-    }
-    /**
-     *
-     * @param {boolean} blocking
-     */
-    decrement(blocking) {
-      this.#pending -= 1;
-      if (blocking) this.#blocking_pending -= 1;
-      if (this.#decrement_queued) return;
-      this.#decrement_queued = true;
-      queue_micro_task(() => {
-        this.#decrement_queued = false;
-        if (!this.#is_deferred()) {
-          this.revive();
-        } else if (queued_root_effects.length > 0) {
-          this.flush();
-        }
-      });
-    }
-    revive() {
-      for (const e of this.#dirty_effects) {
-        this.#maybe_dirty_effects.delete(e);
-        set_signal_status(e, DIRTY);
-        schedule_effect(e);
-      }
-      for (const e of this.#maybe_dirty_effects) {
-        set_signal_status(e, MAYBE_DIRTY);
-        schedule_effect(e);
-      }
-      this.flush();
-    }
-    /** @param {(batch: Batch) => void} fn */
-    oncommit(fn) {
-      this.#commit_callbacks.add(fn);
-    }
-    /** @param {(batch: Batch) => void} fn */
-    ondiscard(fn) {
-      this.#discard_callbacks.add(fn);
-    }
-    settled() {
-      return (this.#deferred ??= deferred()).promise;
-    }
-    static ensure() {
-      if (current_batch === null) {
-        const batch = current_batch = new Batch();
-        batches.add(current_batch);
-        if (!is_flushing_sync) {
-          queue_micro_task(() => {
-            if (current_batch !== batch) {
-              return;
-            }
-            batch.flush();
-          });
-        }
-      }
-      return current_batch;
-    }
-    apply() {
-      return;
-    }
-  }
-  function flushSync(fn) {
-    var was_flushing_sync = is_flushing_sync;
-    is_flushing_sync = true;
+  let is_store_binding = false;
+  function capture_store_binding(fn) {
+    var previous_is_store_binding = is_store_binding;
     try {
-      var result;
-      if (fn) ;
-      while (true) {
-        flush_tasks();
-        if (queued_root_effects.length === 0) {
-          current_batch?.flush();
-          if (queued_root_effects.length === 0) {
-            last_scheduled_effect = null;
-            return (
-              /** @type {T} */
-              result
-            );
-          }
-        }
-        flush_effects();
-      }
+      is_store_binding = false;
+      return [fn(), is_store_binding];
     } finally {
-      is_flushing_sync = was_flushing_sync;
-    }
-  }
-  function flush_effects() {
-    var source_stacks = null;
-    try {
-      var flush_count = 0;
-      while (queued_root_effects.length > 0) {
-        var batch = Batch.ensure();
-        if (flush_count++ > 1e3) {
-          var updates, entry;
-          if (DEV) ;
-          infinite_loop_guard();
-        }
-        batch.process(queued_root_effects);
-        old_values.clear();
-        if (DEV) ;
-      }
-    } finally {
-      queued_root_effects = [];
-      last_scheduled_effect = null;
-      collected_effects = null;
-    }
-  }
-  function infinite_loop_guard() {
-    try {
-      effect_update_depth_exceeded();
-    } catch (error) {
-      invoke_error_boundary(error, last_scheduled_effect);
-    }
-  }
-  let eager_block_effects = null;
-  function flush_queued_effects(effects) {
-    var length = effects.length;
-    if (length === 0) return;
-    var i = 0;
-    while (i < length) {
-      var effect2 = effects[i++];
-      if ((effect2.f & (DESTROYED | INERT)) === 0 && is_dirty(effect2)) {
-        eager_block_effects = /* @__PURE__ */ new Set();
-        update_effect(effect2);
-        if (effect2.deps === null && effect2.first === null && effect2.nodes === null && effect2.teardown === null && effect2.ac === null) {
-          unlink_effect(effect2);
-        }
-        if (eager_block_effects?.size > 0) {
-          old_values.clear();
-          for (const e of eager_block_effects) {
-            if ((e.f & (DESTROYED | INERT)) !== 0) continue;
-            const ordered_effects = [e];
-            let ancestor = e.parent;
-            while (ancestor !== null) {
-              if (eager_block_effects.has(ancestor)) {
-                eager_block_effects.delete(ancestor);
-                ordered_effects.push(ancestor);
-              }
-              ancestor = ancestor.parent;
-            }
-            for (let j = ordered_effects.length - 1; j >= 0; j--) {
-              const e2 = ordered_effects[j];
-              if ((e2.f & (DESTROYED | INERT)) !== 0) continue;
-              update_effect(e2);
-            }
-          }
-          eager_block_effects.clear();
-        }
-      }
-    }
-    eager_block_effects = null;
-  }
-  function mark_effects(value, sources, marked, checked) {
-    if (marked.has(value)) return;
-    marked.add(value);
-    if (value.reactions !== null) {
-      for (const reaction of value.reactions) {
-        const flags2 = reaction.f;
-        if ((flags2 & DERIVED) !== 0) {
-          mark_effects(
-            /** @type {Derived} */
-            reaction,
-            sources,
-            marked,
-            checked
-          );
-        } else if ((flags2 & (ASYNC | BLOCK_EFFECT)) !== 0 && (flags2 & DIRTY) === 0 && depends_on(reaction, sources, checked)) {
-          set_signal_status(reaction, DIRTY);
-          schedule_effect(
-            /** @type {Effect} */
-            reaction
-          );
-        }
-      }
-    }
-  }
-  function depends_on(reaction, sources, checked) {
-    const depends = checked.get(reaction);
-    if (depends !== void 0) return depends;
-    if (reaction.deps !== null) {
-      for (const dep of reaction.deps) {
-        if (includes.call(sources, dep)) {
-          return true;
-        }
-        if ((dep.f & DERIVED) !== 0 && depends_on(
-          /** @type {Derived} */
-          dep,
-          sources,
-          checked
-        )) {
-          checked.set(
-            /** @type {Derived} */
-            dep,
-            true
-          );
-          return true;
-        }
-      }
-    }
-    checked.set(reaction, false);
-    return false;
-  }
-  function schedule_effect(signal) {
-    var effect2 = last_scheduled_effect = signal;
-    var boundary2 = effect2.b;
-    if (boundary2?.is_pending && (signal.f & (EFFECT | RENDER_EFFECT | MANAGED_EFFECT)) !== 0 && (signal.f & REACTION_RAN) === 0) {
-      boundary2.defer_effect(signal);
-      return;
-    }
-    while (effect2.parent !== null) {
-      effect2 = effect2.parent;
-      var flags2 = effect2.f;
-      if (collected_effects !== null && effect2 === active_effect) {
-        if ((signal.f & RENDER_EFFECT) === 0) {
-          return;
-        }
-      }
-      if ((flags2 & (ROOT_EFFECT | BRANCH_EFFECT)) !== 0) {
-        if ((flags2 & CLEAN) === 0) {
-          return;
-        }
-        effect2.f ^= CLEAN;
-      }
-    }
-    queued_root_effects.push(effect2);
-  }
-  function reset_branch(effect2, tracked) {
-    if ((effect2.f & BRANCH_EFFECT) !== 0 && (effect2.f & CLEAN) !== 0) {
-      return;
-    }
-    if ((effect2.f & DIRTY) !== 0) {
-      tracked.d.push(effect2);
-    } else if ((effect2.f & MAYBE_DIRTY) !== 0) {
-      tracked.m.push(effect2);
-    }
-    set_signal_status(effect2, CLEAN);
-    var e = effect2.first;
-    while (e !== null) {
-      reset_branch(e, tracked);
-      e = e.next;
+      is_store_binding = previous_is_store_binding;
     }
   }
   function createSubscriber(start) {
@@ -1405,7 +906,6 @@
         var anchor = create_text();
         fragment.append(anchor);
         this.#main_effect = this.#run(() => {
-          Batch.ensure();
           return branch(() => this.#children(anchor));
         });
         if (this.#pending_count === 0) {
@@ -1418,7 +918,10 @@
               this.#pending_effect = null;
             }
           );
-          this.#resolve();
+          this.#resolve(
+            /** @type {Batch} */
+            current_batch
+          );
         }
       });
     }
@@ -1439,24 +942,21 @@
           );
           this.#pending_effect = branch(() => pending(this.#anchor));
         } else {
-          this.#resolve();
+          this.#resolve(
+            /** @type {Batch} */
+            current_batch
+          );
         }
       } catch (error) {
         this.error(error);
       }
     }
-    #resolve() {
+    /**
+     * @param {Batch} batch
+     */
+    #resolve(batch) {
       this.is_pending = false;
-      for (const e of this.#dirty_effects) {
-        set_signal_status(e, DIRTY);
-        schedule_effect(e);
-      }
-      for (const e of this.#maybe_dirty_effects) {
-        set_signal_status(e, MAYBE_DIRTY);
-        schedule_effect(e);
-      }
-      this.#dirty_effects.clear();
-      this.#maybe_dirty_effects.clear();
+      batch.transfer_effects(this.#dirty_effects, this.#maybe_dirty_effects);
     }
     /**
      * Defer an effect inside a pending boundary until the boundary resolves
@@ -1487,6 +987,7 @@
       set_active_reaction(this.#effect);
       set_component_context(this.#effect.ctx);
       try {
+        Batch.ensure();
         return fn();
       } catch (e) {
         handle_error(e);
@@ -1501,17 +1002,18 @@
      * Updates the pending count associated with the currently visible pending snippet,
      * if any, such that we can replace the snippet with content once work is done
      * @param {1 | -1} d
+     * @param {Batch} batch
      */
-    #update_pending_count(d) {
+    #update_pending_count(d, batch) {
       if (!this.has_pending_snippet()) {
         if (this.parent) {
-          this.parent.#update_pending_count(d);
+          this.parent.#update_pending_count(d, batch);
         }
         return;
       }
       this.#pending_count += d;
       if (this.#pending_count === 0) {
-        this.#resolve();
+        this.#resolve(batch);
         if (this.#pending_effect) {
           pause_effect(this.#pending_effect, () => {
             this.#pending_effect = null;
@@ -1528,9 +1030,10 @@
      * and controls when the current `pending` snippet (if any) is removed.
      * Do not call from inside the class
      * @param {1 | -1} d
+     * @param {Batch} batch
      */
-    update_pending_count(d) {
-      this.#update_pending_count(d);
+    update_pending_count(d, batch) {
+      this.#update_pending_count(d, batch);
       this.#local_pending_count += d;
       if (!this.#effect_pending || this.#pending_count_update_queued) return;
       this.#pending_count_update_queued = true;
@@ -1550,11 +1053,24 @@
     }
     /** @param {unknown} error */
     error(error) {
-      var onerror = this.#props.onerror;
-      let failed = this.#props.failed;
-      if (!onerror && !failed) {
+      if (!this.#props.onerror && !this.#props.failed) {
         throw error;
       }
+      if (current_batch?.is_fork) {
+        if (this.#main_effect) current_batch.skip_effect(this.#main_effect);
+        if (this.#pending_effect) current_batch.skip_effect(this.#pending_effect);
+        if (this.#failed_effect) current_batch.skip_effect(this.#failed_effect);
+        current_batch.oncommit(() => {
+          this.#handle_error(error);
+        });
+      } else {
+        this.#handle_error(error);
+      }
+    }
+    /**
+     * @param {unknown} error
+     */
+    #handle_error(error) {
       if (this.#main_effect) {
         destroy_effect(this.#main_effect);
         this.#main_effect = null;
@@ -1575,6 +1091,8 @@
         next();
         set_hydrate_node(skip_nodes());
       }
+      var onerror = this.#props.onerror;
+      let failed = this.#props.failed;
       var did_reset = false;
       var calling_on_error = false;
       const reset2 = () => {
@@ -1592,7 +1110,6 @@
           });
         }
         this.#run(() => {
-          Batch.ensure();
           this.#render();
         });
       };
@@ -1606,7 +1123,6 @@
         }
         if (failed) {
           this.#failed_effect = this.#run(() => {
-            Batch.ensure();
             try {
               return branch(() => {
                 var effect2 = (
@@ -1656,8 +1172,9 @@
   function flatten(blockers, sync, async, fn) {
     const d = derived;
     var pending = blockers.filter((b) => !b.settled);
+    var deriveds = sync.map(d);
     if (async.length === 0 && pending.length === 0) {
-      fn(sync.map(d));
+      fn(deriveds);
       return;
     }
     var parent = (
@@ -1666,41 +1183,55 @@
     );
     var restore = capture();
     var blocker_promise = pending.length === 1 ? pending[0].promise : pending.length > 1 ? Promise.all(pending.map((b) => b.promise)) : null;
-    function finish(values) {
+    function finish(async2) {
+      if ((parent.f & DESTROYED) !== 0) {
+        return;
+      }
       restore();
       try {
-        fn(values);
+        fn([...deriveds, ...async2]);
       } catch (error) {
-        if ((parent.f & DESTROYED) === 0) {
-          invoke_error_boundary(error, parent);
-        }
+        invoke_error_boundary(error, parent);
       }
       unset_context();
     }
+    var decrement_pending = increment_pending();
     if (async.length === 0) {
-      blocker_promise.then(() => finish(sync.map(d)));
+      blocker_promise.then(() => finish([])).finally(decrement_pending);
       return;
     }
     function run() {
-      restore();
-      Promise.all(async.map((expression) => /* @__PURE__ */ async_derived(expression))).then((result) => finish([...sync.map(d), ...result])).catch((error) => invoke_error_boundary(error, parent));
+      Promise.all(async.map((expression) => /* @__PURE__ */ async_derived(expression))).then(finish).catch((error) => invoke_error_boundary(error, parent)).finally(decrement_pending);
     }
     if (blocker_promise) {
-      blocker_promise.then(run);
+      blocker_promise.then(() => {
+        restore();
+        run();
+        unset_context();
+      });
     } else {
       run();
     }
   }
   function capture() {
-    var previous_effect = active_effect;
+    var previous_effect = (
+      /** @type {Effect} */
+      active_effect
+    );
     var previous_reaction = active_reaction;
     var previous_component_context = component_context;
-    var previous_batch = current_batch;
+    var previous_batch2 = (
+      /** @type {Batch} */
+      current_batch
+    );
     return function restore(activate_batch = true) {
       set_active_effect(previous_effect);
       set_active_reaction(previous_reaction);
       set_component_context(previous_component_context);
-      if (activate_batch) previous_batch?.activate();
+      if (activate_batch && (previous_effect.f & DESTROYED) === 0) {
+        previous_batch2?.activate();
+        previous_batch2?.apply();
+      }
     };
   }
   function unset_context(deactivate_batch = true) {
@@ -1710,30 +1241,26 @@
     if (deactivate_batch) current_batch?.deactivate();
   }
   function increment_pending() {
-    var boundary2 = (
-      /** @type {Boundary} */
+    var effect2 = (
       /** @type {Effect} */
-      active_effect.b
+      active_effect
     );
+    var boundary2 = effect2.b;
     var batch = (
       /** @type {Batch} */
       current_batch
     );
-    var blocking = boundary2.is_rendered();
-    boundary2.update_pending_count(1);
-    batch.increment(blocking);
+    var blocking = !!boundary2?.is_rendered();
+    boundary2?.update_pending_count(1, batch);
+    batch.increment(blocking, effect2);
     return () => {
-      boundary2.update_pending_count(-1);
-      batch.decrement(blocking);
+      boundary2?.update_pending_count(-1, batch);
+      batch.decrement(blocking, effect2);
     };
   }
   // @__NO_SIDE_EFFECTS__
   function derived(fn) {
     var flags2 = DERIVED | DIRTY;
-    var parent_derived = active_reaction !== null && (active_reaction.f & DERIVED) !== 0 ? (
-      /** @type {Derived} */
-      active_reaction
-    ) : null;
     if (active_effect !== null) {
       active_effect.f |= EFFECT_PRESERVED;
     }
@@ -1751,11 +1278,12 @@
         UNINITIALIZED
       ),
       wv: 0,
-      parent: parent_derived ?? active_effect,
+      parent: active_effect,
       ac: null
     };
     return signal;
   }
+  const OBSOLETE = /* @__PURE__ */ Symbol("obsolete");
   // @__NO_SIDE_EFFECTS__
   function async_derived(fn, label, location) {
     let parent = (
@@ -1775,12 +1303,18 @@
       UNINITIALIZED
     );
     var should_suspend = !active_reaction;
-    var deferreds = /* @__PURE__ */ new Map();
+    var deferreds = /* @__PURE__ */ new Set();
     async_effect(() => {
+      var effect2 = (
+        /** @type {Effect} */
+        active_effect
+      );
       var d = deferred();
       promise = d.promise;
       try {
-        Promise.resolve(fn()).then(d.resolve, d.reject).finally(unset_context);
+        Promise.resolve(fn()).then(d.resolve, (e) => {
+          if (e !== STALE_REACTION) d.reject(e);
+        }).finally(unset_context);
       } catch (error) {
         d.reject(error);
         unset_context();
@@ -1790,38 +1324,43 @@
         current_batch
       );
       if (should_suspend) {
-        var decrement_pending = increment_pending();
-        deferreds.get(batch)?.reject(STALE_REACTION);
-        deferreds.delete(batch);
-        deferreds.set(batch, d);
+        if ((effect2.f & REACTION_RAN) !== 0) {
+          var decrement_pending = increment_pending();
+        }
+        if (
+          // boundary can be null if the async derived is inside an $effect.root not connected to the component render tree
+          parent.b?.is_rendered()
+        ) {
+          batch.async_deriveds.get(effect2)?.reject(OBSOLETE);
+        } else {
+          for (const d2 of deferreds.values()) {
+            d2.reject(OBSOLETE);
+          }
+        }
+        deferreds.add(d);
+        batch.async_deriveds.set(effect2, d);
       }
       const handler = (value, error = void 0) => {
+        decrement_pending?.();
+        deferreds.delete(d);
+        if (error === OBSOLETE) return;
         batch.activate();
         if (error) {
-          if (error !== STALE_REACTION) {
-            signal.f |= ERROR_VALUE;
-            internal_set(signal, error);
-          }
+          signal.f |= ERROR_VALUE;
+          internal_set(signal, error);
         } else {
           if ((signal.f & ERROR_VALUE) !== 0) {
             signal.f ^= ERROR_VALUE;
           }
           internal_set(signal, value);
-          for (const [b, d2] of deferreds) {
-            deferreds.delete(b);
-            if (b === batch) break;
-            d2.reject(STALE_REACTION);
-          }
         }
-        if (decrement_pending) {
-          decrement_pending();
-        }
+        batch.deactivate();
       };
       d.promise.then(handler, (e) => handler(null, e || "unknown"));
     });
     teardown(() => {
-      for (const d of deferreds.values()) {
-        d.reject(STALE_REACTION);
+      for (const d of deferreds) {
+        d.reject(OBSOLETE);
       }
     });
     return new Promise((fulfil) => {
@@ -1862,23 +1401,16 @@
       }
     }
   }
-  function get_derived_parent_effect(derived2) {
-    var parent = derived2.parent;
-    while (parent !== null) {
-      if ((parent.f & DERIVED) === 0) {
-        return (parent.f & DESTROYED) === 0 ? (
-          /** @type {Effect} */
-          parent
-        ) : null;
-      }
-      parent = parent.parent;
-    }
-    return null;
-  }
   function execute_derived(derived2) {
     var value;
     var prev_active_effect = active_effect;
-    set_active_effect(get_derived_parent_effect(derived2));
+    var parent = derived2.parent;
+    if (!is_destroying_effect && parent !== null && derived2.v !== UNINITIALIZED && // if it was never evaluated before, it's guaranteed to fail downstream, so we try to execute instead
+    (parent.f & (DESTROYED | INERT)) !== 0) {
+      derived_inert();
+      return derived2.v;
+    }
+    set_active_effect(parent);
     {
       try {
         derived2.f &= ~WAS_MARKED;
@@ -1895,7 +1427,12 @@
     if (!derived2.equals(value)) {
       derived2.wv = increment_write_version();
       if (!current_batch?.is_fork || derived2.deps === null) {
-        derived2.v = value;
+        if (current_batch !== null) {
+          current_batch.capture(derived2, value, true);
+          previous_batch?.capture(derived2, value, true);
+        } else {
+          derived2.v = value;
+        }
         if (derived2.deps === null) {
           set_signal_status(derived2, CLEAN);
           return;
@@ -1919,7 +1456,7 @@
       if (e.teardown || e.ac) {
         e.teardown?.();
         e.ac?.abort(STALE_REACTION);
-        e.teardown = noop;
+        if (e.fn !== null) e.teardown = noop;
         e.ac = null;
         remove_reactions(e, 0);
         destroy_effect_children(e);
@@ -1929,9 +1466,765 @@
   function unfreeze_derived_effects(derived2) {
     if (derived2.effects === null) return;
     for (const e of derived2.effects) {
-      if (e.teardown) {
+      if (e.teardown && e.fn !== null) {
         update_effect(e);
       }
+    }
+  }
+  let first_batch = null;
+  let last_batch = null;
+  let current_batch = null;
+  let previous_batch = null;
+  let batch_values = null;
+  let last_scheduled_effect = null;
+  let is_flushing_sync = false;
+  let is_processing = false;
+  let collected_effects = null;
+  let legacy_updates = null;
+  var flush_count = 0;
+  var source_stacks = /* @__PURE__ */ new Set();
+  let uid$1 = 1;
+  class Batch {
+    id = uid$1++;
+    /** True as soon as `#process` was called */
+    #started = false;
+    linked = true;
+    /** @type {Batch | null} */
+    #prev = null;
+    /** @type {Batch | null} */
+    #next = null;
+    /** @type {Map<Effect, ReturnType<typeof deferred<any>>>} */
+    async_deriveds = /* @__PURE__ */ new Map();
+    /**
+     * The current values of any signals that are updated in this batch.
+     * Tuple format: [value, is_derived] (note: is_derived is false for deriveds, too, if they were overridden via assignment)
+     * They keys of this map are identical to `this.#previous`
+     * @type {Map<Value, [any, boolean]>}
+     */
+    current = /* @__PURE__ */ new Map();
+    /**
+     * The values of any signals (sources and deriveds) that are updated in this batch _before_ those updates took place.
+     * They keys of this map are identical to `this.#current`
+     * @type {Map<Value, any>}
+     */
+    previous = /* @__PURE__ */ new Map();
+    /**
+     * When the batch is committed (and the DOM is updated), we need to remove old branches
+     * and append new ones by calling the functions added inside (if/each/key/etc) blocks
+     * @type {Set<(batch: Batch) => void>}
+     */
+    #commit_callbacks = /* @__PURE__ */ new Set();
+    /**
+     * If a fork is discarded, we need to destroy any effects that are no longer needed
+     * @type {Set<(batch: Batch) => void>}
+     */
+    #discard_callbacks = /* @__PURE__ */ new Set();
+    /**
+     * The number of async effects that are currently in flight
+     */
+    #pending = 0;
+    /**
+     * Async effects that are currently in flight, _not_ inside a pending boundary
+     * @type {Map<Effect, number>}
+     */
+    #blocking_pending = /* @__PURE__ */ new Map();
+    /**
+     * A deferred that resolves when the batch is committed, used with `settled()`
+     * TODO replace with Promise.withResolvers once supported widely enough
+     * @type {{ promise: Promise<void>, resolve: (value?: any) => void, reject: (reason: unknown) => void } | null}
+     */
+    #deferred = null;
+    /**
+     * The root effects that need to be flushed
+     * @type {Effect[]}
+     */
+    #roots = [];
+    /**
+     * Effects created while this batch was active.
+     * @type {Effect[]}
+     */
+    #new_effects = [];
+    /**
+     * Deferred effects (which run after async work has completed) that are DIRTY
+     * @type {Set<Effect>}
+     */
+    #dirty_effects = /* @__PURE__ */ new Set();
+    /**
+     * Deferred effects that are MAYBE_DIRTY
+     * @type {Set<Effect>}
+     */
+    #maybe_dirty_effects = /* @__PURE__ */ new Set();
+    /**
+     * A map of branches that still exist, but will be destroyed when this batch
+     * is committed — we skip over these during `process`.
+     * The value contains child effects that were dirty/maybe_dirty before being reset,
+     * so they can be rescheduled if the branch survives.
+     * @type {Map<Effect, { d: Effect[], m: Effect[] }>}
+     */
+    #skipped_branches = /* @__PURE__ */ new Map();
+    /**
+     * Inverse of #skipped_branches which we need to tell prior batches to unskip them when committing
+     * @type {Set<Effect>}
+     */
+    #unskipped_branches = /* @__PURE__ */ new Set();
+    is_fork = false;
+    #decrement_queued = false;
+    constructor() {
+      if (last_batch === null) {
+        first_batch = last_batch = this;
+      } else {
+        last_batch.#next = this;
+        this.#prev = last_batch;
+      }
+      last_batch = this;
+    }
+    #is_deferred() {
+      if (this.is_fork) return true;
+      for (const effect2 of this.#blocking_pending.keys()) {
+        var e = effect2;
+        var skipped = false;
+        while (e.parent !== null) {
+          if (this.#skipped_branches.has(e)) {
+            skipped = true;
+            break;
+          }
+          e = e.parent;
+        }
+        if (!skipped) {
+          return true;
+        }
+      }
+      return false;
+    }
+    /**
+     * Add an effect to the #skipped_branches map and reset its children
+     * @param {Effect} effect
+     */
+    skip_effect(effect2) {
+      if (!this.#skipped_branches.has(effect2)) {
+        this.#skipped_branches.set(effect2, { d: [], m: [] });
+      }
+      this.#unskipped_branches.delete(effect2);
+    }
+    /**
+     * Remove an effect from the #skipped_branches map and reschedule
+     * any tracked dirty/maybe_dirty child effects
+     * @param {Effect} effect
+     * @param {(e: Effect) => void} callback
+     */
+    unskip_effect(effect2, callback = (e) => this.schedule(e)) {
+      var tracked = this.#skipped_branches.get(effect2);
+      if (tracked) {
+        this.#skipped_branches.delete(effect2);
+        for (var e of tracked.d) {
+          set_signal_status(e, DIRTY);
+          callback(e);
+        }
+        for (e of tracked.m) {
+          set_signal_status(e, MAYBE_DIRTY);
+          callback(e);
+        }
+      }
+      this.#unskipped_branches.add(effect2);
+    }
+    #process() {
+      this.#started = true;
+      if (flush_count++ > 1e3) {
+        this.#unlink();
+        infinite_loop_guard();
+      }
+      for (const e of this.#dirty_effects) {
+        this.#maybe_dirty_effects.delete(e);
+        set_signal_status(e, DIRTY);
+        this.schedule(e);
+      }
+      for (const e of this.#maybe_dirty_effects) {
+        set_signal_status(e, MAYBE_DIRTY);
+        this.schedule(e);
+      }
+      const roots = this.#roots;
+      this.#roots = [];
+      this.apply();
+      var effects = collected_effects = [];
+      var render_effects = [];
+      var updates = legacy_updates = [];
+      for (const root2 of roots) {
+        try {
+          this.#traverse(root2, effects, render_effects);
+        } catch (e) {
+          reset_all(root2);
+          if (!this.#is_deferred()) this.discard();
+          throw e;
+        }
+      }
+      current_batch = null;
+      if (updates.length > 0) {
+        var batch = Batch.ensure();
+        for (const e of updates) {
+          batch.schedule(e);
+        }
+      }
+      collected_effects = null;
+      legacy_updates = null;
+      if (this.#is_deferred()) {
+        this.#defer_effects(render_effects);
+        this.#defer_effects(effects);
+        for (const [e, t] of this.#skipped_branches) {
+          reset_branch(e, t);
+        }
+        if (updates.length > 0) {
+          /** @type {unknown} */
+          current_batch.#process();
+        }
+        return;
+      }
+      const earlier_batch = this.#find_earlier_batch();
+      if (earlier_batch) {
+        this.#defer_effects(render_effects);
+        this.#defer_effects(effects);
+        earlier_batch.#merge(this);
+        return;
+      }
+      this.#dirty_effects.clear();
+      this.#maybe_dirty_effects.clear();
+      for (const fn of this.#commit_callbacks) fn(this);
+      this.#commit_callbacks.clear();
+      previous_batch = this;
+      flush_queued_effects(render_effects);
+      flush_queued_effects(effects);
+      previous_batch = null;
+      this.#deferred?.resolve();
+      var next_batch = (
+        /** @type {Batch | null} */
+        /** @type {unknown} */
+        current_batch
+      );
+      if (this.#pending === 0 && (this.#roots.length === 0 || next_batch !== null)) {
+        this.#unlink();
+      }
+      if (this.#roots.length > 0) {
+        if (next_batch !== null) {
+          const batch2 = next_batch;
+          batch2.#roots.push(...this.#roots.filter((r) => !batch2.#roots.includes(r)));
+        } else {
+          next_batch = this;
+        }
+      }
+      if (next_batch !== null) {
+        next_batch.#process();
+      }
+    }
+    /**
+     * Traverse the effect tree, executing effects or stashing
+     * them for later execution as appropriate
+     * @param {Effect} root
+     * @param {Effect[]} effects
+     * @param {Effect[]} render_effects
+     */
+    #traverse(root2, effects, render_effects) {
+      root2.f ^= CLEAN;
+      var effect2 = root2.first;
+      while (effect2 !== null) {
+        var flags2 = effect2.f;
+        var is_branch = (flags2 & (BRANCH_EFFECT | ROOT_EFFECT)) !== 0;
+        var is_skippable_branch = is_branch && (flags2 & CLEAN) !== 0;
+        var skip = is_skippable_branch || (flags2 & INERT) !== 0 || this.#skipped_branches.has(effect2);
+        if (!skip && effect2.fn !== null) {
+          if (is_branch) {
+            effect2.f ^= CLEAN;
+          } else if ((flags2 & EFFECT) !== 0) {
+            effects.push(effect2);
+          } else if (is_dirty(effect2)) {
+            if ((flags2 & BLOCK_EFFECT) !== 0) this.#maybe_dirty_effects.add(effect2);
+            update_effect(effect2);
+          }
+          var child2 = effect2.first;
+          if (child2 !== null) {
+            effect2 = child2;
+            continue;
+          }
+        }
+        while (effect2 !== null) {
+          var next2 = effect2.next;
+          if (next2 !== null) {
+            effect2 = next2;
+            break;
+          }
+          effect2 = effect2.parent;
+        }
+      }
+    }
+    #find_earlier_batch() {
+      var batch = this.#prev;
+      while (batch !== null) {
+        if (!batch.is_fork) {
+          for (const [value, [, is_derived]] of this.current) {
+            if (batch.current.has(value) && !is_derived) {
+              return batch;
+            }
+          }
+        }
+        batch = batch.#prev;
+      }
+      return null;
+    }
+    /**
+     * @param {Batch} batch
+     */
+    #merge(batch) {
+      for (const [source2, value] of batch.current) {
+        if (!this.previous.has(source2) && batch.previous.has(source2)) {
+          this.previous.set(source2, batch.previous.get(source2));
+        }
+        this.current.set(source2, value);
+      }
+      for (const [effect2, deferred2] of batch.async_deriveds) {
+        const d = this.async_deriveds.get(effect2);
+        if (d) deferred2.promise.then(d.resolve).catch(d.reject);
+      }
+      batch.async_deriveds.clear();
+      this.transfer_effects(batch.#dirty_effects, batch.#maybe_dirty_effects);
+      const mark = (value) => {
+        var reactions = value.reactions;
+        if (reactions === null) return;
+        for (const reaction of reactions) {
+          var flags2 = reaction.f;
+          if ((flags2 & DERIVED) !== 0) {
+            mark(
+              /** @type {Derived} */
+              reaction
+            );
+          } else {
+            var effect2 = (
+              /** @type {Effect} */
+              reaction
+            );
+            if (flags2 & (ASYNC | BLOCK_EFFECT) && !this.async_deriveds.has(effect2)) {
+              this.#maybe_dirty_effects.delete(effect2);
+              set_signal_status(effect2, DIRTY);
+              this.schedule(effect2);
+            }
+          }
+        }
+      };
+      for (const source2 of this.current.keys()) {
+        mark(source2);
+      }
+      this.oncommit(() => batch.discard());
+      batch.#unlink();
+      current_batch = this;
+      this.#process();
+    }
+    /**
+     * @param {Effect[]} effects
+     */
+    #defer_effects(effects) {
+      for (var i = 0; i < effects.length; i += 1) {
+        defer_effect(effects[i], this.#dirty_effects, this.#maybe_dirty_effects);
+      }
+    }
+    /**
+     * Associate a change to a given source with the current
+     * batch, noting its previous and current values
+     * @param {Value} source
+     * @param {any} value
+     * @param {boolean} [is_derived]
+     */
+    capture(source2, value, is_derived = false) {
+      if (source2.v !== UNINITIALIZED && !this.previous.has(source2)) {
+        this.previous.set(source2, source2.v);
+      }
+      if ((source2.f & ERROR_VALUE) === 0) {
+        this.current.set(source2, [value, is_derived]);
+        batch_values?.set(source2, value);
+      }
+      if (!this.is_fork) {
+        source2.v = value;
+      }
+    }
+    activate() {
+      current_batch = this;
+    }
+    deactivate() {
+      current_batch = null;
+      batch_values = null;
+    }
+    flush() {
+      try {
+        if (DEV) ;
+        is_processing = true;
+        current_batch = this;
+        this.#process();
+      } finally {
+        flush_count = 0;
+        last_scheduled_effect = null;
+        collected_effects = null;
+        legacy_updates = null;
+        is_processing = false;
+        current_batch = null;
+        batch_values = null;
+        old_values.clear();
+      }
+    }
+    discard() {
+      for (const fn of this.#discard_callbacks) fn(this);
+      this.#discard_callbacks.clear();
+      for (const deferred2 of this.async_deriveds.values()) {
+        deferred2.reject(OBSOLETE);
+      }
+      this.#unlink();
+      this.#deferred?.resolve();
+    }
+    /**
+     * @param {Effect} effect
+     */
+    register_created_effect(effect2) {
+      this.#new_effects.push(effect2);
+    }
+    #commit() {
+      for (let batch = first_batch; batch !== null; batch = batch.#next) {
+        var is_earlier = batch.id < this.id;
+        var sources = [];
+        for (const [source3, [value, is_derived]] of this.current) {
+          if (batch.current.has(source3)) {
+            var batch_value = (
+              /** @type {[any, boolean]} */
+              batch.current.get(source3)[0]
+            );
+            if (is_earlier && value !== batch_value) {
+              batch.current.set(source3, [value, is_derived]);
+            } else {
+              continue;
+            }
+          }
+          sources.push(source3);
+        }
+        if (is_earlier) {
+          for (const [effect2, deferred2] of this.async_deriveds) {
+            const d = batch.async_deriveds.get(effect2);
+            if (d) deferred2.promise.then(d.resolve).catch(d.reject);
+          }
+        }
+        var current = [...batch.current.keys()].filter(
+          (source3) => !/** @type {[any, boolean]} */
+          batch.current.get(source3)[1]
+        );
+        if (!batch.#started || current.length === 0) continue;
+        var others = current.filter((source3) => !this.current.has(source3));
+        if (others.length === 0) {
+          if (is_earlier) {
+            batch.discard();
+          }
+        } else if (sources.length > 0) {
+          if (is_earlier) {
+            for (const unskipped of this.#unskipped_branches) {
+              batch.unskip_effect(unskipped, (e) => {
+                if ((e.f & (BLOCK_EFFECT | ASYNC)) !== 0) {
+                  batch.schedule(e);
+                } else {
+                  batch.#defer_effects([e]);
+                }
+              });
+            }
+          }
+          batch.activate();
+          var marked = /* @__PURE__ */ new Set();
+          var checked = /* @__PURE__ */ new Map();
+          for (var source2 of sources) {
+            mark_effects(source2, others, marked, checked);
+          }
+          checked = /* @__PURE__ */ new Map();
+          var current_unequal = [...batch.current].filter(([c, v1]) => {
+            const v2 = this.current.get(c);
+            if (!v2) return true;
+            return v2[0] !== v1[0] || v2[1] !== v1[1];
+          }).map(([c]) => c);
+          if (current_unequal.length > 0) {
+            for (const effect2 of this.#new_effects) {
+              if ((effect2.f & (DESTROYED | INERT | EAGER_EFFECT)) === 0 && depends_on(effect2, current_unequal, checked)) {
+                if ((effect2.f & (ASYNC | BLOCK_EFFECT)) !== 0) {
+                  set_signal_status(effect2, DIRTY);
+                  batch.schedule(effect2);
+                } else {
+                  batch.#dirty_effects.add(effect2);
+                }
+              }
+            }
+          }
+          if (batch.#roots.length > 0 && !batch.#decrement_queued) {
+            batch.apply();
+            for (var root2 of batch.#roots) {
+              batch.#traverse(root2, [], []);
+            }
+            batch.#roots = [];
+          }
+          batch.deactivate();
+        }
+      }
+    }
+    /**
+     * @param {boolean} blocking
+     * @param {Effect} effect
+     */
+    increment(blocking, effect2) {
+      this.#pending += 1;
+      if (blocking) {
+        let blocking_pending_count = this.#blocking_pending.get(effect2) ?? 0;
+        this.#blocking_pending.set(effect2, blocking_pending_count + 1);
+      }
+    }
+    /**
+     * @param {boolean} blocking
+     * @param {Effect} effect
+     */
+    decrement(blocking, effect2) {
+      this.#pending -= 1;
+      if (blocking) {
+        let blocking_pending_count = this.#blocking_pending.get(effect2) ?? 0;
+        if (blocking_pending_count === 1) {
+          this.#blocking_pending.delete(effect2);
+        } else {
+          this.#blocking_pending.set(effect2, blocking_pending_count - 1);
+        }
+      }
+      if (this.#decrement_queued) return;
+      this.#decrement_queued = true;
+      queue_micro_task(() => {
+        this.#decrement_queued = false;
+        if (this.linked) {
+          this.flush();
+        }
+      });
+    }
+    /**
+     * @param {Set<Effect>} dirty_effects
+     * @param {Set<Effect>} maybe_dirty_effects
+     */
+    transfer_effects(dirty_effects, maybe_dirty_effects) {
+      for (const e of dirty_effects) {
+        this.#dirty_effects.add(e);
+      }
+      for (const e of maybe_dirty_effects) {
+        this.#maybe_dirty_effects.add(e);
+      }
+      dirty_effects.clear();
+      maybe_dirty_effects.clear();
+    }
+    /** @param {(batch: Batch) => void} fn */
+    oncommit(fn) {
+      this.#commit_callbacks.add(fn);
+    }
+    /** @param {(batch: Batch) => void} fn */
+    ondiscard(fn) {
+      this.#discard_callbacks.add(fn);
+    }
+    settled() {
+      return (this.#deferred ??= deferred()).promise;
+    }
+    static ensure() {
+      if (current_batch === null) {
+        const batch = current_batch = new Batch();
+        if (!is_processing && !is_flushing_sync) {
+          queue_micro_task(() => {
+            if (!batch.#started) {
+              batch.flush();
+            }
+          });
+        }
+      }
+      return current_batch;
+    }
+    apply() {
+      {
+        batch_values = null;
+        return;
+      }
+    }
+    /**
+     *
+     * @param {Effect} effect
+     */
+    schedule(effect2) {
+      last_scheduled_effect = effect2;
+      if (effect2.b?.is_pending && (effect2.f & (EFFECT | RENDER_EFFECT | MANAGED_EFFECT)) !== 0 && (effect2.f & REACTION_RAN) === 0) {
+        effect2.b.defer_effect(effect2);
+        return;
+      }
+      var e = effect2;
+      while (e.parent !== null) {
+        e = e.parent;
+        var flags2 = e.f;
+        if (collected_effects !== null && e === active_effect) {
+          if ((active_reaction === null || (active_reaction.f & DERIVED) === 0) && true) {
+            return;
+          }
+        }
+        if ((flags2 & (ROOT_EFFECT | BRANCH_EFFECT)) !== 0) {
+          if ((flags2 & CLEAN) === 0) {
+            return;
+          }
+          e.f ^= CLEAN;
+        }
+      }
+      this.#roots.push(e);
+    }
+    #unlink() {
+      if (!this.linked) return;
+      var prev = this.#prev;
+      var next2 = this.#next;
+      if (prev === null) {
+        first_batch = next2;
+      } else {
+        prev.#next = next2;
+      }
+      if (next2 === null) {
+        last_batch = prev;
+      } else {
+        next2.#prev = prev;
+      }
+      this.linked = false;
+    }
+  }
+  function flushSync(fn) {
+    var was_flushing_sync = is_flushing_sync;
+    is_flushing_sync = true;
+    try {
+      var result;
+      if (fn) ;
+      while (true) {
+        flush_tasks();
+        if (current_batch === null) {
+          return (
+            /** @type {T} */
+            result
+          );
+        }
+        current_batch.flush();
+      }
+    } finally {
+      is_flushing_sync = was_flushing_sync;
+    }
+  }
+  function infinite_loop_guard() {
+    try {
+      effect_update_depth_exceeded();
+    } catch (error) {
+      invoke_error_boundary(error, last_scheduled_effect);
+    }
+  }
+  let eager_block_effects = null;
+  function flush_queued_effects(effects) {
+    var length = effects.length;
+    if (length === 0) return;
+    var i = 0;
+    while (i < length) {
+      var effect2 = effects[i++];
+      if ((effect2.f & (DESTROYED | INERT)) === 0 && is_dirty(effect2)) {
+        eager_block_effects = /* @__PURE__ */ new Set();
+        update_effect(effect2);
+        if (effect2.deps === null && effect2.first === null && effect2.nodes === null && effect2.teardown === null && effect2.ac === null) {
+          unlink_effect(effect2);
+        }
+        if (eager_block_effects?.size > 0) {
+          old_values.clear();
+          for (const e of eager_block_effects) {
+            if ((e.f & (DESTROYED | INERT)) !== 0) continue;
+            const ordered_effects = [e];
+            let ancestor = e.parent;
+            while (ancestor !== null) {
+              if (eager_block_effects.has(ancestor)) {
+                eager_block_effects.delete(ancestor);
+                ordered_effects.push(ancestor);
+              }
+              ancestor = ancestor.parent;
+            }
+            for (let j = ordered_effects.length - 1; j >= 0; j--) {
+              const e2 = ordered_effects[j];
+              if ((e2.f & (DESTROYED | INERT)) !== 0) continue;
+              update_effect(e2);
+            }
+          }
+          eager_block_effects.clear();
+        }
+      }
+    }
+    eager_block_effects = null;
+  }
+  function mark_effects(value, sources, marked, checked) {
+    if (marked.has(value)) return;
+    marked.add(value);
+    if (value.reactions !== null) {
+      for (const reaction of value.reactions) {
+        const flags2 = reaction.f;
+        if ((flags2 & DERIVED) !== 0) {
+          mark_effects(
+            /** @type {Derived} */
+            reaction,
+            sources,
+            marked,
+            checked
+          );
+        } else if ((flags2 & (ASYNC | BLOCK_EFFECT)) !== 0 && (flags2 & DIRTY) === 0 && depends_on(reaction, sources, checked)) {
+          set_signal_status(reaction, DIRTY);
+          schedule_effect(
+            /** @type {Effect} */
+            reaction
+          );
+        }
+      }
+    }
+  }
+  function depends_on(reaction, sources, checked) {
+    const depends = checked.get(reaction);
+    if (depends !== void 0) return depends;
+    if (reaction.deps !== null) {
+      for (const dep of reaction.deps) {
+        if (includes.call(sources, dep)) {
+          return true;
+        }
+        if ((dep.f & DERIVED) !== 0 && depends_on(
+          /** @type {Derived} */
+          dep,
+          sources,
+          checked
+        )) {
+          checked.set(
+            /** @type {Derived} */
+            dep,
+            true
+          );
+          return true;
+        }
+      }
+    }
+    checked.set(reaction, false);
+    return false;
+  }
+  function schedule_effect(effect2) {
+    current_batch.schedule(effect2);
+  }
+  function reset_branch(effect2, tracked) {
+    if ((effect2.f & BRANCH_EFFECT) !== 0 && (effect2.f & CLEAN) !== 0) {
+      return;
+    }
+    if ((effect2.f & DIRTY) !== 0) {
+      tracked.d.push(effect2);
+    } else if ((effect2.f & MAYBE_DIRTY) !== 0) {
+      tracked.m.push(effect2);
+    }
+    set_signal_status(effect2, CLEAN);
+    var e = effect2.first;
+    while (e !== null) {
+      reset_branch(e, tracked);
+      e = e.next;
+    }
+  }
+  function reset_all(effect2) {
+    set_signal_status(effect2, CLEAN);
+    var e = effect2.first;
+    while (e !== null) {
+      reset_all(e);
+      e = e.next;
     }
   }
   let eager_effects = /* @__PURE__ */ new Set();
@@ -1966,23 +2259,17 @@
   function set(source2, value, should_proxy = false) {
     if (active_reaction !== null && // since we are untracking the function inside `$inspect.with` we need to add this check
     // to ensure we error if state is set inside an inspect effect
-    (!untracking || (active_reaction.f & EAGER_EFFECT) !== 0) && is_runes() && (active_reaction.f & (DERIVED | BLOCK_EFFECT | ASYNC | EAGER_EFFECT)) !== 0 && (current_sources === null || !includes.call(current_sources, source2))) {
+    (!untracking || (active_reaction.f & EAGER_EFFECT) !== 0) && is_runes() && (active_reaction.f & (DERIVED | BLOCK_EFFECT | ASYNC | EAGER_EFFECT)) !== 0 && (current_sources === null || !current_sources.has(source2))) {
       state_unsafe_mutation();
     }
     let new_value = should_proxy ? proxy(value) : value;
-    return internal_set(source2, new_value);
+    return internal_set(source2, new_value, legacy_updates);
   }
-  function internal_set(source2, value) {
+  function internal_set(source2, value, updated_during_traversal = null) {
     if (!source2.equals(value)) {
-      var old_value = source2.v;
-      if (is_destroying_effect) {
-        old_values.set(source2, value);
-      } else {
-        old_values.set(source2, old_value);
-      }
-      source2.v = value;
+      old_values.set(source2, is_destroying_effect ? value : source2.v);
       var batch = Batch.ensure();
-      batch.capture(source2, old_value);
+      batch.capture(source2, value);
       if ((source2.f & DERIVED) !== 0) {
         const derived2 = (
           /** @type {Derived} */
@@ -1991,10 +2278,12 @@
         if ((source2.f & DIRTY) !== 0) {
           execute_derived(derived2);
         }
-        update_derived_status(derived2);
+        if (batch_values === null) {
+          update_derived_status(derived2);
+        }
       }
       source2.wv = increment_write_version();
-      mark_reactions(source2, DIRTY);
+      mark_reactions(source2, DIRTY, updated_during_traversal);
       if (active_effect !== null && (active_effect.f & CLEAN) !== 0 && (active_effect.f & (BRANCH_EFFECT | ROOT_EFFECT)) === 0) {
         if (untracked_writes === null) {
           set_untracked_writes([source2]);
@@ -2014,7 +2303,13 @@
       if ((effect2.f & CLEAN) !== 0) {
         set_signal_status(effect2, MAYBE_DIRTY);
       }
-      if (is_dirty(effect2)) {
+      let dirty;
+      try {
+        dirty = is_dirty(effect2);
+      } catch {
+        dirty = true;
+      }
+      if (dirty) {
         update_effect(effect2);
       }
     }
@@ -2023,7 +2318,7 @@
   function increment(source2) {
     set(source2, source2.v + 1);
   }
-  function mark_reactions(signal, status) {
+  function mark_reactions(signal, status, updated_during_traversal) {
     var reactions = signal.reactions;
     if (reactions === null) return;
     var length = reactions.length;
@@ -2034,29 +2329,36 @@
       if (not_dirty) {
         set_signal_status(reaction, status);
       }
-      if ((flags2 & DERIVED) !== 0) {
+      if ((flags2 & EAGER_EFFECT) !== 0) {
+        eager_effects.add(
+          /** @type {Effect} */
+          reaction
+        );
+      } else if ((flags2 & DERIVED) !== 0) {
         var derived2 = (
           /** @type {Derived} */
           reaction
         );
         batch_values?.delete(derived2);
         if ((flags2 & WAS_MARKED) === 0) {
-          if (flags2 & CONNECTED) {
+          if (flags2 & CONNECTED && (active_effect === null || (active_effect.f & REACTION_IS_UPDATING) === 0)) {
             reaction.f |= WAS_MARKED;
           }
-          mark_reactions(derived2, MAYBE_DIRTY);
+          mark_reactions(derived2, MAYBE_DIRTY, updated_during_traversal);
         }
       } else if (not_dirty) {
-        if ((flags2 & BLOCK_EFFECT) !== 0 && eager_block_effects !== null) {
-          eager_block_effects.add(
-            /** @type {Effect} */
-            reaction
-          );
-        }
-        schedule_effect(
+        var effect2 = (
           /** @type {Effect} */
           reaction
         );
+        if ((flags2 & BLOCK_EFFECT) !== 0 && eager_block_effects !== null) {
+          eager_block_effects.add(effect2);
+        }
+        if (updated_during_traversal !== null) {
+          updated_during_traversal.push(effect2);
+        } else {
+          schedule_effect(effect2);
+        }
       }
     }
   }
@@ -2089,11 +2391,7 @@
   let current_sources = null;
   function push_reaction_value(value) {
     if (active_reaction !== null && true) {
-      if (current_sources === null) {
-        current_sources = [value];
-      } else {
-        current_sources.push(value);
-      }
+      (current_sources ??= /* @__PURE__ */ new Set()).add(value);
     }
   }
   let new_deps = null;
@@ -2151,7 +2449,7 @@
   function schedule_possible_effect_self_invalidation(signal, effect2, root2 = true) {
     var reactions = signal.reactions;
     if (reactions === null) return;
-    if (current_sources !== null && includes.call(current_sources, signal)) {
+    if (current_sources !== null && current_sources.has(signal)) {
       return;
     }
     for (var i = 0; i < reactions.length; i++) {
@@ -2308,7 +2606,9 @@
         derived2.f ^= CONNECTED;
         derived2.f &= ~WAS_MARKED;
       }
-      update_derived_status(derived2);
+      if (derived2.v !== UNINITIALIZED) {
+        update_derived_status(derived2);
+      }
       freeze_derived_effects(derived2);
       remove_reactions(derived2, 0);
     }
@@ -2356,7 +2656,7 @@
     var is_derived = (flags2 & DERIVED) !== 0;
     if (active_reaction !== null && !untracking) {
       var destroyed = active_effect !== null && (active_effect.f & DESTROYED) !== 0;
-      if (!destroyed && (current_sources === null || !includes.call(current_sources, signal))) {
+      if (!destroyed && (current_sources === null || !current_sources.has(signal))) {
         var deps = active_reaction.deps;
         if ((active_reaction.f & REACTION_IS_UPDATING) !== 0) {
           if (signal.rv < read_version) {
@@ -2370,7 +2670,10 @@
             }
           }
         } else {
-          (active_reaction.deps ??= []).push(signal);
+          active_reaction.deps ??= [];
+          if (!includes.call(active_reaction.deps, signal)) {
+            active_reaction.deps.push(signal);
+          }
           var reactions = signal.reactions;
           if (reactions === null) {
             signal.reactions = [active_reaction];
@@ -2501,12 +2804,13 @@
       wv: 0,
       ac: null
     };
+    current_batch?.register_created_effect(effect2);
     var e = effect2;
     if ((type & EFFECT) !== 0) {
       if (collected_effects !== null) {
         collected_effects.push(effect2);
       } else {
-        schedule_effect(effect2);
+        Batch.ensure().schedule(effect2);
       }
     } else if (fn !== null) {
       try {
@@ -2553,7 +2857,7 @@
       /** @type {Effect} */
       active_effect.f
     );
-    var defer = !active_reaction && (flags2 & BRANCH_EFFECT) !== 0 && (flags2 & REACTION_RAN) === 0;
+    var defer = !active_reaction && (flags2 & BRANCH_EFFECT) !== 0 && component_context !== null && !component_context.i;
     if (defer) {
       var context = (
         /** @type {ComponentContext} */
@@ -2595,7 +2899,9 @@
   }
   function template_effect(fn, sync = [], async = [], blockers = []) {
     flatten(blockers, sync, async, (values) => {
-      create_effect(RENDER_EFFECT, () => fn(...values.map(get)));
+      create_effect(RENDER_EFFECT, () => {
+        fn(...values.map(get));
+      });
     });
   }
   function block(fn, flags2 = 0) {
@@ -2659,9 +2965,9 @@
       );
       removed = true;
     }
+    effect2.f |= DESTROYING;
     destroy_effect_children(effect2, remove_dom && !removed);
     remove_reactions(effect2, 0);
-    set_signal_status(effect2, DESTROYED);
     var transitions = effect2.nodes && effect2.nodes.t;
     if (transitions !== null) {
       for (const transition of transitions) {
@@ -2669,11 +2975,13 @@
       }
     }
     execute_effect_teardown(effect2);
+    effect2.f ^= DESTROYING;
+    effect2.f |= DESTROYED;
     var parent = effect2.parent;
     if (parent !== null && parent.first !== null) {
       unlink_effect(effect2);
     }
-    effect2.next = effect2.prev = effect2.teardown = effect2.ctx = effect2.deps = effect2.fn = effect2.nodes = effect2.ac = null;
+    effect2.next = effect2.prev = effect2.teardown = effect2.ctx = effect2.deps = effect2.fn = effect2.nodes = effect2.ac = effect2.b = null;
   }
   function remove_effect_dom(node, end) {
     while (node !== null) {
@@ -2724,11 +3032,13 @@
     var child2 = effect2.first;
     while (child2 !== null) {
       var sibling2 = child2.next;
-      var transparent = (child2.f & EFFECT_TRANSPARENT) !== 0 || // If this is a branch effect without a block effect parent,
-      // it means the parent block effect was pruned. In that case,
-      // transparency information was transferred to the branch effect.
-      (child2.f & BRANCH_EFFECT) !== 0 && (effect2.f & BLOCK_EFFECT) !== 0;
-      pause_children(child2, transitions, transparent ? local : false);
+      if ((child2.f & ROOT_EFFECT) === 0) {
+        var transparent = (child2.f & EFFECT_TRANSPARENT) !== 0 || // If this is a branch effect without a block effect parent,
+        // it means the parent block effect was pruned. In that case,
+        // transparency information was transferred to the branch effect.
+        (child2.f & BRANCH_EFFECT) !== 0 && (effect2.f & BLOCK_EFFECT) !== 0;
+        pause_children(child2, transitions, transparent ? local : false);
+      }
       child2 = sibling2;
     }
   }
@@ -2738,6 +3048,10 @@
   function resume_children(effect2, local) {
     if ((effect2.f & INERT) === 0) return;
     effect2.f ^= INERT;
+    if ((effect2.f & CLEAN) === 0) {
+      set_signal_status(effect2, DIRTY);
+      Batch.ensure().schedule(effect2);
+    }
     var child2 = effect2.first;
     while (child2 !== null) {
       var sibling2 = child2.next;
@@ -2858,8 +3172,7 @@
       var throw_error;
       var other_errors = [];
       while (current_target !== null) {
-        var parent_element = current_target.assignedSlot || current_target.parentNode || /** @type {any} */
-        current_target.host || null;
+        if (current_target === handler_element) break;
         try {
           var delegated2 = current_target[event_symbol]?.[event_name];
           if (delegated2 != null && (!/** @type {any} */
@@ -2875,10 +3188,12 @@
             throw_error = error;
           }
         }
-        if (event2.cancelBubble || parent_element === handler_element || parent_element === null) {
-          break;
-        }
-        current_target = parent_element;
+        if (event2.cancelBubble) break;
+        path_idx++;
+        current_target = path_idx < path.length ? (
+          /** @type {Element} */
+          path[path_idx]
+        ) : null;
       }
       if (throw_error) {
         for (let error of other_errors) {
@@ -3017,8 +3332,9 @@
   }
   function set_text(text2, value) {
     var str = value == null ? "" : typeof value === "object" ? `${value}` : value;
-    if (str !== (text2.__t ??= text2.nodeValue)) {
-      text2.__t = str;
+    if (str !== /** @type {any} */
+    (text2[TEXT_CACHE] ??= text2.nodeValue)) {
+      text2[TEXT_CACHE] = str;
       text2.nodeValue = `${str}`;
     }
   }
@@ -3344,7 +3660,8 @@
         this.#outroing.delete(key);
       } else {
         var offscreen = this.#offscreen.get(key);
-        if (offscreen && (offscreen.effect.f & INERT) === 0) {
+        if (offscreen) {
+          resume_effect(offscreen.effect);
           this.#onscreen.set(key, offscreen.effect);
           this.#offscreen.delete(key);
           offscreen.fragment.lastChild.remove();
@@ -3365,7 +3682,6 @@
       }
       for (const [k, effect2] of this.#onscreen) {
         if (k === key || this.#outroing.has(k)) continue;
-        if ((effect2.f & INERT) !== 0) continue;
         const on_destroy = () => {
           const keys = Array.from(this.#batches.values());
           if (keys.includes(k)) {
@@ -3611,7 +3927,10 @@
     var fallback = null;
     var each_array = /* @__PURE__ */ derived_safe_equal(() => {
       var collection = get_collection();
-      return is_array(collection) ? collection : collection == null ? [] : array_from(collection);
+      return (
+        /** @type {V[]} */
+        is_array(collection) ? collection : collection == null ? [] : array_from(collection)
+      );
     });
     var array;
     var pending = /* @__PURE__ */ new Map();
@@ -3780,6 +4099,13 @@
           group.done.delete(effect2);
         }
       }
+      if ((effect2.f & INERT) !== 0) {
+        resume_effect(effect2);
+        if (is_animated) {
+          effect2.nodes?.a?.unfix();
+          (to_animate ??= /* @__PURE__ */ new Set()).delete(effect2);
+        }
+      }
       if ((effect2.f & EFFECT_OFFSCREEN) !== 0) {
         effect2.f ^= EFFECT_OFFSCREEN;
         if (effect2 === current) {
@@ -3799,13 +4125,6 @@
           stashed = [];
           current = skip_to_branch(prev.next);
           continue;
-        }
-      }
-      if ((effect2.f & INERT) !== 0) {
-        resume_effect(effect2);
-        if (is_animated) {
-          effect2.nodes?.a?.unfix();
-          (to_animate ??= /* @__PURE__ */ new Set()).delete(effect2);
         }
       }
       if (effect2 !== current) {
@@ -4098,7 +4417,10 @@
     return value == null ? null : String(value);
   }
   function set_class(dom, is_html, value, hash, prev_classes, next_classes) {
-    var prev = dom.__className;
+    var prev = (
+      /** @type {any} */
+      dom[CLASS_CACHE]
+    );
     if (hydrating || prev !== value || prev === void 0) {
       var next_class_name = to_class(value, hash, next_classes);
       if (!hydrating || next_class_name !== dom.getAttribute("class")) {
@@ -4108,7 +4430,7 @@
           dom.className = next_class_name;
         }
       }
-      dom.__className = value;
+      dom[CLASS_CACHE] = value;
     } else if (next_classes && prev_classes !== next_classes) {
       for (var key in next_classes) {
         var is_present = !!next_classes[key];
@@ -4132,7 +4454,10 @@
     }
   }
   function set_style(dom, value, prev_styles, next_styles) {
-    var prev = dom.__style;
+    var prev = (
+      /** @type {any} */
+      dom[STYLE_CACHE]
+    );
     if (hydrating || prev !== value) {
       var next_style_attr = to_style(value, next_styles);
       if (!hydrating || next_style_attr !== dom.getAttribute("style")) {
@@ -4142,7 +4467,7 @@
           dom.style.cssText = next_style_attr;
         }
       }
-      dom.__style = value;
+      dom[STYLE_CACHE] = value;
     } else if (next_styles) {
       if (Array.isArray(next_styles)) {
         update_styles(dom, prev_styles?.[0], next_styles[0]);
@@ -4179,8 +4504,8 @@
   function get_attributes(element) {
     return (
       /** @type {Record<string | symbol, unknown>} **/
-      // @ts-expect-error
-      element.__attributes ??= {
+      /** @type {any} */
+      element[ATTRIBUTES_CACHE] ??= {
         [IS_CUSTOM_ELEMENT]: element.nodeName.includes("-"),
         [IS_HTML]: element.namespaceURI === NAMESPACE_HTML
       }
@@ -4198,7 +4523,8 @@
     while (element_proto !== proto) {
       descriptors = get_descriptors(proto);
       for (var key in descriptors) {
-        if (descriptors[key].set) {
+        if (descriptors[key].set && // better safe than sorry, we don't want spread attributes to mess with HTML content
+        key !== "innerHTML" && key !== "textContent" && key !== "innerText") {
           setters.push(key);
         }
       }
@@ -4210,6 +4536,14 @@
     return bound_value === element_or_component || bound_value?.[STATE_SYMBOL] === element_or_component;
   }
   function bind_this(element_or_component = {}, update, get_value, get_parts) {
+    var component_effect = (
+      /** @type {ComponentContext} */
+      component_context.r
+    );
+    var parent = (
+      /** @type {Effect} */
+      active_effect
+    );
     effect(() => {
       var old_parts;
       var parts;
@@ -4217,7 +4551,7 @@
         old_parts = parts;
         parts = [];
         untrack(() => {
-          if (element_or_component !== get_value(...parts)) {
+          if (!is_bound_this(get_value(...parts), element_or_component)) {
             update(element_or_component, ...parts);
             if (old_parts && is_bound_this(get_value(...old_parts), element_or_component)) {
               update(null, ...old_parts);
@@ -4226,35 +4560,34 @@
         });
       });
       return () => {
-        queue_micro_task(() => {
+        let p = parent;
+        while (p !== component_effect && p.parent !== null && p.parent.f & DESTROYING) {
+          p = p.parent;
+        }
+        const teardown2 = () => {
           if (parts && is_bound_this(get_value(...parts), element_or_component)) {
             update(null, ...parts);
           }
-        });
+        };
+        const original_teardown = p.teardown;
+        p.teardown = () => {
+          teardown2();
+          original_teardown?.();
+        };
       };
     });
     return element_or_component;
   }
-  let is_store_binding = false;
-  function capture_store_binding(fn) {
-    var previous_is_store_binding = is_store_binding;
-    try {
-      is_store_binding = false;
-      return [fn(), is_store_binding];
-    } finally {
-      is_store_binding = previous_is_store_binding;
-    }
-  }
   const rest_props_handler = {
     get(target, key) {
-      if (target.exclude.includes(key)) return;
+      if (target.exclude.has(key)) return;
       return target.props[key];
     },
     set(target, key) {
       return false;
     },
     getOwnPropertyDescriptor(target, key) {
-      if (target.exclude.includes(key)) return;
+      if (target.exclude.has(key)) return;
       if (key in target.props) {
         return {
           enumerable: true,
@@ -4264,11 +4597,11 @@
       }
     },
     has(target, key) {
-      if (target.exclude.includes(key)) return false;
+      if (target.exclude.has(key)) return false;
       return key in target.props;
     },
     ownKeys(target) {
-      return Reflect.ownKeys(target.props).filter((key) => !target.exclude.includes(key));
+      return Reflect.ownKeys(target.props).filter((key) => !target.exclude.has(key));
     }
   };
   // @__NO_SIDE_EFFECTS__
@@ -4341,6 +4674,7 @@
     return new Proxy({ props }, spread_props_handler);
   }
   function prop(props, key, flags2, fallback) {
+    var runes = true;
     var bindable = (flags2 & PROPS_IS_BINDABLE) !== 0;
     var lazy = (flags2 & PROPS_IS_LAZY_INITIAL) !== 0;
     var fallback_value = (
@@ -4348,7 +4682,18 @@
       fallback
     );
     var fallback_dirty = true;
+    var fallback_signal = (
+      /** @type {Derived<V> | undefined} */
+      void 0
+    );
     var get_fallback = () => {
+      if (lazy && runes) {
+        fallback_signal ??= /* @__PURE__ */ derived(
+          /** @type {() => V} */
+          fallback
+        );
+        return get(fallback_signal);
+      }
       if (fallback_dirty) {
         fallback_dirty = false;
         fallback_value = lazy ? untrack(
@@ -4361,7 +4706,7 @@
       }
       return fallback_value;
     };
-    var setter;
+    let setter;
     if (bindable) {
       var is_entry_props = STATE_SYMBOL in props || LEGACY_PROPS in props;
       setter = get_descriptor(props, key)?.set ?? (is_entry_props && key in props ? (v) => props[key] = v : void 0);
@@ -5504,9 +5849,6 @@
       get snapInterval() {
         return raw?.snapInterval ?? 15;
       },
-      get showNav() {
-        return raw?.showNavigation ?? true;
-      },
       get equalDays() {
         return raw?.equalDays ?? false;
       },
@@ -5749,25 +6091,23 @@
       }
     };
   }
-  var root_3$5 = /* @__PURE__ */ from_html(`<div class="fs-tick svelte-mrwdy7"><span class="fs-tick-lb svelte-mrwdy7"> </span></div> <div class="fs-tick fs-tick--half svelte-mrwdy7"></div>`, 1);
-  var root_8$5 = /* @__PURE__ */ from_html(`<span class="fs-blocked-label svelte-mrwdy7"> </span>`);
-  var root_7$5 = /* @__PURE__ */ from_html(`<div class="fs-blocked svelte-mrwdy7"><!></div>`);
-  var root_9$4 = /* @__PURE__ */ from_html(`<div class="fs-day-header-custom svelte-mrwdy7"><!></div>`);
-  var root_2$6 = /* @__PURE__ */ from_html(`<div><!> <!> <!></div>`);
-  var root_11$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-live svelte-mrwdy7" aria-hidden="true"></span>`);
-  var root_12$3 = /* @__PURE__ */ from_html(`<span class="fs-ev-next-badge svelte-mrwdy7" aria-hidden="true"> </span>`);
-  var root_13$3 = /* @__PURE__ */ from_html(`<span class="fs-ev-time svelte-mrwdy7"> </span>`);
-  var root_14$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-sub svelte-mrwdy7"> </span>`);
-  var root_15$4 = /* @__PURE__ */ from_html(`<span class="fs-ev-loc svelte-mrwdy7"> </span>`);
-  var root_17$3 = /* @__PURE__ */ from_html(`<span class="fs-ev-tag svelte-mrwdy7"> </span>`);
-  var root_16$4 = /* @__PURE__ */ from_html(`<span class="fs-ev-tags svelte-mrwdy7"></span>`);
-  var root_10$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="fs-ev-inner svelte-mrwdy7"><!> <!> <span class="fs-ev-title svelte-mrwdy7"> </span> <!> <!> <!></div></div>`);
-  var root_20$3 = /* @__PURE__ */ from_html(`<span class="fs-ad-span svelte-mrwdy7"> </span>`);
-  var root_21$3 = /* @__PURE__ */ from_html(`<span class="fs-ad-span svelte-mrwdy7"> </span>`);
-  var root_19$3 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="fs-ad-dot svelte-mrwdy7" aria-hidden="true"></span> <span class="fs-ad-title svelte-mrwdy7"> </span> <!></div>`);
-  var root_18$3 = /* @__PURE__ */ from_html(`<div class="fs-allday svelte-mrwdy7"></div>`);
-  var root_22$3 = /* @__PURE__ */ from_html(`<nav class="fs-nav svelte-mrwdy7"><button> </button> <button class="fs-nav-pill svelte-mrwdy7"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></button> <button class="fs-nav-pill svelte-mrwdy7"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></button></nav>`);
-  var root_1$5 = /* @__PURE__ */ from_html(`<div role="region"><div role="application"><div class="fs-track svelte-mrwdy7" role="none"><!> <div class="fs-now svelte-mrwdy7"><span class="fs-now-tag svelte-mrwdy7"> <span class="fs-now-sec svelte-mrwdy7"> </span></span> <div class="fs-now-line svelte-mrwdy7"></div></div> <!></div></div> <!> <div class="fs-date-label svelte-mrwdy7"> </div> <!></div>`);
+  var root_1$6 = /* @__PURE__ */ from_html(`<div class="fs-tick svelte-mrwdy7"><span class="fs-tick-lb svelte-mrwdy7"> </span></div> <div class="fs-tick fs-tick--half svelte-mrwdy7"></div>`, 1);
+  var root_2$6 = /* @__PURE__ */ from_html(`<span class="fs-blocked-label svelte-mrwdy7"> </span>`);
+  var root_3$6 = /* @__PURE__ */ from_html(`<div class="fs-blocked svelte-mrwdy7"><!></div>`);
+  var root_4$6 = /* @__PURE__ */ from_html(`<div class="fs-day-header-custom svelte-mrwdy7"><!></div>`);
+  var root_5$6 = /* @__PURE__ */ from_html(`<div><!> <!> <!></div>`);
+  var root_6$6 = /* @__PURE__ */ from_html(`<span class="fs-ev-live svelte-mrwdy7" aria-hidden="true"></span>`);
+  var root_7$6 = /* @__PURE__ */ from_html(`<span class="fs-ev-next-badge svelte-mrwdy7" aria-hidden="true"> </span>`);
+  var root_8$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-time svelte-mrwdy7"> </span>`);
+  var root_9$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-sub svelte-mrwdy7"> </span>`);
+  var root_10$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-loc svelte-mrwdy7"> </span>`);
+  var root_11$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-tag svelte-mrwdy7"> </span>`);
+  var root_12$5 = /* @__PURE__ */ from_html(`<span class="fs-ev-tags svelte-mrwdy7"></span>`);
+  var root_13$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="fs-ev-inner svelte-mrwdy7"><!> <!> <span class="fs-ev-title svelte-mrwdy7"> </span> <!> <!> <!></div></div>`);
+  var root_14$4 = /* @__PURE__ */ from_html(`<span class="fs-ad-span svelte-mrwdy7"> </span>`);
+  var root_15$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="fs-ad-dot svelte-mrwdy7" aria-hidden="true"></span> <span class="fs-ad-title svelte-mrwdy7"> </span> <!></div>`);
+  var root_16$4 = /* @__PURE__ */ from_html(`<div class="fs-allday svelte-mrwdy7"></div>`);
+  var root_17$3 = /* @__PURE__ */ from_html(`<div role="region"><div role="application"><div class="fs-track svelte-mrwdy7" role="none"><!> <div class="fs-now svelte-mrwdy7"><span class="fs-now-tag svelte-mrwdy7"> <span class="fs-now-sec svelte-mrwdy7"> </span></span> <div class="fs-now-line svelte-mrwdy7"></div></div> <!></div></div> <!></div>`);
   function PlannerDay($$anchor, $$props) {
     push($$props, true);
     const L = /* @__PURE__ */ user_derived(getLabels);
@@ -5778,8 +6118,6 @@
     const commitDragCtx = /* @__PURE__ */ user_derived(() => ctx.commitDrag);
     const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
     const loadRangeCtx = /* @__PURE__ */ user_derived(() => ctx.loadRange);
-    const showNav = /* @__PURE__ */ user_derived(() => ctx.showNav);
-    const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
     const blockedSlots = /* @__PURE__ */ user_derived(() => ctx.blockedSlots);
     const dayHeaderSnippet = /* @__PURE__ */ user_derived(() => ctx.dayHeaderSnippet);
     const minDuration = /* @__PURE__ */ user_derived(() => ctx.minDuration);
@@ -5808,7 +6146,6 @@
     const endHour = /* @__PURE__ */ user_derived(() => $$props.visibleHours?.[1] ?? 24);
     const hourCount = /* @__PURE__ */ user_derived(() => Math.max(1, get(endHour) - get(startHour)));
     const DAY_GAP = 2;
-    const dateLabel = /* @__PURE__ */ user_derived(() => get(showDates) ? new Date(get(visibleDayMs)).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long", month: "long", day: "numeric" }) : new Date(get(visibleDayMs)).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long" }));
     const count = 1 + 2 * BUFFER_DAYS;
     const origin = /* @__PURE__ */ user_derived(() => get(internalCenterMs) - BUFFER_DAYS * DAY_MS);
     user_effect(() => {
@@ -5999,7 +6336,7 @@
         lastExternalMs = ext;
         set(internalCenterMs, ext, true);
         set(visibleDayMs, ext, true);
-        set(following, false);
+        set(following, ext === clock.today);
         tick().then(() => {
           if (el) {
             const focusX = BUFFER_DAYS * (get(dayWidth) + DAY_GAP);
@@ -6191,7 +6528,7 @@
       if (get(drag) && evDragStarted) get(drag).cancel();
       cleanupEvDrag();
     }
-    var div = root_1$5();
+    var div = root_17$3();
     let classes;
     let styles;
     var div_1 = child(div);
@@ -6200,14 +6537,14 @@
     let styles_1;
     var node = child(div_2);
     each(node, 17, () => get(days), (d) => d.ms, ($$anchor2, d) => {
-      var div_3 = root_2$6();
+      var div_3 = root_5$6();
       let classes_2;
       let styles_2;
       var node_1 = child(div_3);
       each(node_1, 17, () => ({ length: get(hourCount) }), index, ($$anchor3, _, h) => {
         const hour = /* @__PURE__ */ user_derived(() => get(startHour) + h);
         const x = /* @__PURE__ */ user_derived(() => h * get(hourWidth));
-        var fragment = root_3$5();
+        var fragment = root_1$6();
         var div_4 = first_child(fragment);
         let styles_3;
         var span = child(div_4);
@@ -6244,12 +6581,12 @@
                 var node_5 = first_child(fragment_3);
                 {
                   var consequent_1 = ($$anchor6) => {
-                    var div_6 = root_7$5();
+                    var div_6 = root_3$6();
                     let styles_5;
                     var node_6 = child(div_6);
                     {
                       var consequent = ($$anchor7) => {
-                        var span_1 = root_8$5();
+                        var span_1 = root_2$6();
                         var text_1 = child(span_1, true);
                         reset(span_1);
                         template_effect(() => set_text(text_1, get(slot).label));
@@ -6290,7 +6627,7 @@
       var node_7 = sibling(node_2, 2);
       {
         var consequent_4 = ($$anchor3) => {
-          var div_7 = root_9$4();
+          var div_7 = root_4$6();
           var node_8 = child(div_7);
           {
             let $0 = /* @__PURE__ */ user_derived(() => ({
@@ -6338,18 +6675,18 @@
     reset(div_8);
     var node_9 = sibling(div_8, 2);
     each(node_9, 17, () => get(positionedEvents), (p) => p.ev.id, ($$anchor2, p) => {
-      var div_9 = root_10$4();
+      var div_9 = root_13$4();
       let classes_3;
       let styles_7;
       var div_10 = child(div_9);
       var node_10 = child(div_10);
       {
         var consequent_5 = ($$anchor3) => {
-          var span_4 = root_11$5();
+          var span_4 = root_6$6();
           append($$anchor3, span_4);
         };
         var consequent_6 = ($$anchor3) => {
-          var span_5 = root_12$3();
+          var span_5 = root_7$6();
           var text_4 = child(span_5, true);
           reset(span_5);
           template_effect(() => set_text(text_4, get(L).upNext));
@@ -6363,7 +6700,7 @@
       var node_11 = sibling(node_10, 2);
       {
         var consequent_7 = ($$anchor3) => {
-          var span_6 = root_13$3();
+          var span_6 = root_8$5();
           var text_5 = child(span_6);
           reset(span_6);
           template_effect(($0, $1) => set_text(text_5, `${$0 ?? ""} – ${$1 ?? ""}`), [
@@ -6382,7 +6719,7 @@
       var node_12 = sibling(span_7, 2);
       {
         var consequent_8 = ($$anchor3) => {
-          var span_8 = root_14$5();
+          var span_8 = root_9$5();
           var text_7 = child(span_8, true);
           reset(span_8);
           template_effect(() => set_text(text_7, get(p).ev.subtitle));
@@ -6395,7 +6732,7 @@
       var node_13 = sibling(node_12, 2);
       {
         var consequent_9 = ($$anchor3) => {
-          var span_9 = root_15$4();
+          var span_9 = root_10$5();
           var text_8 = child(span_9, true);
           reset(span_9);
           template_effect(() => set_text(text_8, get(p).ev.location));
@@ -6408,9 +6745,9 @@
       var node_14 = sibling(node_13, 2);
       {
         var consequent_10 = ($$anchor3) => {
-          var span_10 = root_16$4();
+          var span_10 = root_12$5();
           each(span_10, 21, () => get(p).ev.tags, index, ($$anchor4, tag) => {
-            var span_11 = root_17$3();
+            var span_11 = root_11$5();
             var text_9 = child(span_11, true);
             reset(span_11);
             template_effect(() => set_text(text_9, get(tag)));
@@ -6463,10 +6800,10 @@
     var node_15 = sibling(div_1, 2);
     {
       var consequent_12 = ($$anchor2) => {
-        var div_11 = root_18$3();
+        var div_11 = root_16$4();
         set_style(div_11, "", {}, { top: "56px" });
         each(div_11, 21, () => get(allDayEvents), (seg) => seg.ev.id, ($$anchor3, seg) => {
-          var div_12 = root_19$3();
+          var div_12 = root_15$4();
           let classes_4;
           let styles_8;
           var span_12 = sibling(child(div_12), 2);
@@ -6475,14 +6812,14 @@
           var node_16 = sibling(span_12, 2);
           {
             var consequent_11 = ($$anchor4) => {
-              var span_13 = root_20$3();
+              var span_13 = root_14$4();
               var text_11 = child(span_13);
               reset(span_13);
               template_effect(() => set_text(text_11, `${get(L).day ?? ""} ${get(seg).dayIndex ?? ""}/${get(seg).totalDays ?? ""}`));
               append($$anchor4, span_13);
             };
             var alternate = ($$anchor4) => {
-              var span_14 = root_21$3();
+              var span_14 = root_14$4();
               var text_12 = child(span_14, true);
               reset(span_14);
               template_effect(() => set_text(text_12, get(L).allDay));
@@ -6524,55 +6861,6 @@
         if (get(allDayEvents).length > 0) $$render(consequent_12);
       });
     }
-    var div_13 = sibling(node_15, 2);
-    var text_13 = child(div_13, true);
-    reset(div_13);
-    var node_17 = sibling(div_13, 2);
-    {
-      var consequent_13 = ($$anchor2) => {
-        var nav = root_22$3();
-        var button = child(nav);
-        let classes_5;
-        var text_14 = child(button, true);
-        reset(button);
-        var button_1 = sibling(button, 2);
-        var button_2 = sibling(button_1, 2);
-        reset(nav);
-        template_effect(() => {
-          set_attribute(nav, "aria-label", get(L).dayNavigation);
-          classes_5 = set_class(button, 1, "fs-nav-pill fs-nav-today svelte-mrwdy7", null, classes_5, { "fs-nav-today--hidden": get(following) });
-          set_attribute(button, "aria-label", get(L).goToToday);
-          set_attribute(button, "tabindex", get(following) ? -1 : 0);
-          set_text(text_14, get(L).today);
-          set_attribute(button_1, "aria-label", get(L).previousDay);
-          set_attribute(button_2, "aria-label", get(L).nextDay);
-        });
-        delegated("click", button, () => {
-          set(internalCenterMs, clock.today, true);
-          lastExternalMs = clock.today;
-          get(viewState)?.goToday();
-          set(following, true);
-        });
-        delegated("click", button_1, () => {
-          const prev = get(internalCenterMs) - DAY_MS;
-          set(internalCenterMs, prev);
-          lastExternalMs = prev;
-          get(viewState)?.prev();
-          set(following, false);
-        });
-        delegated("click", button_2, () => {
-          const next2 = get(internalCenterMs) + DAY_MS;
-          set(internalCenterMs, next2);
-          lastExternalMs = next2;
-          get(viewState)?.next();
-          set(following, false);
-        });
-        append($$anchor2, nav);
-      };
-      if_block(node_17, ($$render) => {
-        if (get(showNav)) $$render(consequent_13);
-      });
-    }
     reset(div);
     template_effect(() => {
       classes = set_class(div, 1, "fs svelte-mrwdy7", null, classes, { "fs--auto": get(autoHeight) });
@@ -6589,7 +6877,6 @@
       styles_6 = set_style(div_8, "", styles_6, { left: `${get(nowPx) ?? ""}px` });
       set_text(text_2, clock.hm);
       set_text(text_3, clock.s);
-      set_text(text_13, get(dateLabel));
     });
     event("wheel", div_1, (e) => {
       e.preventDefault();
@@ -6603,18 +6890,18 @@
   }
   delegate(["pointerdown", "click", "keydown"]);
   const allDaySegmentContent = ($$anchor, seg = noop) => {
-    var fragment = root_1$4();
+    var fragment = root_3$5();
     var node = first_child(fragment);
     {
       var consequent = ($$anchor2) => {
-        var span = root_2$5();
+        var span = root$4();
         var text2 = child(span, true);
         reset(span);
         template_effect(() => set_text(text2, seg().ev.title));
         append($$anchor2, span);
       };
       var alternate = ($$anchor2) => {
-        var fragment_1 = root_3$4();
+        var fragment_1 = root_1$5();
         var span_1 = sibling(first_child(fragment_1), 2);
         var text_1 = child(span_1, true);
         reset(span_1);
@@ -6629,7 +6916,7 @@
     var node_1 = sibling(node, 2);
     {
       var consequent_1 = ($$anchor2) => {
-        var span_2 = root_4$4();
+        var span_2 = root_2$5();
         append($$anchor2, span_2);
       };
       if_block(node_1, ($$render) => {
@@ -6638,31 +6925,29 @@
     }
     append($$anchor, fragment);
   };
-  var root_2$5 = /* @__PURE__ */ from_html(`<span class="wg-ad-title svelte-j4rvbp"> </span>`);
-  var root_3$4 = /* @__PURE__ */ from_html(`<span class="wg-ad-cont svelte-j4rvbp" aria-hidden="true">◂</span> <span class="wg-ad-title svelte-j4rvbp"> </span>`, 1);
-  var root_4$4 = /* @__PURE__ */ from_html(`<span class="wg-ad-arrow svelte-j4rvbp" aria-hidden="true">▸</span>`);
-  var root_1$4 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
-  var root_6$5 = /* @__PURE__ */ from_html(`<span class="wg-ev-loc svelte-j4rvbp"> </span>`);
-  var root_5$3 = /* @__PURE__ */ from_html(`<span class="wg-ev-time svelte-j4rvbp"> </span> <span class="wg-ev-title svelte-j4rvbp"> </span> <!>`, 1);
-  var root_9$3 = /* @__PURE__ */ from_html(`<span> </span>`);
-  var root_10$3 = /* @__PURE__ */ from_html(`<span class="wg-cell-month svelte-j4rvbp"> </span>`);
-  var root_11$4 = /* @__PURE__ */ from_html(`<div class="wg-cell-custom-header svelte-j4rvbp"><!></div>`);
-  var root_15$3 = /* @__PURE__ */ from_html(`<span class="wg-blocked-label svelte-j4rvbp"> </span>`);
-  var root_14$4 = /* @__PURE__ */ from_html(`<div class="wg-blocked svelte-j4rvbp"><!></div>`);
-  var root_17$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><!></div>`);
-  var root_18$2 = /* @__PURE__ */ from_html(`<div aria-hidden="true"><!></div>`);
-  var root_16$3 = /* @__PURE__ */ from_html(`<div class="wg-allday svelte-j4rvbp"><!> <!></div>`);
-  var root_19$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><!></div>`);
-  var root_20$2 = /* @__PURE__ */ from_html(`<div class="wg-ev wg-ev--drag-preview svelte-j4rvbp" aria-hidden="true"><!></div>`);
-  var root_21$2 = /* @__PURE__ */ from_html(`<div class="wg-ev-more svelte-j4rvbp"> </div>`);
-  var root_8$4 = /* @__PURE__ */ from_html(`<div role="gridcell" tabindex="0"><div><!> <span class="wg-day-wd svelte-j4rvbp"> </span></div> <!> <!> <!> <!> <div class="wg-cell-events svelte-j4rvbp"><!> <!> <!></div></div>`);
-  var root_7$4 = /* @__PURE__ */ from_html(`<div><div class="wg-week-body svelte-j4rvbp"><div class="wg-days svelte-j4rvbp"></div></div></div>`);
-  var root_22$2 = /* @__PURE__ */ from_html(`<nav class="wg-nav svelte-j4rvbp"><button class="wg-nav-pill svelte-j4rvbp"> </button></nav>`);
-  var root$4 = /* @__PURE__ */ from_html(`<div><div class="wg-body svelte-j4rvbp" role="grid"></div> <!></div>`);
+  var root$4 = /* @__PURE__ */ from_html(`<span class="wg-ad-title svelte-j4rvbp"> </span>`);
+  var root_1$5 = /* @__PURE__ */ from_html(`<span class="wg-ad-cont svelte-j4rvbp" aria-hidden="true">◂</span> <span class="wg-ad-title svelte-j4rvbp"> </span>`, 1);
+  var root_2$5 = /* @__PURE__ */ from_html(`<span class="wg-ad-arrow svelte-j4rvbp" aria-hidden="true">▸</span>`);
+  var root_3$5 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
+  var root_4$5 = /* @__PURE__ */ from_html(`<span class="wg-ev-loc svelte-j4rvbp"> </span>`);
+  var root_5$5 = /* @__PURE__ */ from_html(`<span class="wg-ev-time svelte-j4rvbp"> </span> <span class="wg-ev-title svelte-j4rvbp"> </span> <!>`, 1);
+  var root_6$5 = /* @__PURE__ */ from_html(`<span> </span>`);
+  var root_7$5 = /* @__PURE__ */ from_html(`<span class="wg-cell-month svelte-j4rvbp"> </span>`);
+  var root_8$4 = /* @__PURE__ */ from_html(`<div class="wg-cell-custom-header svelte-j4rvbp"><!></div>`);
+  var root_9$4 = /* @__PURE__ */ from_html(`<span class="wg-blocked-label svelte-j4rvbp"> </span>`);
+  var root_10$4 = /* @__PURE__ */ from_html(`<div class="wg-blocked svelte-j4rvbp"><!></div>`);
+  var root_11$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><!></div>`);
+  var root_12$4 = /* @__PURE__ */ from_html(`<div aria-hidden="true"><!></div>`);
+  var root_13$3 = /* @__PURE__ */ from_html(`<div class="wg-allday svelte-j4rvbp"><!> <!></div>`);
+  var root_14$3 = /* @__PURE__ */ from_html(`<div class="wg-ev wg-ev--drag-preview svelte-j4rvbp" aria-hidden="true"><!></div>`);
+  var root_15$3 = /* @__PURE__ */ from_html(`<div class="wg-ev-more svelte-j4rvbp"> </div>`);
+  var root_16$3 = /* @__PURE__ */ from_html(`<div role="gridcell" tabindex="0"><div><!> <span class="wg-day-wd svelte-j4rvbp"> </span></div> <!> <!> <!> <!> <div class="wg-cell-events svelte-j4rvbp"><!> <!> <!></div></div>`);
+  var root_17$2 = /* @__PURE__ */ from_html(`<div><div class="wg-week-body svelte-j4rvbp"><div class="wg-days svelte-j4rvbp"></div></div></div>`);
+  var root_18$2 = /* @__PURE__ */ from_html(`<div><div class="wg-body svelte-j4rvbp" role="grid"></div></div>`);
   function PlannerWeek($$anchor, $$props) {
     push($$props, true);
     const timedEventContent = ($$anchor2, ev = noop) => {
-      var fragment_2 = root_5$3();
+      var fragment_2 = root_5$5();
       var span_3 = first_child(fragment_2);
       var text_2 = child(span_3, true);
       reset(span_3);
@@ -6672,7 +6957,7 @@
       var node_2 = sibling(span_4, 2);
       {
         var consequent_2 = ($$anchor3) => {
-          var span_5 = root_6$5();
+          var span_5 = root_4$5();
           var text_4 = child(span_5, true);
           reset(span_5);
           template_effect(() => set_text(text_4, ev().location));
@@ -6699,7 +6984,6 @@
     const commitDragCtx = /* @__PURE__ */ user_derived(() => ctx.commitDrag);
     const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
     const loadRangeCtx = /* @__PURE__ */ user_derived(() => ctx.loadRange);
-    const showNav = /* @__PURE__ */ user_derived(() => ctx.showNav);
     const equalDays = /* @__PURE__ */ user_derived(() => ctx.equalDays);
     const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
     const hideDays = /* @__PURE__ */ user_derived(() => ctx.hideDays);
@@ -6719,7 +7003,6 @@
     let internalFocusMs = /* @__PURE__ */ state(proxy(_initMs));
     let lastExternalMs = _initMs;
     let el;
-    let scrolled = /* @__PURE__ */ state(false);
     function scrollWeekIntoContainer(targetMs, behavior = "auto") {
       if (!el) return;
       let target = null;
@@ -6816,20 +7099,27 @@
       if (ext !== lastExternalMs) {
         lastExternalMs = ext;
         set(internalFocusMs, ext, true);
-        tick().then(() => scrollWeekIntoContainer(ext, "smooth"));
+        tick().then(() => scrollWeekIntoContainer(ext));
       }
     });
-    function isCurrentWeekVisible() {
-      if (!el) return false;
-      const current = el.querySelector(".wg-week--current");
-      if (!current) return false;
-      const top = current.offsetTop - el.scrollTop;
-      const bottom = top + current.offsetHeight;
-      return bottom > 0 && top < el.clientHeight;
+    function syncFocusFromScroll() {
+      if (!el || !get(viewState)) return;
+      const centerY = el.scrollTop + el.clientHeight / 2;
+      const rows = el.querySelectorAll("[data-week]");
+      for (const row of rows) {
+        if (row.offsetTop + row.offsetHeight >= centerY) {
+          const ms = Number(row.dataset.week);
+          if (Number.isFinite(ms) && ms !== lastExternalMs) {
+            lastExternalMs = ms;
+            get(viewState).setFocusDate(new Date(ms));
+          }
+          return;
+        }
+      }
     }
     let extending = false;
     function handleUserScroll() {
-      set(scrolled, !isCurrentWeekVisible());
+      syncFocusFromScroll();
       if (!el || extending) return;
       if (el.scrollTop < EDGE_PX) {
         extending = true;
@@ -6845,15 +7135,6 @@
           set(bufferAfter, get(bufferAfter) + EXTEND_BY);
         }
       }
-    }
-    function jumpToday() {
-      set(internalFocusMs, clock.today, true);
-      lastExternalMs = clock.today;
-      get(viewState)?.goToday();
-      set(scrolled, false);
-      tick().then(() => {
-        scrollWeekIntoContainer(clock.today, "smooth");
-      });
     }
     function handleDayCellClick(ms, e) {
       const target = e.target;
@@ -6960,12 +7241,12 @@
       if (get(drag) && evDragStarted) get(drag).cancel();
       cleanupEvDrag();
     }
-    var div = root$4();
+    var div = root_18$2();
     let classes;
     let styles;
     var div_1 = child(div);
     each(div_1, 21, () => get(weeks), (week) => week.weekStart, ($$anchor2, week) => {
-      var div_2 = root_7$4();
+      var div_2 = root_17$2();
       let classes_1;
       var div_3 = child(div_2);
       var div_4 = child(div_3);
@@ -6974,14 +7255,14 @@
         const visibleTimedEvents = /* @__PURE__ */ user_derived(() => timedEventsForDay(get(day)));
         const previewTimedEvent = /* @__PURE__ */ user_derived(() => dragPreviewTimedForDay(get(day).ms));
         const previewSegment = /* @__PURE__ */ user_derived(() => dragPreviewSegmentForDay(get(day).ms));
-        var div_5 = root_8$4();
+        var div_5 = root_16$3();
         let classes_2;
         var div_6 = child(div_5);
         let classes_3;
         var node_3 = child(div_6);
         {
           var consequent_3 = ($$anchor4) => {
-            var span_6 = root_9$3();
+            var span_6 = root_6$5();
             let classes_4;
             var text_5 = child(span_6, true);
             reset(span_6);
@@ -7002,7 +7283,7 @@
         var node_4 = sibling(div_6, 2);
         {
           var consequent_4 = ($$anchor4) => {
-            var span_8 = root_10$3();
+            var span_8 = root_7$5();
             var text_7 = child(span_8, true);
             reset(span_8);
             template_effect(() => set_text(text_7, get(day).monthLabel));
@@ -7015,7 +7296,7 @@
         var node_5 = sibling(node_4, 2);
         {
           var consequent_5 = ($$anchor4) => {
-            var div_7 = root_11$4();
+            var div_7 = root_8$4();
             var node_6 = child(div_7);
             {
               let $0 = /* @__PURE__ */ user_derived(() => ({
@@ -7044,11 +7325,11 @@
               var node_9 = first_child(fragment_4);
               {
                 var consequent_7 = ($$anchor6) => {
-                  var div_8 = root_14$4();
+                  var div_8 = root_10$4();
                   var node_10 = child(div_8);
                   {
                     var consequent_6 = ($$anchor7) => {
-                      var span_9 = root_15$3();
+                      var span_9 = root_9$4();
                       var text_8 = child(span_9, true);
                       reset(span_9);
                       template_effect(() => set_text(text_8, get(slot).label));
@@ -7077,10 +7358,10 @@
         var node_11 = sibling(node_7, 2);
         {
           var consequent_10 = ($$anchor4) => {
-            var div_9 = root_16$3();
+            var div_9 = root_13$3();
             var node_12 = child(div_9);
             each(node_12, 17, () => get(visibleAllDaySegments), (seg) => seg.ev.id, ($$anchor5, seg) => {
-              var div_10 = root_17$2();
+              var div_10 = root_11$4();
               let classes_5;
               let styles_1;
               var node_13 = child(div_10);
@@ -7114,7 +7395,7 @@
             var node_14 = sibling(node_12, 2);
             {
               var consequent_9 = ($$anchor5) => {
-                var div_11 = root_18$2();
+                var div_11 = root_12$4();
                 let classes_6;
                 let styles_2;
                 var node_15 = child(div_11);
@@ -7146,7 +7427,7 @@
         var div_12 = sibling(node_11, 2);
         var node_16 = child(div_12);
         each(node_16, 17, () => get(visibleTimedEvents).slice(0, MAX_EVENTS_SHOWN), (ev) => ev.id, ($$anchor4, ev) => {
-          var div_13 = root_19$2();
+          var div_13 = root_11$4();
           let classes_7;
           let styles_3;
           var node_17 = child(div_13);
@@ -7186,7 +7467,7 @@
         var node_18 = sibling(node_16, 2);
         {
           var consequent_11 = ($$anchor4) => {
-            var div_14 = root_20$2();
+            var div_14 = root_14$3();
             let styles_4;
             var node_19 = child(div_14);
             timedEventContent(node_19, () => get(previewTimedEvent));
@@ -7203,7 +7484,7 @@
         var node_20 = sibling(node_18, 2);
         {
           var consequent_12 = ($$anchor4) => {
-            var div_15 = root_21$2();
+            var div_15 = root_15$3();
             var text_9 = child(div_15, true);
             reset(div_15);
             template_effect(($0) => set_text(text_9, $0), [
@@ -7257,26 +7538,6 @@
     });
     reset(div_1);
     bind_this(div_1, ($$value) => el = $$value, () => el);
-    var node_21 = sibling(div_1, 2);
-    {
-      var consequent_13 = ($$anchor2) => {
-        var nav = root_22$2();
-        var button = child(nav);
-        var text_10 = child(button, true);
-        reset(button);
-        reset(nav);
-        template_effect(() => {
-          set_attribute(nav, "aria-label", get(L).weekNavigation);
-          set_attribute(button, "aria-label", get(L).goToToday);
-          set_text(text_10, get(L).today);
-        });
-        delegated("click", button, jumpToday);
-        append($$anchor2, nav);
-      };
-      if_block(node_21, ($$render) => {
-        if (get(showNav) && get(scrolled)) $$render(consequent_13);
-      });
-    }
     reset(div);
     template_effect(() => {
       classes = set_class(div, 1, "wg svelte-j4rvbp", null, classes, { "wg--auto": get(autoHeight) });
@@ -7290,8 +7551,9 @@
     pop();
   }
   delegate(["click", "keydown", "pointerdown"]);
+  var rest_excludes$2 = /* @__PURE__ */ new Set(["$$slots", "$$events", "$$legacy", "mode"]);
   function Planner($$anchor, $$props) {
-    let mode = prop($$props, "mode", 3, "week"), rest = /* @__PURE__ */ rest_props($$props, ["$$slots", "$$events", "$$legacy", "mode"]);
+    let mode = prop($$props, "mode", 3, "week"), rest = /* @__PURE__ */ rest_props($$props, rest_excludes$2);
     var fragment = comment();
     var node = first_child(fragment);
     {
@@ -7349,36 +7611,28 @@
     }
     return slots;
   }
-  var root_2$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-allday-dot svelte-n8lbn1"></span> <span class="ag-allday-title svelte-n8lbn1"> </span></div>`);
-  var root_1$3 = /* @__PURE__ */ from_html(`<div class="ag-allday svelte-n8lbn1"><div class="ag-allday-label svelte-n8lbn1"> </div> <div class="ag-allday-items svelte-n8lbn1"></div></div>`);
-  var root_4$3 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
-  var root_7$3 = /* @__PURE__ */ from_html(`<span class="ag-compact-row-sub svelte-n8lbn1"> </span>`);
-  var root_9$2 = /* @__PURE__ */ from_html(`<span class="ag-compact-row-tag svelte-n8lbn1"> </span>`);
-  var root_6$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-row-dot svelte-n8lbn1"></span> <span class="ag-compact-row-time svelte-n8lbn1"> </span> <span class="ag-compact-row-title svelte-n8lbn1"> </span> <!> <!> <span class="ag-compact-row-dur svelte-n8lbn1"> </span></div>`);
-  var root_3$3 = /* @__PURE__ */ from_html(`<div class="ag-compact-list svelte-n8lbn1"><!></div>`);
-  var root_12$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-q-done-check svelte-n8lbn1">✓</span> <span class="ag-q-done-title svelte-n8lbn1"> </span></div>`);
-  var root_11$3 = /* @__PURE__ */ from_html(`<div class="ag-q-done-section svelte-n8lbn1"><div class="ag-q-label svelte-n8lbn1"> </div> <!></div>`);
-  var root_14$3 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-q-now-dot svelte-n8lbn1"></div> <div class="ag-q-now-title svelte-n8lbn1"> </div> <div class="ag-q-now-time svelte-n8lbn1"> </div> <div class="ag-q-now-track svelte-n8lbn1"><div class="ag-q-now-fill svelte-n8lbn1"></div></div></div>`);
-  var root_15$2 = /* @__PURE__ */ from_html(`<div class="ag-q-free svelte-n8lbn1"><div class="ag-q-free-label svelte-n8lbn1"> </div></div>`);
-  var root_16$2 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
-  var root_19$1 = /* @__PURE__ */ from_html(`<span class="ag-card-sub svelte-n8lbn1"> </span>`);
-  var root_21$1 = /* @__PURE__ */ from_html(`<span class="ag-card-tag svelte-n8lbn1"> </span>`);
-  var root_20$1 = /* @__PURE__ */ from_html(`<div class="ag-card-tags svelte-n8lbn1"></div>`);
-  var root_18$1 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-n8lbn1"><div class="ag-card-top svelte-n8lbn1"><span class="ag-card-title svelte-n8lbn1"> </span> <span class="ag-card-eta svelte-n8lbn1"> </span></div> <!> <div class="ag-card-meta svelte-n8lbn1"> <span class="ag-card-dur svelte-n8lbn1"> </span></div> <!></div></div>`);
-  var root_10$2 = /* @__PURE__ */ from_html(`<div class="ag-q svelte-n8lbn1"><div class="ag-q-status svelte-n8lbn1"><!> <div class="ag-q-label svelte-n8lbn1"> <span class="ag-q-clock svelte-n8lbn1"> </span></div> <!></div> <div class="ag-q-queue svelte-n8lbn1"><div class="ag-q-label svelte-n8lbn1"> </div> <!></div></div>`);
-  var root_23$1 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
-  var root_25 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-log-check svelte-n8lbn1">✓</span> <span class="ag-log-time svelte-n8lbn1"> </span> <span class="ag-log-dot svelte-n8lbn1"></span> <span class="ag-log-title svelte-n8lbn1"> </span> <span class="ag-log-dur svelte-n8lbn1"> </span></div>`);
-  var root_22$1 = /* @__PURE__ */ from_html(`<div class="ag-log svelte-n8lbn1"><!></div>`);
-  var root_27$1 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
-  var root_30$1 = /* @__PURE__ */ from_html(`<span class="ag-card-sub svelte-n8lbn1"> </span>`);
-  var root_31 = /* @__PURE__ */ from_html(`<span class="ag-card-loc svelte-n8lbn1"> </span>`);
-  var root_33$1 = /* @__PURE__ */ from_html(`<span class="ag-card-tag svelte-n8lbn1"> </span>`);
-  var root_32$1 = /* @__PURE__ */ from_html(`<div class="ag-card-tags svelte-n8lbn1"></div>`);
-  var root_29 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-n8lbn1"><div class="ag-card-top svelte-n8lbn1"><span class="ag-card-order svelte-n8lbn1"> </span> <span class="ag-card-title svelte-n8lbn1"> </span></div> <!> <!> <div class="ag-card-meta svelte-n8lbn1"> <span class="ag-card-dur svelte-n8lbn1"> </span></div> <!></div></div>`);
-  var root_26$1 = /* @__PURE__ */ from_html(`<div class="ag-plan svelte-n8lbn1"><!></div>`);
-  var root_34 = /* @__PURE__ */ from_html(`<div class="ag-date-label svelte-n8lbn1"> </div>`);
-  var root_35$1 = /* @__PURE__ */ from_html(`<nav class="ag-nav svelte-n8lbn1"><button> </button> <button class="ag-nav-pill svelte-n8lbn1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true" class="svelte-n8lbn1"><path d="M10 3 5 8l5 5" class="svelte-n8lbn1"></path></svg></button> <button class="ag-nav-pill svelte-n8lbn1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true" class="svelte-n8lbn1"><path d="M6 3l5 5-5 5" class="svelte-n8lbn1"></path></svg></button></nav>`);
-  var root$3 = /* @__PURE__ */ from_html(`<div><div class="ag-body svelte-n8lbn1" role="list"><!> <!></div> <!> <!></div>`);
+  var root$3 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-allday-dot svelte-n8lbn1"></span> <span class="ag-allday-title svelte-n8lbn1"> </span></div>`);
+  var root_1$4 = /* @__PURE__ */ from_html(`<div class="ag-allday svelte-n8lbn1"><div class="ag-allday-label svelte-n8lbn1"> </div> <div class="ag-allday-items svelte-n8lbn1"></div></div>`);
+  var root_2$4 = /* @__PURE__ */ from_html(`<div class="ag-q-empty svelte-n8lbn1"> </div>`);
+  var root_3$4 = /* @__PURE__ */ from_html(`<span class="ag-compact-row-sub svelte-n8lbn1"> </span>`);
+  var root_4$4 = /* @__PURE__ */ from_html(`<span class="ag-compact-row-tag svelte-n8lbn1"> </span>`);
+  var root_5$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-row-dot svelte-n8lbn1"></span> <span class="ag-compact-row-time svelte-n8lbn1"> </span> <span class="ag-compact-row-title svelte-n8lbn1"> </span> <!> <!> <span class="ag-compact-row-dur svelte-n8lbn1"> </span></div>`);
+  var root_6$4 = /* @__PURE__ */ from_html(`<div class="ag-compact-list svelte-n8lbn1"><!></div>`);
+  var root_7$4 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-q-done-check svelte-n8lbn1">✓</span> <span class="ag-q-done-title svelte-n8lbn1"> </span></div>`);
+  var root_8$3 = /* @__PURE__ */ from_html(`<div class="ag-q-done-section svelte-n8lbn1"><div class="ag-q-label svelte-n8lbn1"> </div> <!></div>`);
+  var root_9$3 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-q-now-dot svelte-n8lbn1"></div> <div class="ag-q-now-title svelte-n8lbn1"> </div> <div class="ag-q-now-time svelte-n8lbn1"> </div> <div class="ag-q-now-track svelte-n8lbn1"><div class="ag-q-now-fill svelte-n8lbn1"></div></div></div>`);
+  var root_10$3 = /* @__PURE__ */ from_html(`<div class="ag-q-free svelte-n8lbn1"><div class="ag-q-free-label svelte-n8lbn1"> </div></div>`);
+  var root_11$3 = /* @__PURE__ */ from_html(`<span class="ag-card-sub svelte-n8lbn1"> </span>`);
+  var root_12$3 = /* @__PURE__ */ from_html(`<span class="ag-card-tag svelte-n8lbn1"> </span>`);
+  var root_13$2 = /* @__PURE__ */ from_html(`<div class="ag-card-tags svelte-n8lbn1"></div>`);
+  var root_14$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-n8lbn1"><div class="ag-card-top svelte-n8lbn1"><span class="ag-card-title svelte-n8lbn1"> </span> <span class="ag-card-eta svelte-n8lbn1"> </span></div> <!> <div class="ag-card-meta svelte-n8lbn1"> <span class="ag-card-dur svelte-n8lbn1"> </span></div> <!></div></div>`);
+  var root_15$2 = /* @__PURE__ */ from_html(`<div class="ag-q svelte-n8lbn1"><div class="ag-q-status svelte-n8lbn1"><!> <div class="ag-q-label svelte-n8lbn1"> <span class="ag-q-clock svelte-n8lbn1"> </span></div> <!></div> <div class="ag-q-queue svelte-n8lbn1"><div class="ag-q-label svelte-n8lbn1"> </div> <!></div></div>`);
+  var root_16$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-log-check svelte-n8lbn1">✓</span> <span class="ag-log-time svelte-n8lbn1"> </span> <span class="ag-log-dot svelte-n8lbn1"></span> <span class="ag-log-title svelte-n8lbn1"> </span> <span class="ag-log-dur svelte-n8lbn1"> </span></div>`);
+  var root_17$1 = /* @__PURE__ */ from_html(`<div class="ag-log svelte-n8lbn1"><!></div>`);
+  var root_18$1 = /* @__PURE__ */ from_html(`<span class="ag-card-loc svelte-n8lbn1"> </span>`);
+  var root_19$1 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-n8lbn1"><div class="ag-card-top svelte-n8lbn1"><span class="ag-card-order svelte-n8lbn1"> </span> <span class="ag-card-title svelte-n8lbn1"> </span></div> <!> <!> <div class="ag-card-meta svelte-n8lbn1"> <span class="ag-card-dur svelte-n8lbn1"> </span></div> <!></div></div>`);
+  var root_20$1 = /* @__PURE__ */ from_html(`<div class="ag-plan svelte-n8lbn1"><!></div>`);
+  var root_21$1 = /* @__PURE__ */ from_html(`<div><div class="ag-body svelte-n8lbn1" role="list"><!> <!></div></div>`);
   function AgendaDay($$anchor, $$props) {
     push($$props, true);
     const L = /* @__PURE__ */ user_derived(getLabels);
@@ -7386,9 +7640,7 @@
     let events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null);
     const clock = createClock();
     const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
-    const showNav = /* @__PURE__ */ user_derived(() => ctx.showNav);
     const equalDays = /* @__PURE__ */ user_derived(() => ctx.equalDays);
-    const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
     const isMobile = /* @__PURE__ */ user_derived(() => ctx.isMobile);
     const autoHeight = /* @__PURE__ */ user_derived(() => ctx.autoHeight);
     const compact = /* @__PURE__ */ user_derived(() => ctx.compact);
@@ -7427,7 +7679,6 @@
     const dayEnd = /* @__PURE__ */ user_derived(() => get(dayMs) + DAY_MS);
     const isToday = /* @__PURE__ */ user_derived(() => get(dayMs) === clock.today);
     const isPastDay = /* @__PURE__ */ user_derived(() => get(equalDays) ? false : get(dayMs) < clock.today);
-    const dateLabel = /* @__PURE__ */ user_derived(() => get(showDates) ? new Date(get(dayMs)).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long", month: "long", day: "numeric" }) : new Date(get(dayMs)).toLocaleDateString($$props.locale ?? "en-US", { weekday: "long" }));
     const dayEvents = /* @__PURE__ */ user_derived(() => {
       return events().filter((ev) => ev.start.getTime() < get(dayEnd) && ev.end.getTime() > get(dayMs)).sort((a, b) => a.start.getTime() - b.start.getTime());
     });
@@ -7462,20 +7713,20 @@
       }
       return all;
     });
-    var div = root$3();
+    var div = root_21$1();
     let classes;
     let styles;
     var div_1 = child(div);
     var node = child(div_1);
     {
       var consequent = ($$anchor2) => {
-        var div_2 = root_1$3();
+        var div_2 = root_1$4();
         var div_3 = child(div_2);
         var text2 = child(div_3, true);
         reset(div_3);
         var div_4 = sibling(div_3, 2);
         each(div_4, 21, () => get(allDayBanner), (ev) => ev.id, ($$anchor3, ev) => {
-          var div_5 = root_2$4();
+          var div_5 = root$3();
           let classes_1;
           let styles_1;
           var span = sibling(child(div_5), 2);
@@ -7507,11 +7758,11 @@
     var node_1 = sibling(node, 2);
     {
       var consequent_4 = ($$anchor2) => {
-        var div_6 = root_3$3();
+        var div_6 = root_6$4();
         var node_2 = child(div_6);
         {
           var consequent_1 = ($$anchor3) => {
-            var div_7 = root_4$3();
+            var div_7 = root_2$4();
             var text_2 = child(div_7, true);
             reset(div_7);
             template_effect(() => set_text(text_2, get(L).nothingScheduledYet));
@@ -7521,7 +7772,7 @@
             var fragment = comment();
             var node_3 = first_child(fragment);
             each(node_3, 17, () => get(timedDayEvents), (ev) => ev.id, ($$anchor4, ev) => {
-              var div_8 = root_6$4();
+              var div_8 = root_5$4();
               let classes_2;
               let styles_2;
               var span_1 = sibling(child(div_8), 2);
@@ -7533,7 +7784,7 @@
               var node_4 = sibling(span_2, 2);
               {
                 var consequent_2 = ($$anchor5) => {
-                  var span_3 = root_7$3();
+                  var span_3 = root_3$4();
                   var text_5 = child(span_3, true);
                   reset(span_3);
                   template_effect(() => set_text(text_5, get(ev).subtitle));
@@ -7549,7 +7800,7 @@
                   var fragment_1 = comment();
                   var node_6 = first_child(fragment_1);
                   each(node_6, 17, () => get(ev).tags, index, ($$anchor6, tag) => {
-                    var span_4 = root_9$2();
+                    var span_4 = root_4$4();
                     var text_6 = child(span_4, true);
                     reset(span_4);
                     template_effect(() => set_text(text_6, get(tag)));
@@ -7601,18 +7852,18 @@
         append($$anchor2, div_6);
       };
       var consequent_10 = ($$anchor2) => {
-        var div_9 = root_10$2();
+        var div_9 = root_15$2();
         var div_10 = child(div_9);
         var node_7 = child(div_10);
         {
           var consequent_5 = ($$anchor3) => {
-            var div_11 = root_11$3();
+            var div_11 = root_8$3();
             var div_12 = child(div_11);
             var text_8 = child(div_12, true);
             reset(div_12);
             var node_8 = sibling(div_12, 2);
             each(node_8, 17, () => get(dayCat).past, (ev) => ev.id, ($$anchor4, ev) => {
-              var div_13 = root_12$2();
+              var div_13 = root_7$4();
               let classes_3;
               var span_6 = sibling(child(div_13), 2);
               var text_9 = child(span_6, true);
@@ -7652,7 +7903,7 @@
             var fragment_2 = comment();
             var node_10 = first_child(fragment_2);
             each(node_10, 17, () => get(dayCat).current, (ev) => ev.id, ($$anchor4, ev) => {
-              var div_15 = root_14$3();
+              var div_15 = root_9$3();
               let classes_4;
               let styles_3;
               var div_16 = sibling(child(div_15), 2);
@@ -7689,7 +7940,7 @@
             append($$anchor3, fragment_2);
           };
           var alternate_1 = ($$anchor3) => {
-            var div_20 = root_15$2();
+            var div_20 = root_10$3();
             var div_21 = child(div_20);
             var text_14 = child(div_21, true);
             reset(div_21);
@@ -7710,7 +7961,7 @@
         var node_11 = sibling(div_23, 2);
         {
           var consequent_7 = ($$anchor3) => {
-            var div_24 = root_16$2();
+            var div_24 = root_2$4();
             var text_16 = child(div_24, true);
             reset(div_24);
             template_effect(() => set_text(text_16, get(dayCat).past.length > 0 ? get(L).allDoneForToday : get(L).nothingScheduled));
@@ -7720,7 +7971,7 @@
             var fragment_3 = comment();
             var node_12 = first_child(fragment_3);
             each(node_12, 19, () => get(upcomingNext), (ev) => ev.id, ($$anchor4, ev, i) => {
-              var div_25 = root_18$1();
+              var div_25 = root_14$2();
               let classes_5;
               let styles_5;
               var div_26 = child(div_25);
@@ -7735,7 +7986,7 @@
               var node_13 = sibling(div_27, 2);
               {
                 var consequent_8 = ($$anchor5) => {
-                  var span_10 = root_19$1();
+                  var span_10 = root_11$3();
                   var text_19 = child(span_10, true);
                   reset(span_10);
                   template_effect(() => set_text(text_19, get(ev).subtitle));
@@ -7754,9 +8005,9 @@
               var node_14 = sibling(div_28, 2);
               {
                 var consequent_9 = ($$anchor5) => {
-                  var div_29 = root_20$1();
+                  var div_29 = root_13$2();
                   each(div_29, 21, () => get(ev).tags, index, ($$anchor6, tag) => {
-                    var span_12 = root_21$1();
+                    var span_12 = root_12$3();
                     var text_22 = child(span_12, true);
                     reset(span_12);
                     template_effect(() => set_text(text_22, get(tag)));
@@ -7815,11 +8066,11 @@
         append($$anchor2, div_9);
       };
       var consequent_12 = ($$anchor2) => {
-        var div_30 = root_22$1();
+        var div_30 = root_17$1();
         var node_15 = child(div_30);
         {
           var consequent_11 = ($$anchor3) => {
-            var div_31 = root_23$1();
+            var div_31 = root_2$4();
             var text_23 = child(div_31, true);
             reset(div_31);
             template_effect(() => set_text(text_23, get(L).nothingWasScheduled));
@@ -7829,7 +8080,7 @@
             var fragment_4 = comment();
             var node_16 = first_child(fragment_4);
             each(node_16, 17, () => get(timedDayEvents), (ev) => ev.id, ($$anchor4, ev) => {
-              var div_32 = root_25();
+              var div_32 = root_16$2();
               let classes_6;
               let styles_6;
               var span_13 = sibling(child(div_32), 2);
@@ -7877,11 +8128,11 @@
         append($$anchor2, div_30);
       };
       var alternate_5 = ($$anchor2) => {
-        var div_33 = root_26$1();
+        var div_33 = root_20$1();
         var node_17 = child(div_33);
         {
           var consequent_13 = ($$anchor3) => {
-            var div_34 = root_27$1();
+            var div_34 = root_2$4();
             var text_27 = child(div_34, true);
             reset(div_34);
             template_effect(() => set_text(text_27, get(L).nothingScheduledYet));
@@ -7891,7 +8142,7 @@
             var fragment_5 = comment();
             var node_18 = first_child(fragment_5);
             each(node_18, 19, () => get(timedDayEvents), (ev) => ev.id, ($$anchor4, ev, i) => {
-              var div_35 = root_29();
+              var div_35 = root_19$1();
               let classes_7;
               let styles_8;
               var div_36 = child(div_35);
@@ -7906,7 +8157,7 @@
               var node_19 = sibling(div_37, 2);
               {
                 var consequent_14 = ($$anchor5) => {
-                  var span_19 = root_30$1();
+                  var span_19 = root_11$3();
                   var text_30 = child(span_19, true);
                   reset(span_19);
                   template_effect(() => set_text(text_30, get(ev).subtitle));
@@ -7919,7 +8170,7 @@
               var node_20 = sibling(node_19, 2);
               {
                 var consequent_15 = ($$anchor5) => {
-                  var span_20 = root_31();
+                  var span_20 = root_18$1();
                   var text_31 = child(span_20, true);
                   reset(span_20);
                   template_effect(() => set_text(text_31, get(ev).location));
@@ -7938,9 +8189,9 @@
               var node_21 = sibling(div_38, 2);
               {
                 var consequent_16 = ($$anchor5) => {
-                  var div_39 = root_32$1();
+                  var div_39 = root_13$2();
                   each(div_39, 21, () => get(ev).tags, index, ($$anchor6, tag) => {
-                    var span_22 = root_33$1();
+                    var span_22 = root_12$3();
                     var text_34 = child(span_22, true);
                     reset(span_22);
                     template_effect(() => set_text(text_34, get(tag)));
@@ -8004,48 +8255,6 @@
       });
     }
     reset(div_1);
-    var node_22 = sibling(div_1, 2);
-    {
-      var consequent_17 = ($$anchor2) => {
-        var div_40 = root_34();
-        var text_35 = child(div_40, true);
-        reset(div_40);
-        template_effect(() => set_text(text_35, get(dateLabel)));
-        append($$anchor2, div_40);
-      };
-      if_block(node_22, ($$render) => {
-        if (!get(isMobile)) $$render(consequent_17);
-      });
-    }
-    var node_23 = sibling(node_22, 2);
-    {
-      var consequent_18 = ($$anchor2) => {
-        var nav = root_35$1();
-        var button = child(nav);
-        let classes_8;
-        var text_36 = child(button, true);
-        reset(button);
-        var button_1 = sibling(button, 2);
-        var button_2 = sibling(button_1, 2);
-        reset(nav);
-        template_effect(() => {
-          set_attribute(nav, "aria-label", get(L).dayNavigation);
-          classes_8 = set_class(button, 1, "ag-nav-pill ag-nav-today svelte-n8lbn1", null, classes_8, { "ag-nav-today--hidden": get(isToday) });
-          set_attribute(button, "aria-label", get(L).goToToday);
-          set_attribute(button, "tabindex", get(isToday) ? -1 : 0);
-          set_text(text_36, get(L).today);
-          set_attribute(button_1, "aria-label", get(L).previousDay);
-          set_attribute(button_2, "aria-label", get(L).nextDay);
-        });
-        delegated("click", button, () => get(viewState)?.goToday());
-        delegated("click", button_1, () => get(viewState)?.prev());
-        delegated("click", button_2, () => get(viewState)?.next());
-        append($$anchor2, nav);
-      };
-      if_block(node_23, ($$render) => {
-        if (get(showNav) && !get(isMobile)) $$render(consequent_18);
-      });
-    }
     reset(div);
     template_effect(
       ($0) => {
@@ -8067,46 +8276,40 @@
     pop();
   }
   delegate(["pointerdown", "pointerup", "click", "keydown"]);
-  var root_2$3 = /* @__PURE__ */ from_html(`<span class="ag-card-sub svelte-uhwfyj"> </span>`);
-  var root_3$2 = /* @__PURE__ */ from_html(`<span class="ag-card-loc svelte-uhwfyj"> </span>`);
-  var root_6$3 = /* @__PURE__ */ from_html(`<span class="ag-card-eta svelte-uhwfyj"> </span>`);
-  var root_8$3 = /* @__PURE__ */ from_html(`<span class="ag-card-tag svelte-uhwfyj"> </span>`);
-  var root_7$2 = /* @__PURE__ */ from_html(`<div class="ag-card-tags svelte-uhwfyj"></div>`);
-  var root_9$1 = /* @__PURE__ */ from_html(`<div class="ag-card-progress svelte-uhwfyj"><div class="ag-card-progress-fill svelte-uhwfyj"></div></div>`);
-  var root_1$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-uhwfyj"><span class="ag-card-title svelte-uhwfyj"> </span> <!> <!> <span class="ag-card-meta svelte-uhwfyj"><!> <span class="ag-card-dur svelte-uhwfyj"> </span> <!></span> <!> <!></div></div>`);
-  var root_12$1 = /* @__PURE__ */ from_html(`<span class="ag-wday-date svelte-uhwfyj"> </span>`);
-  var root_13$2 = /* @__PURE__ */ from_html(`<div class="ag-wday-custom-header svelte-uhwfyj"><!></div>`);
-  var root_11$2 = /* @__PURE__ */ from_html(`<div role="listitem"><div class="ag-wday-head svelte-uhwfyj"><div class="ag-wday-head-left svelte-uhwfyj"><span class="ag-wday-name svelte-uhwfyj"> </span> <!></div> <!></div></div>`);
-  var root_15$1 = /* @__PURE__ */ from_html(`<span class="ag-wday-badge svelte-uhwfyj"> </span>`);
-  var root_16$1 = /* @__PURE__ */ from_html(`<span class="ag-wday-badge ag-wday-badge--muted svelte-uhwfyj"> </span>`);
-  var root_17$1 = /* @__PURE__ */ from_html(`<span class="ag-wday-date svelte-uhwfyj"> </span>`);
-  var root_18 = /* @__PURE__ */ from_html(`<div class="ag-wday-custom-header svelte-uhwfyj"><!></div>`);
-  var root_20 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-allday-dot svelte-uhwfyj"></span> <span class="ag-allday-title svelte-uhwfyj"> </span></div>`);
-  var root_19 = /* @__PURE__ */ from_html(`<div class="ag-allday svelte-uhwfyj"></div>`);
-  var root_21 = /* @__PURE__ */ from_html(`<div class="ag-wday-empty svelte-uhwfyj"> </div>`);
-  var root_24 = /* @__PURE__ */ from_html(`<span class="ag-compact-sub svelte-uhwfyj"> </span>`);
-  var root_26 = /* @__PURE__ */ from_html(`<span class="ag-compact-tag svelte-uhwfyj"> </span>`);
-  var root_23 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-dot svelte-uhwfyj"></span> <span class="ag-compact-time svelte-uhwfyj"> </span> <span class="ag-compact-title svelte-uhwfyj"> </span> <!> <!> <span class="ag-compact-dur svelte-uhwfyj"> </span></div>`);
-  var root_22 = /* @__PURE__ */ from_html(`<div class="ag-wday-compact svelte-uhwfyj"></div>`);
-  var root_28 = /* @__PURE__ */ from_html(`<div class="ag-wslot svelte-uhwfyj"><div></div></div>`);
-  var root_27 = /* @__PURE__ */ from_html(`<div class="ag-wday-expanded svelte-uhwfyj"></div>`);
-  var root_32 = /* @__PURE__ */ from_html(`<div class="ag-wslot svelte-uhwfyj"><div class="ag-wslot-header svelte-uhwfyj"><span class="ag-wslot-now svelte-uhwfyj"> </span></div> <!></div>`);
-  var root_33 = /* @__PURE__ */ from_html(`<div class="ag-wslot svelte-uhwfyj"><div></div></div>`);
-  var root_35 = /* @__PURE__ */ from_html(`<div class="ag-wday-past-line svelte-uhwfyj"> </div>`);
-  var root_30 = /* @__PURE__ */ from_html(`<div class="ag-wday-expanded svelte-uhwfyj"><!> <!> <!></div>`);
-  var root_38 = /* @__PURE__ */ from_html(`<span class="ag-compact-loc svelte-uhwfyj"> </span>`);
-  var root_39 = /* @__PURE__ */ from_html(`<span class="ag-compact-sub svelte-uhwfyj"> </span>`);
-  var root_41 = /* @__PURE__ */ from_html(`<span class="ag-compact-tag svelte-uhwfyj"> </span>`);
-  var root_37 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-dot svelte-uhwfyj"></span> <span class="ag-compact-time svelte-uhwfyj"> </span> <span class="ag-compact-title svelte-uhwfyj"> </span> <!> <!> <!> <span class="ag-compact-dur svelte-uhwfyj"> </span></div>`);
-  var root_42 = /* @__PURE__ */ from_html(`<div class="ag-compact-more svelte-uhwfyj"> </div>`);
-  var root_36 = /* @__PURE__ */ from_html(`<div class="ag-wday-compact svelte-uhwfyj"><!> <!></div>`);
-  var root_14$2 = /* @__PURE__ */ from_html(`<div role="listitem"><div class="ag-wday-head svelte-uhwfyj"><div class="ag-wday-head-left svelte-uhwfyj"><!> <span class="ag-wday-name svelte-uhwfyj"> </span> <!></div> <!></div> <!> <!></div>`);
-  var root_43 = /* @__PURE__ */ from_html(`<nav class="ag-nav svelte-uhwfyj"><button> </button> <button class="ag-nav-pill svelte-uhwfyj"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></button> <button class="ag-nav-pill svelte-uhwfyj"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></button></nav>`);
-  var root$2 = /* @__PURE__ */ from_html(`<div><div class="ag-body svelte-uhwfyj" role="list"></div> <!></div>`);
+  var root$2 = /* @__PURE__ */ from_html(`<span class="ag-card-sub svelte-uhwfyj"> </span>`);
+  var root_1$3 = /* @__PURE__ */ from_html(`<span class="ag-card-loc svelte-uhwfyj"> </span>`);
+  var root_2$3 = /* @__PURE__ */ from_html(`<span class="ag-card-eta svelte-uhwfyj"> </span>`);
+  var root_3$3 = /* @__PURE__ */ from_html(`<span class="ag-card-tag svelte-uhwfyj"> </span>`);
+  var root_4$3 = /* @__PURE__ */ from_html(`<div class="ag-card-tags svelte-uhwfyj"></div>`);
+  var root_5$3 = /* @__PURE__ */ from_html(`<div class="ag-card-progress svelte-uhwfyj"><div class="ag-card-progress-fill svelte-uhwfyj"></div></div>`);
+  var root_6$3 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><div class="ag-card-body svelte-uhwfyj"><span class="ag-card-title svelte-uhwfyj"> </span> <!> <!> <span class="ag-card-meta svelte-uhwfyj"><!> <span class="ag-card-dur svelte-uhwfyj"> </span> <!></span> <!> <!></div></div>`);
+  var root_7$3 = /* @__PURE__ */ from_html(`<span class="ag-wday-date svelte-uhwfyj"> </span>`);
+  var root_8$2 = /* @__PURE__ */ from_html(`<div class="ag-wday-custom-header svelte-uhwfyj"><!></div>`);
+  var root_9$2 = /* @__PURE__ */ from_html(`<div role="listitem"><div class="ag-wday-head svelte-uhwfyj"><div class="ag-wday-head-left svelte-uhwfyj"><span class="ag-wday-name svelte-uhwfyj"> </span> <!></div> <!></div></div>`);
+  var root_10$2 = /* @__PURE__ */ from_html(`<span class="ag-wday-badge svelte-uhwfyj"> </span>`);
+  var root_11$2 = /* @__PURE__ */ from_html(`<span class="ag-wday-badge ag-wday-badge--muted svelte-uhwfyj"> </span>`);
+  var root_12$2 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-allday-dot svelte-uhwfyj"></span> <span class="ag-allday-title svelte-uhwfyj"> </span></div>`);
+  var root_13$1 = /* @__PURE__ */ from_html(`<div class="ag-allday svelte-uhwfyj"></div>`);
+  var root_14$1 = /* @__PURE__ */ from_html(`<div class="ag-wday-empty svelte-uhwfyj"> </div>`);
+  var root_15$1 = /* @__PURE__ */ from_html(`<span class="ag-compact-sub svelte-uhwfyj"> </span>`);
+  var root_16$1 = /* @__PURE__ */ from_html(`<span class="ag-compact-tag svelte-uhwfyj"> </span>`);
+  var root_17 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-dot svelte-uhwfyj"></span> <span class="ag-compact-time svelte-uhwfyj"> </span> <span class="ag-compact-title svelte-uhwfyj"> </span> <!> <!> <span class="ag-compact-dur svelte-uhwfyj"> </span></div>`);
+  var root_18 = /* @__PURE__ */ from_html(`<div class="ag-wday-compact svelte-uhwfyj"></div>`);
+  var root_19 = /* @__PURE__ */ from_html(`<div class="ag-wslot svelte-uhwfyj"><div></div></div>`);
+  var root_20 = /* @__PURE__ */ from_html(`<div class="ag-wday-expanded svelte-uhwfyj"></div>`);
+  var root_21 = /* @__PURE__ */ from_html(`<div class="ag-wslot svelte-uhwfyj"><div class="ag-wslot-header svelte-uhwfyj"><span class="ag-wslot-now svelte-uhwfyj"> </span></div> <!></div>`);
+  var root_22 = /* @__PURE__ */ from_html(`<div class="ag-wday-past-line svelte-uhwfyj"> </div>`);
+  var root_23 = /* @__PURE__ */ from_html(`<div class="ag-wday-expanded svelte-uhwfyj"><!> <!> <!></div>`);
+  var root_24 = /* @__PURE__ */ from_html(`<span class="ag-compact-loc svelte-uhwfyj"> </span>`);
+  var root_25 = /* @__PURE__ */ from_html(`<div role="button" tabindex="0"><span class="ag-compact-dot svelte-uhwfyj"></span> <span class="ag-compact-time svelte-uhwfyj"> </span> <span class="ag-compact-title svelte-uhwfyj"> </span> <!> <!> <!> <span class="ag-compact-dur svelte-uhwfyj"> </span></div>`);
+  var root_26 = /* @__PURE__ */ from_html(`<div class="ag-compact-more svelte-uhwfyj"> </div>`);
+  var root_27 = /* @__PURE__ */ from_html(`<div class="ag-wday-compact svelte-uhwfyj"><!> <!></div>`);
+  var root_28 = /* @__PURE__ */ from_html(`<div role="listitem"><div class="ag-wday-head svelte-uhwfyj"><div class="ag-wday-head-left svelte-uhwfyj"><!> <span class="ag-wday-name svelte-uhwfyj"> </span> <!></div> <!></div> <!> <!></div>`);
+  var root_29 = /* @__PURE__ */ from_html(`<div><div class="ag-body svelte-uhwfyj" role="list"></div></div>`);
   function AgendaWeek($$anchor, $$props) {
     push($$props, true);
     const eventCard = ($$anchor2, ev = noop, isNow = noop, eta2 = noop) => {
-      var div = root_1$2();
+      var div = root_6$3();
       let classes;
       let styles;
       var div_1 = child(div);
@@ -8116,7 +8319,7 @@
       var node = sibling(span, 2);
       {
         var consequent = ($$anchor3) => {
-          var span_1 = root_2$3();
+          var span_1 = root$2();
           var text_1 = child(span_1, true);
           reset(span_1);
           template_effect(() => set_text(text_1, ev().subtitle));
@@ -8129,7 +8332,7 @@
       var node_1 = sibling(node, 2);
       {
         var consequent_1 = ($$anchor3) => {
-          var span_2 = root_3$2();
+          var span_2 = root_1$3();
           var text_2 = child(span_2, true);
           reset(span_2);
           template_effect(() => set_text(text_2, ev().location));
@@ -8163,7 +8366,7 @@
       var node_3 = sibling(span_4, 2);
       {
         var consequent_3 = ($$anchor3) => {
-          var span_5 = root_6$3();
+          var span_5 = root_2$3();
           var text_6 = child(span_5, true);
           reset(span_5);
           template_effect(() => set_text(text_6, eta2()));
@@ -8177,9 +8380,9 @@
       var node_4 = sibling(span_3, 2);
       {
         var consequent_4 = ($$anchor3) => {
-          var div_2 = root_7$2();
+          var div_2 = root_4$3();
           each(div_2, 21, () => ev().tags, index, ($$anchor4, tag) => {
-            var span_6 = root_8$3();
+            var span_6 = root_3$3();
             var text_7 = child(span_6, true);
             reset(span_6);
             template_effect(() => set_text(text_7, get(tag)));
@@ -8195,7 +8398,7 @@
       var node_5 = sibling(node_4, 2);
       {
         var consequent_5 = ($$anchor3) => {
-          var div_3 = root_9$1();
+          var div_3 = root_5$3();
           var div_4 = child(div_3);
           let styles_1;
           reset(div_3);
@@ -8241,7 +8444,6 @@
     let events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null);
     const clock = createClock();
     const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
-    const showNav = /* @__PURE__ */ user_derived(() => ctx.showNav);
     const equalDays = /* @__PURE__ */ user_derived(() => ctx.equalDays);
     const showDates = /* @__PURE__ */ user_derived(() => ctx.showDates);
     const hideDays = /* @__PURE__ */ user_derived(() => ctx.hideDays);
@@ -8282,7 +8484,6 @@
     }
     const weekStartMs = /* @__PURE__ */ user_derived(() => $$props.focusDate ? get(viewState)?.dayCount === 7 ? startOfWeek(sod($$props.focusDate.getTime()), mondayStart()) : sod($$props.focusDate.getTime()) : get(viewState)?.dayCount === 7 ? startOfWeek(clock.today, mondayStart()) : clock.today);
     const customDays = /* @__PURE__ */ user_derived(() => get(viewState)?.dayCount ?? 7);
-    const isThisWeek = /* @__PURE__ */ user_derived(() => get(customDays) === 7 ? get(weekStartMs) === startOfWeek(clock.today, mondayStart()) : clock.today >= get(weekStartMs) && clock.today < get(weekStartMs) + get(customDays) * DAY_MS);
     const weekDays = /* @__PURE__ */ user_derived(() => {
       const now = clock.tick;
       const todayMs = clock.today;
@@ -8345,7 +8546,7 @@
       }
       return out;
     });
-    var div_5 = root$2();
+    var div_5 = root_29();
     let classes_1;
     var div_6 = child(div_5);
     each(div_6, 21, () => get(weekDays), (day) => day.ms, ($$anchor2, day) => {
@@ -8354,7 +8555,7 @@
       var node_6 = first_child(fragment_2);
       {
         var consequent_8 = ($$anchor3) => {
-          var div_7 = root_11$2();
+          var div_7 = root_9$2();
           let classes_2;
           var div_8 = child(div_7);
           var div_9 = child(div_8);
@@ -8364,7 +8565,7 @@
           var node_7 = sibling(span_7, 2);
           {
             var consequent_6 = ($$anchor4) => {
-              var span_8 = root_12$1();
+              var span_8 = root_7$3();
               var text_9 = child(span_8, true);
               reset(span_8);
               template_effect(() => set_text(text_9, get(day).dateLabel));
@@ -8378,7 +8579,7 @@
           var node_8 = sibling(div_9, 2);
           {
             var consequent_7 = ($$anchor4) => {
-              var div_10 = root_13$2();
+              var div_10 = root_8$2();
               var node_9 = child(div_10);
               snippet(node_9, () => get(dayHeaderSnippet), () => ({
                 date: new Date(get(day).ms),
@@ -8406,21 +8607,21 @@
           append($$anchor3, div_7);
         };
         var alternate_2 = ($$anchor3) => {
-          var div_11 = root_14$2();
+          var div_11 = root_28();
           let classes_3;
           var div_12 = child(div_11);
           var div_13 = child(div_12);
           var node_10 = child(div_13);
           {
             var consequent_9 = ($$anchor4) => {
-              var span_9 = root_15$1();
+              var span_9 = root_10$2();
               var text_10 = child(span_9, true);
               reset(span_9);
               template_effect(() => set_text(text_10, get(L).today));
               append($$anchor4, span_9);
             };
             var consequent_10 = ($$anchor4) => {
-              var span_10 = root_16$1();
+              var span_10 = root_11$2();
               var text_11 = child(span_10, true);
               reset(span_10);
               template_effect(() => set_text(text_11, get(L).tomorrow));
@@ -8437,7 +8638,7 @@
           var node_11 = sibling(span_11, 2);
           {
             var consequent_11 = ($$anchor4) => {
-              var span_12 = root_17$1();
+              var span_12 = root_7$3();
               var text_13 = child(span_12, true);
               reset(span_12);
               template_effect(() => set_text(text_13, get(day).dateLabel));
@@ -8451,7 +8652,7 @@
           var node_12 = sibling(div_13, 2);
           {
             var consequent_12 = ($$anchor4) => {
-              var div_14 = root_18();
+              var div_14 = root_8$2();
               var node_13 = child(div_14);
               snippet(node_13, () => get(dayHeaderSnippet), () => ({
                 date: new Date(get(day).ms),
@@ -8469,9 +8670,9 @@
           var node_14 = sibling(div_12, 2);
           {
             var consequent_13 = ($$anchor4) => {
-              var div_15 = root_19();
+              var div_15 = root_13$1();
               each(div_15, 21, () => get(day).allDayEvents, (ev) => ev.id, ($$anchor5, ev) => {
-                var div_16 = root_20();
+                var div_16 = root_12$2();
                 let classes_4;
                 let styles_2;
                 var span_13 = sibling(child(div_16), 2);
@@ -8501,16 +8702,16 @@
           var node_15 = sibling(node_14, 2);
           {
             var consequent_14 = ($$anchor4) => {
-              var div_17 = root_21();
+              var div_17 = root_14$1();
               var text_15 = child(div_17, true);
               reset(div_17);
               template_effect(() => set_text(text_15, get(L).noEvents));
               append($$anchor4, div_17);
             };
             var consequent_17 = ($$anchor4) => {
-              var div_18 = root_22();
+              var div_18 = root_18();
               each(div_18, 21, () => get(day).timedEvents, (ev) => ev.id, ($$anchor5, ev) => {
-                var div_19 = root_23();
+                var div_19 = root_17();
                 let classes_5;
                 let styles_3;
                 var span_14 = sibling(child(div_19), 2);
@@ -8522,7 +8723,7 @@
                 var node_16 = sibling(span_15, 2);
                 {
                   var consequent_15 = ($$anchor6) => {
-                    var span_16 = root_24();
+                    var span_16 = root_15$1();
                     var text_18 = child(span_16, true);
                     reset(span_16);
                     template_effect(() => set_text(text_18, get(ev).subtitle));
@@ -8538,7 +8739,7 @@
                     var fragment_3 = comment();
                     var node_18 = first_child(fragment_3);
                     each(node_18, 17, () => get(ev).tags, index, ($$anchor7, tag) => {
-                      var span_17 = root_26();
+                      var span_17 = root_16$1();
                       var text_19 = child(span_17, true);
                       reset(span_17);
                       template_effect(() => set_text(text_19, get(tag)));
@@ -8585,9 +8786,9 @@
               append($$anchor4, div_18);
             };
             var consequent_18 = ($$anchor4) => {
-              var div_20 = root_27();
+              var div_20 = root_20();
               each(div_20, 21, () => groupIntoSlots(get(day).timedEvents), (slot) => slot.startMs, ($$anchor5, slot) => {
-                var div_21 = root_28();
+                var div_21 = root_19();
                 var div_22 = child(div_21);
                 let classes_6;
                 each(div_22, 21, () => get(slot).events, (ev) => ev.id, ($$anchor6, ev) => {
@@ -8602,14 +8803,14 @@
               append($$anchor4, div_20);
             };
             var consequent_21 = ($$anchor4) => {
-              var div_23 = root_30();
+              var div_23 = root_23();
               var node_19 = child(div_23);
               {
                 var consequent_19 = ($$anchor5) => {
                   var fragment_5 = comment();
                   var node_20 = first_child(fragment_5);
                   each(node_20, 17, () => get(day).currentEvents, (ev) => ev.id, ($$anchor6, ev) => {
-                    var div_24 = root_32();
+                    var div_24 = root_21();
                     var div_25 = child(div_24);
                     var span_19 = child(div_25);
                     var text_21 = child(span_19, true);
@@ -8629,7 +8830,7 @@
               }
               var node_22 = sibling(node_19, 2);
               each(node_22, 17, () => groupIntoSlots(get(day).upcomingEvents), (slot) => slot.startMs, ($$anchor5, slot) => {
-                var div_26 = root_33();
+                var div_26 = root_19();
                 var div_27 = child(div_26);
                 let classes_7;
                 each(div_27, 21, () => get(slot).events, (ev) => ev.id, ($$anchor6, ev) => {
@@ -8646,7 +8847,7 @@
               var node_23 = sibling(node_22, 2);
               {
                 var consequent_20 = ($$anchor5) => {
-                  var div_28 = root_35();
+                  var div_28 = root_22();
                   var text_22 = child(div_28);
                   reset(div_28);
                   template_effect(($0) => set_text(text_22, `✓ ${$0 ?? ""}`), [() => get(L).nCompleted(get(day).pastEvents.length)]);
@@ -8660,10 +8861,10 @@
               append($$anchor4, div_23);
             };
             var alternate_1 = ($$anchor4) => {
-              var div_29 = root_36();
+              var div_29 = root_27();
               var node_24 = child(div_29);
               each(node_24, 17, () => get(day).timedEvents.slice(0, 4), (ev) => ev.id, ($$anchor5, ev) => {
-                var div_30 = root_37();
+                var div_30 = root_25();
                 let classes_8;
                 let styles_4;
                 var span_20 = sibling(child(div_30), 2);
@@ -8675,7 +8876,7 @@
                 var node_25 = sibling(span_21, 2);
                 {
                   var consequent_22 = ($$anchor6) => {
-                    var span_22 = root_38();
+                    var span_22 = root_24();
                     var text_25 = child(span_22, true);
                     reset(span_22);
                     template_effect(() => set_text(text_25, get(ev).location));
@@ -8688,7 +8889,7 @@
                 var node_26 = sibling(node_25, 2);
                 {
                   var consequent_23 = ($$anchor6) => {
-                    var span_23 = root_39();
+                    var span_23 = root_15$1();
                     var text_26 = child(span_23, true);
                     reset(span_23);
                     template_effect(() => set_text(text_26, get(ev).subtitle));
@@ -8704,7 +8905,7 @@
                     var fragment_7 = comment();
                     var node_28 = first_child(fragment_7);
                     each(node_28, 17, () => get(ev).tags, index, ($$anchor7, tag) => {
-                      var span_24 = root_41();
+                      var span_24 = root_16$1();
                       var text_27 = child(span_24, true);
                       reset(span_24);
                       template_effect(() => set_text(text_27, get(tag)));
@@ -8750,7 +8951,7 @@
               var node_29 = sibling(node_24, 2);
               {
                 var consequent_25 = ($$anchor5) => {
-                  var div_31 = root_42();
+                  var div_31 = root_26();
                   var text_29 = child(div_31, true);
                   reset(div_31);
                   template_effect(($0) => set_text(text_29, $0), [() => get(L).nMore(get(day).timedEvents.length - 4)]);
@@ -8796,35 +8997,6 @@
       append($$anchor2, fragment_2);
     });
     reset(div_6);
-    var node_30 = sibling(div_6, 2);
-    {
-      var consequent_26 = ($$anchor2) => {
-        var nav = root_43();
-        var button = child(nav);
-        let classes_9;
-        var text_30 = child(button, true);
-        reset(button);
-        var button_1 = sibling(button, 2);
-        var button_2 = sibling(button_1, 2);
-        reset(nav);
-        template_effect(() => {
-          set_attribute(nav, "aria-label", get(L).weekNavigation);
-          classes_9 = set_class(button, 1, "ag-nav-pill ag-nav-today svelte-uhwfyj", null, classes_9, { "ag-nav-today--hidden": get(isThisWeek) });
-          set_attribute(button, "aria-label", get(L).goToToday);
-          set_attribute(button, "tabindex", get(isThisWeek) ? -1 : 0);
-          set_text(text_30, get(L).today);
-          set_attribute(button_1, "aria-label", get(L).previousWeek);
-          set_attribute(button_2, "aria-label", get(L).nextWeek);
-        });
-        delegated("click", button, () => get(viewState)?.goToday());
-        delegated("click", button_1, () => get(viewState)?.prev());
-        delegated("click", button_2, () => get(viewState)?.next());
-        append($$anchor2, nav);
-      };
-      if_block(node_30, ($$render) => {
-        if (get(showNav) && !get(isMobile)) $$render(consequent_26);
-      });
-    }
     reset(div_5);
     template_effect(() => {
       classes_1 = set_class(div_5, 1, "ag ag--week svelte-uhwfyj", null, classes_1, { "ag--mobile": get(isMobile), "ag--auto": get(autoHeight) });
@@ -8837,8 +9009,9 @@
     pop();
   }
   delegate(["click", "keydown", "pointerdown", "pointerup"]);
+  var rest_excludes$1 = /* @__PURE__ */ new Set(["$$slots", "$$events", "$$legacy", "mode"]);
   function Agenda($$anchor, $$props) {
-    let mode = prop($$props, "mode", 3, "day"), rest = /* @__PURE__ */ rest_props($$props, ["$$slots", "$$events", "$$legacy", "mode"]);
+    let mode = prop($$props, "mode", 3, "day"), rest = /* @__PURE__ */ rest_props($$props, rest_excludes$1);
     var fragment = comment();
     var node = first_child(fragment);
     {
@@ -8855,22 +9028,22 @@
     }
     append($$anchor, fragment);
   }
-  var root_4$2 = /* @__PURE__ */ from_html(`<span class="mb-allday-span svelte-zbkzcp"> </span>`);
-  var root_3$1 = /* @__PURE__ */ from_html(`<button><span class="mb-allday-dot svelte-zbkzcp"></span> <span class="mb-allday-title svelte-zbkzcp"> </span> <!></button>`);
-  var root_5$2 = /* @__PURE__ */ from_html(`<span class="mb-allday-more svelte-zbkzcp"> </span>`);
-  var root_2$2 = /* @__PURE__ */ from_html(`<div class="mb-allday svelte-zbkzcp"><!> <!></div>`);
-  var root_8$2 = /* @__PURE__ */ from_html(`<span class="mb-blocked-label svelte-zbkzcp"> </span>`);
+  var root_1$2 = /* @__PURE__ */ from_html(`<span class="mb-allday-span svelte-zbkzcp"> </span>`);
+  var root_2$2 = /* @__PURE__ */ from_html(`<button><span class="mb-allday-dot svelte-zbkzcp"></span> <span class="mb-allday-title svelte-zbkzcp"> </span> <!></button>`);
+  var root_3$2 = /* @__PURE__ */ from_html(`<span class="mb-allday-more svelte-zbkzcp"> </span>`);
+  var root_4$2 = /* @__PURE__ */ from_html(`<div class="mb-allday svelte-zbkzcp"><!> <!></div>`);
+  var root_5$2 = /* @__PURE__ */ from_html(`<span class="mb-blocked-label svelte-zbkzcp"> </span>`);
   var root_6$2 = /* @__PURE__ */ from_html(`<div><div class="mb-hour-label svelte-zbkzcp"> </div> <div class="mb-hour-line svelte-zbkzcp"></div> <!></div>`);
-  var root_9 = /* @__PURE__ */ from_html(`<div class="mb-now svelte-zbkzcp"><span class="mb-now-label svelte-zbkzcp"> </span> <div class="mb-now-line svelte-zbkzcp"></div></div>`);
-  var root_11$1 = /* @__PURE__ */ from_html(`<span class="mb-ev-time svelte-zbkzcp"> </span>`);
-  var root_12 = /* @__PURE__ */ from_html(`<span class="mb-ev-sub svelte-zbkzcp"> </span>`);
-  var root_13$1 = /* @__PURE__ */ from_html(`<span class="mb-ev-loc svelte-zbkzcp"> </span>`);
-  var root_15 = /* @__PURE__ */ from_html(`<span class="mb-ev-tag svelte-zbkzcp"> </span>`);
-  var root_14$1 = /* @__PURE__ */ from_html(`<div class="mb-ev-tags svelte-zbkzcp"></div>`);
-  var root_16 = /* @__PURE__ */ from_html(`<span class="mb-ev-live svelte-zbkzcp"></span>`);
-  var root_17 = /* @__PURE__ */ from_html(`<span class="mb-ev-next-badge svelte-zbkzcp"> </span>`);
-  var root_10$1 = /* @__PURE__ */ from_html(`<button><div class="mb-ev-stripe svelte-zbkzcp"></div> <div class="mb-ev-body svelte-zbkzcp"><span class="mb-ev-title svelte-zbkzcp"> </span> <!> <!> <!> <!></div> <!></button>`);
-  var root_1$1 = /* @__PURE__ */ from_html(`<div role="region"><!> <div class="mb-grid svelte-zbkzcp" role="grid" tabindex="-1"><div class="mb-grid-inner svelte-zbkzcp"><!> <!> <!></div></div></div>`);
+  var root_7$2 = /* @__PURE__ */ from_html(`<div class="mb-now svelte-zbkzcp"><span class="mb-now-label svelte-zbkzcp"> </span> <div class="mb-now-line svelte-zbkzcp"></div></div>`);
+  var root_8$1 = /* @__PURE__ */ from_html(`<span class="mb-ev-time svelte-zbkzcp"> </span>`);
+  var root_9$1 = /* @__PURE__ */ from_html(`<span class="mb-ev-sub svelte-zbkzcp"> </span>`);
+  var root_10$1 = /* @__PURE__ */ from_html(`<span class="mb-ev-loc svelte-zbkzcp"> </span>`);
+  var root_11$1 = /* @__PURE__ */ from_html(`<span class="mb-ev-tag svelte-zbkzcp"> </span>`);
+  var root_12$1 = /* @__PURE__ */ from_html(`<div class="mb-ev-tags svelte-zbkzcp"></div>`);
+  var root_13 = /* @__PURE__ */ from_html(`<span class="mb-ev-live svelte-zbkzcp"></span>`);
+  var root_14 = /* @__PURE__ */ from_html(`<span class="mb-ev-next-badge svelte-zbkzcp"> </span>`);
+  var root_15 = /* @__PURE__ */ from_html(`<button><div class="mb-ev-stripe svelte-zbkzcp"></div> <div class="mb-ev-body svelte-zbkzcp"><span class="mb-ev-title svelte-zbkzcp"> </span> <!> <!> <!> <!></div> <!></button>`);
+  var root_16 = /* @__PURE__ */ from_html(`<div role="region"><!> <div class="mb-grid svelte-zbkzcp" role="grid" tabindex="-1"><div class="mb-grid-inner svelte-zbkzcp"><!> <!> <!></div></div></div>`);
   function MobileDay($$anchor, $$props) {
     push($$props, true);
     const L = /* @__PURE__ */ user_derived(getLabels);
@@ -9064,16 +9237,16 @@
         gridEl.scrollTop = scrollTarget;
       }
     });
-    var div = root_1$1();
+    var div = root_16();
     let classes;
     let styles;
     var node = child(div);
     {
       var consequent_2 = ($$anchor2) => {
-        var div_1 = root_2$2();
+        var div_1 = root_4$2();
         var node_1 = child(div_1);
         each(node_1, 17, () => get(allDayEvents).slice(0, 3), (seg) => seg.ev.id, ($$anchor3, seg) => {
-          var button = root_3$1();
+          var button = root_2$2();
           let classes_1;
           let styles_1;
           var span = sibling(child(button), 2);
@@ -9082,7 +9255,7 @@
           var node_2 = sibling(span, 2);
           {
             var consequent = ($$anchor4) => {
-              var span_1 = root_4$2();
+              var span_1 = root_1$2();
               var text_1 = child(span_1);
               reset(span_1);
               template_effect(() => set_text(text_1, `${get(seg).dayIndex ?? ""}/${get(seg).totalDays ?? ""}`));
@@ -9106,7 +9279,7 @@
         var node_3 = sibling(node_1, 2);
         {
           var consequent_1 = ($$anchor3) => {
-            var span_2 = root_5$2();
+            var span_2 = root_3$2();
             var text_2 = child(span_2, true);
             reset(span_2);
             template_effect(($0) => set_text(text_2, $0), [() => get(L).nMore(get(allDayEvents).length - 3)]);
@@ -9144,7 +9317,7 @@
           var node_6 = first_child(fragment);
           {
             var consequent_3 = ($$anchor4) => {
-              var span_3 = root_8$2();
+              var span_3 = root_5$2();
               var text_4 = child(span_3, true);
               reset(span_3);
               template_effect(() => set_text(text_4, get(slot).label));
@@ -9173,7 +9346,7 @@
     var node_7 = sibling(node_4, 2);
     {
       var consequent_5 = ($$anchor2) => {
-        var div_6 = root_9();
+        var div_6 = root_7$2();
         let styles_3;
         var span_4 = child(div_6);
         var text_5 = child(span_4, true);
@@ -9192,7 +9365,7 @@
     }
     var node_8 = sibling(node_7, 2);
     each(node_8, 17, () => get(positionedEvents), (p) => p.ev.id, ($$anchor2, p) => {
-      var button_1 = root_10$1();
+      var button_1 = root_15();
       let classes_3;
       let styles_4;
       var div_7 = sibling(child(button_1), 2);
@@ -9202,7 +9375,7 @@
       var node_9 = sibling(span_5, 2);
       {
         var consequent_6 = ($$anchor3) => {
-          var span_6 = root_11$1();
+          var span_6 = root_8$1();
           var text_7 = child(span_6);
           reset(span_6);
           template_effect(($0, $1) => set_text(text_7, `${$0 ?? ""} – ${$1 ?? ""}`), [
@@ -9218,7 +9391,7 @@
       var node_10 = sibling(node_9, 2);
       {
         var consequent_7 = ($$anchor3) => {
-          var span_7 = root_12();
+          var span_7 = root_9$1();
           var text_8 = child(span_7, true);
           reset(span_7);
           template_effect(() => set_text(text_8, get(p).ev.subtitle));
@@ -9231,7 +9404,7 @@
       var node_11 = sibling(node_10, 2);
       {
         var consequent_8 = ($$anchor3) => {
-          var span_8 = root_13$1();
+          var span_8 = root_10$1();
           var text_9 = child(span_8, true);
           reset(span_8);
           template_effect(() => set_text(text_9, get(p).ev.location));
@@ -9244,9 +9417,9 @@
       var node_12 = sibling(node_11, 2);
       {
         var consequent_9 = ($$anchor3) => {
-          var div_8 = root_14$1();
+          var div_8 = root_12$1();
           each(div_8, 21, () => get(p).ev.tags, index, ($$anchor4, tag) => {
-            var span_9 = root_15();
+            var span_9 = root_11$1();
             var text_10 = child(span_9, true);
             reset(span_9);
             template_effect(() => set_text(text_10, get(tag)));
@@ -9263,11 +9436,11 @@
       var node_13 = sibling(div_7, 2);
       {
         var consequent_10 = ($$anchor3) => {
-          var span_10 = root_16();
+          var span_10 = root_13();
           append($$anchor3, span_10);
         };
         var consequent_11 = ($$anchor3) => {
-          var span_11 = root_17();
+          var span_11 = root_14();
           var text_11 = child(span_11, true);
           reset(span_11);
           template_effect(() => set_text(text_11, get(L).upNext));
@@ -9329,15 +9502,14 @@
     pop();
   }
   delegate(["touchstart", "touchmove", "touchend", "click", "keydown"]);
-  var root_2$1 = /* @__PURE__ */ from_html(`<span> </span>`);
-  var root_3 = /* @__PURE__ */ from_html(`<span class="mw-empty svelte-1d18hkf"> </span>`);
-  var root_6$1 = /* @__PURE__ */ from_html(`<span class="mw-ev-time svelte-1d18hkf"> </span>`);
-  var root_7$1 = /* @__PURE__ */ from_html(`<span class="mw-ev-time svelte-1d18hkf"> </span>`);
-  var root_5$1 = /* @__PURE__ */ from_html(`<button type="button"><span class="mw-ev-stripe svelte-1d18hkf"></span> <div class="mw-ev-body svelte-1d18hkf"><span class="mw-ev-title svelte-1d18hkf"> </span> <!></div></button>`);
-  var root_8$1 = /* @__PURE__ */ from_html(`<span class="mw-ev-more svelte-1d18hkf"> </span>`);
-  var root_4$1 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
-  var root_1 = /* @__PURE__ */ from_html(`<div role="listitem"><button class="mw-row-target svelte-1d18hkf"></button> <div class="mw-date svelte-1d18hkf"><span> </span> <!></div> <div class="mw-events svelte-1d18hkf"><!></div> <svg class="mw-chevron svelte-1d18hkf" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></div>`);
-  var root$1 = /* @__PURE__ */ from_html(`<div role="region"><div class="mw-list svelte-1d18hkf" role="list"></div></div>`);
+  var root$1 = /* @__PURE__ */ from_html(`<span> </span>`);
+  var root_1$1 = /* @__PURE__ */ from_html(`<span class="mw-empty svelte-1d18hkf"> </span>`);
+  var root_2$1 = /* @__PURE__ */ from_html(`<span class="mw-ev-time svelte-1d18hkf"> </span>`);
+  var root_3$1 = /* @__PURE__ */ from_html(`<button type="button"><span class="mw-ev-stripe svelte-1d18hkf"></span> <div class="mw-ev-body svelte-1d18hkf"><span class="mw-ev-title svelte-1d18hkf"> </span> <!></div></button>`);
+  var root_4$1 = /* @__PURE__ */ from_html(`<span class="mw-ev-more svelte-1d18hkf"> </span>`);
+  var root_5$1 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
+  var root_6$1 = /* @__PURE__ */ from_html(`<div role="listitem"><button class="mw-row-target svelte-1d18hkf"></button> <div class="mw-date svelte-1d18hkf"><span> </span> <!></div> <div class="mw-events svelte-1d18hkf"><!></div> <svg class="mw-chevron svelte-1d18hkf" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M6 3l5 5-5 5"></path></svg></div>`);
+  var root_7$1 = /* @__PURE__ */ from_html(`<div role="region"><div class="mw-list svelte-1d18hkf" role="list"></div></div>`);
   function MobileWeek($$anchor, $$props) {
     push($$props, true);
     const L = /* @__PURE__ */ user_derived(getLabels);
@@ -9450,12 +9622,12 @@
       e.preventDefault();
       handleDayTap(dayMs);
     }
-    var div = root$1();
+    var div = root_7$1();
     let classes;
     let styles;
     var div_1 = child(div);
     each(div_1, 21, () => get(dayCells), (cell) => cell.ms, ($$anchor2, cell) => {
-      var div_2 = root_1();
+      var div_2 = root_6$1();
       let classes_1;
       var button = child(div_2);
       var div_3 = sibling(button, 2);
@@ -9466,7 +9638,7 @@
       var node = sibling(span, 2);
       {
         var consequent = ($$anchor3) => {
-          var span_1 = root_2$1();
+          var span_1 = root$1();
           let classes_3;
           var text_1 = child(span_1, true);
           reset(span_1);
@@ -9485,17 +9657,17 @@
       var node_1 = child(div_4);
       {
         var consequent_1 = ($$anchor3) => {
-          var span_2 = root_3();
+          var span_2 = root_1$1();
           var text_2 = child(span_2, true);
           reset(span_2);
           template_effect(() => set_text(text_2, get(L).noEvents));
           append($$anchor3, span_2);
         };
         var alternate_1 = ($$anchor3) => {
-          var fragment = root_4$1();
+          var fragment = root_5$1();
           var node_2 = first_child(fragment);
           each(node_2, 17, () => get(cell).events.slice(0, MAX_EVENTS), (ev) => ev.id, ($$anchor4, ev) => {
-            var button_1 = root_5$1();
+            var button_1 = root_3$1();
             let classes_4;
             let styles_1;
             var div_5 = sibling(child(button_1), 2);
@@ -9505,7 +9677,7 @@
             var node_3 = sibling(span_3, 2);
             {
               var consequent_2 = ($$anchor5) => {
-                var span_4 = root_6$1();
+                var span_4 = root_2$1();
                 var text_4 = child(span_4, true);
                 reset(span_4);
                 template_effect(() => set_text(text_4, get(L).allDay));
@@ -9513,7 +9685,7 @@
               };
               var d_1 = /* @__PURE__ */ user_derived(() => isAllDay(get(ev)) || isMultiDay(get(ev)));
               var alternate = ($$anchor5) => {
-                var span_5 = root_7$1();
+                var span_5 = root_2$1();
                 var text_5 = child(span_5, true);
                 reset(span_5);
                 template_effect(($0) => set_text(text_5, $0), [() => fmtTime2(get(ev).start)]);
@@ -9561,7 +9733,7 @@
           var node_4 = sibling(node_2, 2);
           {
             var consequent_3 = ($$anchor4) => {
-              var span_6 = root_8$1();
+              var span_6 = root_4$1();
               var text_6 = child(span_6, true);
               reset(span_6);
               template_effect(($0) => set_text(text_6, $0), [() => get(L).nMore(get(cell).totalCount - MAX_EVENTS)]);
@@ -9613,8 +9785,9 @@
     pop();
   }
   delegate(["touchstart", "touchmove", "touchend", "click", "keydown"]);
+  var rest_excludes = /* @__PURE__ */ new Set(["$$slots", "$$events", "$$legacy", "mode"]);
   function Mobile($$anchor, $$props) {
-    let mode = prop($$props, "mode", 3, "day"), rest = /* @__PURE__ */ rest_props($$props, ["$$slots", "$$events", "$$legacy", "mode"]);
+    let mode = prop($$props, "mode", 3, "day"), rest = /* @__PURE__ */ rest_props($$props, rest_excludes);
     var fragment = comment();
     var node = first_child(fragment);
     {
@@ -9631,17 +9804,19 @@
     }
     append($$anchor, fragment);
   }
-  var root_4 = /* @__PURE__ */ from_html(`<button class="cal-m-nav svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M10 3 5 8l5 5" class="svelte-1b53e7w"></path></svg></button>`);
-  var root_6 = /* @__PURE__ */ from_html(`<button> </button>`);
-  var root_5 = /* @__PURE__ */ from_html(`<div class="cal-m-pills svelte-1b53e7w" role="group"></div>`);
-  var root_7 = /* @__PURE__ */ from_html(`<button class="cal-m-nav svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M6 3l5 5-5 5" class="svelte-1b53e7w"></path></svg></button>`);
-  var root_8 = /* @__PURE__ */ from_html(`<div class="cal-m-today-bar svelte-1b53e7w"><button class="cal-m-today svelte-1b53e7w"> </button></div>`);
-  var root_2 = /* @__PURE__ */ from_html(`<div class="cal-m-hd svelte-1b53e7w"><div class="cal-m-left svelte-1b53e7w"><!> <!></div> <span class="cal-m-title svelte-1b53e7w"> </span> <div class="cal-m-right svelte-1b53e7w"><!></div></div> <!>`, 1);
-  var root_11 = /* @__PURE__ */ from_html(`<button> </button>`);
-  var root_10 = /* @__PURE__ */ from_html(`<div class="cal-pills svelte-1b53e7w" role="group"></div>`);
-  var root_13 = /* @__PURE__ */ from_html(`<div class="cal-empty svelte-1b53e7w">No views registered.</div>`);
-  var root_14 = /* @__PURE__ */ from_html(`<div class="cal-loading svelte-1b53e7w"></div>`);
-  var root = /* @__PURE__ */ from_html(`<div role="region"><!> <div class="cal-body svelte-1b53e7w"><!></div> <!></div>`);
+  var root = /* @__PURE__ */ from_html(`<button class="cal-m-nav svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M10 3 5 8l5 5" class="svelte-1b53e7w"></path></svg></button>`);
+  var root_1 = /* @__PURE__ */ from_html(`<button> </button>`);
+  var root_2 = /* @__PURE__ */ from_html(`<div class="cal-m-pills svelte-1b53e7w" role="group"></div>`);
+  var root_3 = /* @__PURE__ */ from_html(`<button class="cal-m-nav svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M6 3l5 5-5 5" class="svelte-1b53e7w"></path></svg></button>`);
+  var root_4 = /* @__PURE__ */ from_html(`<div class="cal-m-today-bar svelte-1b53e7w"><button class="cal-m-today svelte-1b53e7w"> </button></div>`);
+  var root_5 = /* @__PURE__ */ from_html(`<div class="cal-m-hd svelte-1b53e7w"><div class="cal-m-left svelte-1b53e7w"><!> <!></div> <span class="cal-m-title svelte-1b53e7w"> </span> <div class="cal-m-right svelte-1b53e7w"><!></div></div> <!>`, 1);
+  var root_6 = /* @__PURE__ */ from_html(`<button class="cal-hd-today svelte-1b53e7w"> </button>`);
+  var root_7 = /* @__PURE__ */ from_html(`<!> <button class="cal-hd-btn svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M10 3 5 8l5 5" class="svelte-1b53e7w"></path></svg></button> <button class="cal-hd-btn svelte-1b53e7w"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true" class="svelte-1b53e7w"><path d="M6 3l5 5-5 5" class="svelte-1b53e7w"></path></svg></button>`, 1);
+  var root_8 = /* @__PURE__ */ from_html(`<div class="cal-pills svelte-1b53e7w" role="group"></div>`);
+  var root_9 = /* @__PURE__ */ from_html(`<div class="cal-hd svelte-1b53e7w"><div class="cal-hd-side svelte-1b53e7w"><!></div> <span class="cal-hd-title svelte-1b53e7w"> </span> <div class="cal-hd-side cal-hd-side--end svelte-1b53e7w"><!></div></div>`);
+  var root_10 = /* @__PURE__ */ from_html(`<div class="cal-empty svelte-1b53e7w">No views registered.</div>`);
+  var root_11 = /* @__PURE__ */ from_html(`<div class="cal-loading svelte-1b53e7w"></div>`);
+  var root_12 = /* @__PURE__ */ from_html(`<div role="region"><!> <div class="cal-body svelte-1b53e7w"><!></div> <!></div>`);
   function Calendar($$anchor, $$props) {
     push($$props, true);
     const MOBILE_BREAKPOINT = 768;
@@ -9827,9 +10002,6 @@
       get emptySnippet() {
         return $$props.empty;
       },
-      get showNavigation() {
-        return showNavigation();
-      },
       get equalDays() {
         return equalDays();
       },
@@ -9955,7 +10127,7 @@
       focusDate: viewState.focusDate,
       mode: viewState.mode
     }));
-    var div = root();
+    var div = root_12();
     let classes;
     var node = child(div);
     {
@@ -9966,7 +10138,7 @@
         append($$anchor2, fragment);
       };
       var consequent_6 = ($$anchor2) => {
-        var fragment_1 = root_2();
+        var fragment_1 = root_5();
         var div_1 = first_child(fragment_1);
         var div_2 = child(div_1);
         var node_2 = child(div_2);
@@ -9978,7 +10150,7 @@
             append($$anchor3, fragment_2);
           };
           var consequent_2 = ($$anchor3) => {
-            var button = root_4();
+            var button = root();
             template_effect(() => set_attribute(button, "aria-label", viewState.mode === "day" ? get(L).previousDay : get(L).previousWeek));
             delegated("click", button, () => viewState.prev());
             append($$anchor3, button);
@@ -9991,9 +10163,9 @@
         var node_4 = sibling(node_2, 2);
         {
           var consequent_3 = ($$anchor3) => {
-            var div_3 = root_5();
+            var div_3 = root_2();
             each(div_3, 21, () => get(modes), index, ($$anchor4, g) => {
-              var button_1 = root_6();
+              var button_1 = root_1();
               let classes_1;
               var text2 = child(button_1, true);
               reset(button_1);
@@ -10021,7 +10193,7 @@
         var node_5 = child(div_4);
         {
           var consequent_4 = ($$anchor3) => {
-            var button_2 = root_7();
+            var button_2 = root_3();
             template_effect(() => set_attribute(button_2, "aria-label", viewState.mode === "day" ? get(L).nextDay : get(L).nextWeek));
             delegated("click", button_2, () => viewState.next());
             append($$anchor3, button_2);
@@ -10035,7 +10207,7 @@
         var node_6 = sibling(div_1, 2);
         {
           var consequent_5 = ($$anchor3) => {
-            var div_5 = root_8();
+            var div_5 = root_4();
             var button_3 = child(div_5);
             var text_2 = child(button_3, true);
             reset(button_3);
@@ -10051,49 +10223,100 @@
         template_effect(() => set_text(text_1, get(dateLabel)));
         append($$anchor2, fragment_1);
       };
-      var alternate = ($$anchor2) => {
-        var fragment_3 = comment();
-        var node_7 = first_child(fragment_3);
+      var consequent_11 = ($$anchor2) => {
+        var div_6 = root_9();
+        var div_7 = child(div_6);
+        var node_7 = child(div_7);
         {
           var consequent_7 = ($$anchor3) => {
-            var div_6 = root_10();
-            each(div_6, 21, () => get(modes), index, ($$anchor4, g) => {
-              var button_4 = root_11();
-              let classes_2;
-              var text_3 = child(button_4, true);
-              reset(button_4);
-              template_effect(() => {
-                classes_2 = set_class(button_4, 1, "cal-pill svelte-1b53e7w", null, classes_2, { "cal-pill--active": viewState.mode === get(g) });
-                set_attribute(button_4, "aria-pressed", viewState.mode === get(g));
-                set_text(text_3, get(g) === "day" ? get(L).day : get(L).week);
+            var fragment_3 = comment();
+            var node_8 = first_child(fragment_3);
+            snippet(node_8, () => $$props.navigation, () => get(navCtx));
+            append($$anchor3, fragment_3);
+          };
+          var consequent_9 = ($$anchor3) => {
+            var fragment_4 = root_7();
+            var node_9 = first_child(fragment_4);
+            {
+              var consequent_8 = ($$anchor4) => {
+                var button_4 = root_6();
+                var text_3 = child(button_4, true);
+                reset(button_4);
+                template_effect(() => {
+                  set_attribute(button_4, "title", get(L).goToToday);
+                  set_text(text_3, get(L).today);
+                });
+                delegated("click", button_4, () => viewState.goToday());
+                append($$anchor4, button_4);
+              };
+              if_block(node_9, ($$render) => {
+                if (!get(viewIncludesToday)) $$render(consequent_8);
               });
-              delegated("click", button_4, () => switchMode(get(g)));
-              append($$anchor4, button_4);
+            }
+            var button_5 = sibling(node_9, 2);
+            var button_6 = sibling(button_5, 2);
+            template_effect(() => {
+              set_attribute(button_5, "aria-label", viewState.mode === "day" ? get(L).previousDay : get(L).previousWeek);
+              set_attribute(button_6, "aria-label", viewState.mode === "day" ? get(L).nextDay : get(L).nextWeek);
             });
-            reset(div_6);
-            template_effect(() => set_attribute(div_6, "aria-label", get(L).viewMode));
-            append($$anchor3, div_6);
+            delegated("click", button_5, () => viewState.prev());
+            delegated("click", button_6, () => viewState.next());
+            append($$anchor3, fragment_4);
           };
           if_block(node_7, ($$render) => {
-            if (showModePills() && get(modes).length > 1 && get(activeView)?.label !== "Agenda") $$render(consequent_7);
+            if ($$props.navigation) $$render(consequent_7);
+            else if (showNavigation()) $$render(consequent_9, 1);
           });
         }
-        append($$anchor2, fragment_3);
+        reset(div_7);
+        var span_1 = sibling(div_7, 2);
+        var text_4 = child(span_1, true);
+        reset(span_1);
+        var div_8 = sibling(span_1, 2);
+        var node_10 = child(div_8);
+        {
+          var consequent_10 = ($$anchor3) => {
+            var div_9 = root_8();
+            each(div_9, 21, () => get(modes), index, ($$anchor4, g) => {
+              var button_7 = root_1();
+              let classes_2;
+              var text_5 = child(button_7, true);
+              reset(button_7);
+              template_effect(() => {
+                classes_2 = set_class(button_7, 1, "cal-pill svelte-1b53e7w", null, classes_2, { "cal-pill--active": viewState.mode === get(g) });
+                set_attribute(button_7, "aria-pressed", viewState.mode === get(g));
+                set_text(text_5, get(g) === "day" ? get(L).day : get(L).week);
+              });
+              delegated("click", button_7, () => switchMode(get(g)));
+              append($$anchor4, button_7);
+            });
+            reset(div_9);
+            template_effect(() => set_attribute(div_9, "aria-label", get(L).viewMode));
+            append($$anchor3, div_9);
+          };
+          if_block(node_10, ($$render) => {
+            if (showModePills() && get(modes).length > 1) $$render(consequent_10);
+          });
+        }
+        reset(div_8);
+        reset(div_6);
+        template_effect(() => set_text(text_4, get(dateLabel)));
+        append($$anchor2, div_6);
       };
       if_block(node, ($$render) => {
         if ($$props.header) $$render(consequent);
         else if (get(useMobile)) $$render(consequent_6, 1);
-        else $$render(alternate, -1);
+        else if (showNavigation() || showModePills() && get(modes).length > 1 || get(dateLabel)) $$render(consequent_11, 2);
       });
     }
-    var div_7 = sibling(node, 2);
-    var node_8 = child(div_7);
+    var div_10 = sibling(node, 2);
+    var node_11 = child(div_10);
     {
-      var consequent_8 = ($$anchor2) => {
+      var consequent_12 = ($$anchor2) => {
         const Comp = /* @__PURE__ */ user_derived(() => get(activeView).component);
-        var fragment_4 = comment();
-        var node_9 = first_child(fragment_4);
-        component(node_9, () => get(Comp), ($$anchor3, Comp_1) => {
+        var fragment_5 = comment();
+        var node_12 = first_child(fragment_5);
+        component(node_12, () => get(Comp), ($$anchor3, Comp_1) => {
           Comp_1($$anchor3, spread_props(
             {
               get events() {
@@ -10134,26 +10357,26 @@
             () => get(activeView).props ?? {}
           ));
         });
-        append($$anchor2, fragment_4);
+        append($$anchor2, fragment_5);
       };
-      var alternate_1 = ($$anchor2) => {
-        var div_8 = root_13();
-        append($$anchor2, div_8);
+      var alternate = ($$anchor2) => {
+        var div_11 = root_10();
+        append($$anchor2, div_11);
       };
-      if_block(node_8, ($$render) => {
-        if (get(activeView)) $$render(consequent_8);
-        else $$render(alternate_1, -1);
+      if_block(node_11, ($$render) => {
+        if (get(activeView)) $$render(consequent_12);
+        else $$render(alternate, -1);
       });
     }
-    reset(div_7);
-    var node_10 = sibling(div_7, 2);
+    reset(div_10);
+    var node_13 = sibling(div_10, 2);
     {
-      var consequent_9 = ($$anchor2) => {
-        var div_9 = root_14();
-        append($$anchor2, div_9);
+      var consequent_13 = ($$anchor2) => {
+        var div_12 = root_11();
+        append($$anchor2, div_12);
       };
-      if_block(node_10, ($$render) => {
-        if (get(store).loading) $$render(consequent_9);
+      if_block(node_13, ($$render) => {
+        if (get(store).loading) $$render(consequent_13);
       });
     }
     reset(div);
