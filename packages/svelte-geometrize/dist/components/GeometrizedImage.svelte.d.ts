@@ -1,8 +1,16 @@
 import type { HTMLImgAttributes } from 'svelte/elements';
 import type { GeometrizePlaceholder } from '../core/types.js';
+export interface GeometrizeSource {
+    srcset: string;
+    type?: string;
+    media?: string;
+    sizes?: string;
+}
 interface Props extends Omit<HTMLImgAttributes, 'src' | 'alt' | 'class' | 'placeholder'> {
     placeholder: GeometrizePlaceholder;
-    src: string;
+    src?: string;
+    srcset?: string;
+    sources?: GeometrizeSource[];
     alt: string;
     /** Class applied to the wrapper element. */
     class?: string;
