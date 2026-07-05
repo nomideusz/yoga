@@ -7,6 +7,7 @@ import type { Client } from '@libsql/client';
 import { createSearchEngine, type SchemaAdapter, type SearchParams as BaseSearchParams, type SearchResponse, type SearchResult as BaseSearchResult, type DatabaseClient } from '@nomideusz/svelte-search';
 import { plLocale } from '@nomideusz/svelte-search/locales/pl';
 import { haversineKm, walkingMinutes, normalize } from '@nomideusz/svelte-search';
+import { yogaFirst, wantsNonYoga } from './rank';
 
 /** Yoga search params — backward compat with citySlug/styleSlug */
 export interface SearchParams extends Omit<BaseSearchParams, 'locationSlug' | 'categorySlug'> {
@@ -142,11 +143,22 @@ function getEngine(client: Client) {
 
 export async function search(db: Client, params: SearchParams): Promise<SearchResponse<SearchResult>> {
   const { citySlug, styleSlug, ...rest } = params;
-  return getEngine(db).search({
+  const boostYoga = !wantsNonYoga(normalize(params.query, plLocale));
+  const limit = params.limit ?? 20;
+
+  // Yoga-first: generic queries rank yoga schools above pilates/meditation
+  // places. Over-fetch so yoga schools below the engine's cutoff can still
+  // surface, partition (stable within tiers), then trim to the caller's limit.
+  const resp = await getEngine(db).search({
     ...rest,
     locationSlug: citySlug,
     categorySlug: styleSlug,
+    limit: boostYoga ? Math.min(50, limit * 3) : limit,
   });
+  if (boostYoga) {
+    resp.results = yogaFirst(resp.results, (r) => ({ name: r.name, styles: r.styles })).slice(0, limit);
+  }
+  return resp;
 }
 
 // ── Autocomplete (yoga-specific — page-context-aware) ──────

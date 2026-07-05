@@ -37,3 +37,4 @@ export { resolveSearch, findNearestCityWithSchools, type SearchContext, type Sea
 export { search, autocomplete } from './engine';
 export { loadResolverLookups, reindexAllTrigrams, rebuildFts, renormalizeAll, checkFtsSync } from './indexer';
 export { trackSearch, type TrackSearchEvent } from './track';
+export { isYogaPlace, yogaFirst, wantsNonYoga } from './rank';

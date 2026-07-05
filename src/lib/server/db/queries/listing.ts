@@ -1,6 +1,7 @@
 import { db } from "../index";
 import { schools, styles, schoolStyles, scheduleEntries } from "../schema";
 import { eq, and, or, sql } from "drizzle-orm";
+import { yogaFirst } from "$lib/search/rank";
 import type {
   Listing,
   ScheduleEntryData,
@@ -219,16 +220,21 @@ export async function getAutocompleteIndex(): Promise<AutocompleteEntry[]> {
     stylesBySchool.set(row.schoolId, arr);
   }
 
-  const result = rows.map((s) => ({
-    id: s.id,
-    slug: s.slug,
-    name: s.name,
-    city: s.city,
-    citySlug: s.citySlug ?? "",
-    address: s.address ?? "",
-    neighborhood: s.neighborhood,
-    styles: stylesBySchool.get(s.id) ?? [],
-  }));
+  // Yoga-first so the client dropdown's top-N slice prefers yoga schools
+  // over pilates/meditation places when both match
+  const result = yogaFirst(
+    rows.map((s) => ({
+      id: s.id,
+      slug: s.slug,
+      name: s.name,
+      city: s.city,
+      citySlug: s.citySlug ?? "",
+      address: s.address ?? "",
+      neighborhood: s.neighborhood,
+      styles: stylesBySchool.get(s.id) ?? [],
+    })),
+    (e) => ({ name: e.name, styles: e.styles }),
+  );
 
   _autocompleteCache = result;
   _autocompleteCacheTs = Date.now();
