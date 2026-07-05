@@ -158,6 +158,9 @@
   const PROPS_IS_UPDATED = 1 << 2;
   const PROPS_IS_BINDABLE = 1 << 3;
   const PROPS_IS_LAZY_INITIAL = 1 << 4;
+  const TRANSITION_IN = 1;
+  const TRANSITION_OUT = 1 << 1;
+  const TRANSITION_GLOBAL = 1 << 2;
   const TEMPLATE_FRAGMENT = 1;
   const TEMPLATE_USE_IMPORT_NODE = 1 << 1;
   const HYDRATION_START = "[";
@@ -2970,8 +2973,8 @@
     remove_reactions(effect2, 0);
     var transitions = effect2.nodes && effect2.nodes.t;
     if (transitions !== null) {
-      for (const transition of transitions) {
-        transition.stop();
+      for (const transition2 of transitions) {
+        transition2.stop();
       }
     }
     execute_effect_teardown(effect2);
@@ -3011,8 +3014,8 @@
     var remaining = transitions.length;
     if (remaining > 0) {
       var check = () => --remaining || fn();
-      for (var transition of transitions) {
-        transition.out(check);
+      for (var transition2 of transitions) {
+        transition2.out(check);
       }
     } else {
       fn();
@@ -3023,9 +3026,9 @@
     effect2.f ^= INERT;
     var t = effect2.nodes && effect2.nodes.t;
     if (t !== null) {
-      for (const transition of t) {
-        if (transition.is_global || local) {
-          transitions.push(transition);
+      for (const transition2 of t) {
+        if (transition2.is_global || local) {
+          transitions.push(transition2);
         }
       }
     }
@@ -3061,9 +3064,9 @@
     }
     var t = effect2.nodes && effect2.nodes.t;
     if (t !== null) {
-      for (const transition of t) {
-        if (transition.is_global || local) {
-          transition.in();
+      for (const transition2 of t) {
+        if (transition2.is_global || local) {
+          transition2.in();
         }
       }
     }
@@ -3100,6 +3103,12 @@
       dom.addEventListener(event_name, target_handler, options);
     }
     return target_handler;
+  }
+  function on(element, type, handler, options = {}) {
+    var target_handler = create_event(type, element, handler, options);
+    return () => {
+      element.removeEventListener(type, target_handler, options);
+    };
   }
   function event(event_name, dom, handler, capture2, passive) {
     var options = { capture: capture2, passive };
@@ -3330,6 +3339,7 @@
   function is_passive_event(name) {
     return PASSIVE_EVENTS.includes(name);
   }
+  let should_intro = true;
   function set_text(text2, value) {
     var str = value == null ? "" : typeof value === "object" ? `${value}` : value;
     if (str !== /** @type {any} */
@@ -3416,7 +3426,9 @@
               null
             );
           }
+          should_intro = intro;
           component2 = Component(anchor_node2, props) || {};
+          should_intro = true;
           if (hydrating) {
             active_effect.nodes.end = hydrate_node;
             if (hydrate_node === null || hydrate_node.nodeType !== COMMENT_NODE || /** @type {Comment} */
@@ -3641,9 +3653,9 @@
      * @param {TemplateNode} anchor
      * @param {boolean} transition
      */
-    constructor(anchor, transition = true) {
+    constructor(anchor, transition2 = true) {
       this.anchor = anchor;
-      this.#transition = transition;
+      this.#transition = transition2;
     }
     /**
      * @param {Batch} batch
@@ -4300,6 +4312,359 @@
       branches.ensure(component2, component2 && ((target) => render_fn(target, component2)));
     }, EFFECT_TRANSPARENT);
   }
+  const now = () => performance.now();
+  const raf = {
+    // don't access requestAnimationFrame eagerly outside method
+    // this allows basic testing of user code without JSDOM
+    // bunder will eval and remove ternary when the user's app is built
+    tick: (
+      /** @param {any} _ */
+      (_) => requestAnimationFrame(_)
+    ),
+    now: () => now(),
+    tasks: /* @__PURE__ */ new Set()
+  };
+  function run_tasks() {
+    const now2 = raf.now();
+    raf.tasks.forEach((task) => {
+      if (!task.c(now2)) {
+        raf.tasks.delete(task);
+        task.f();
+      }
+    });
+    if (raf.tasks.size !== 0) {
+      raf.tick(run_tasks);
+    }
+  }
+  function loop(callback) {
+    let task;
+    if (raf.tasks.size === 0) {
+      raf.tick(run_tasks);
+    }
+    return {
+      promise: new Promise((fulfill) => {
+        raf.tasks.add(task = { c: callback, f: fulfill });
+      }),
+      abort() {
+        raf.tasks.delete(task);
+      }
+    };
+  }
+  function dispatch_event(element, type) {
+    without_reactive_context(() => {
+      element.dispatchEvent(new CustomEvent(type));
+    });
+  }
+  function css_property_to_camelcase(style) {
+    if (style === "float") return "cssFloat";
+    if (style === "offset") return "cssOffset";
+    if (style.startsWith("--")) return style;
+    const parts = style.split("-");
+    if (parts.length === 1) return parts[0];
+    return parts[0] + parts.slice(1).map(
+      /** @param {any} word */
+      (word) => word[0].toUpperCase() + word.slice(1)
+    ).join("");
+  }
+  function css_to_keyframe(css) {
+    const keyframe = {};
+    const parts = css.split(";");
+    for (const part of parts) {
+      const [property, value] = part.split(":");
+      if (!property || value === void 0) break;
+      const formatted_property = css_property_to_camelcase(property.trim());
+      keyframe[formatted_property] = value.trim();
+    }
+    return keyframe;
+  }
+  const linear = (t) => t;
+  function animation(element, get_fn, get_params) {
+    var effect2 = (
+      /** @type {Effect} */
+      active_effect
+    );
+    var nodes = (
+      /** @type {EffectNodes} */
+      effect2.nodes
+    );
+    var from;
+    var to;
+    var animation2;
+    var original_styles = null;
+    nodes.a ??= {
+      element,
+      measure() {
+        from = this.element.getBoundingClientRect();
+      },
+      apply() {
+        animation2?.abort();
+        to = this.element.getBoundingClientRect();
+        if (from.left !== to.left || from.right !== to.right || from.top !== to.top || from.bottom !== to.bottom) {
+          const options = get_fn()(this.element, { from, to }, get_params?.());
+          animation2 = animate(
+            this.element,
+            options,
+            void 0,
+            1,
+            () => {
+            },
+            () => {
+              animation2?.abort();
+              animation2 = void 0;
+            }
+          );
+        }
+      },
+      fix() {
+        if (element.getAnimations().length) return;
+        var { position, width, height } = getComputedStyle(element);
+        if (position !== "absolute" && position !== "fixed") {
+          var style = (
+            /** @type {HTMLElement | SVGElement} */
+            element.style
+          );
+          original_styles = {
+            position: style.position,
+            width: style.width,
+            height: style.height,
+            transform: style.transform
+          };
+          style.position = "absolute";
+          style.width = width;
+          style.height = height;
+          var to2 = element.getBoundingClientRect();
+          if (from.left !== to2.left || from.top !== to2.top) {
+            var transform = `translate(${from.left - to2.left}px, ${from.top - to2.top}px)`;
+            style.transform = style.transform ? `${style.transform} ${transform}` : transform;
+          }
+        }
+      },
+      unfix() {
+        if (original_styles) {
+          var style = (
+            /** @type {HTMLElement | SVGElement} */
+            element.style
+          );
+          style.position = original_styles.position;
+          style.width = original_styles.width;
+          style.height = original_styles.height;
+          style.transform = original_styles.transform;
+        }
+      }
+    };
+    nodes.a.element = element;
+  }
+  function transition(flags2, element, get_fn, get_params) {
+    var is_intro = (flags2 & TRANSITION_IN) !== 0;
+    var is_outro = (flags2 & TRANSITION_OUT) !== 0;
+    var is_both = is_intro && is_outro;
+    var is_global = (flags2 & TRANSITION_GLOBAL) !== 0;
+    var direction = is_both ? "both" : is_intro ? "in" : "out";
+    var current_options;
+    var inert = element.inert;
+    var overflow = element.style.overflow;
+    var intro;
+    var outro;
+    function get_options() {
+      return without_reactive_context(() => {
+        return current_options ??= get_fn()(element, get_params?.() ?? /** @type {P} */
+        {}, {
+          direction
+        });
+      });
+    }
+    var transition2 = {
+      is_global,
+      in() {
+        element.inert = inert;
+        if (!is_intro) {
+          outro?.abort();
+          outro?.reset?.();
+          return;
+        }
+        if (!is_outro) {
+          intro?.abort();
+        }
+        intro = animate(
+          element,
+          get_options(),
+          outro,
+          1,
+          () => {
+            dispatch_event(element, "introstart");
+          },
+          () => {
+            dispatch_event(element, "introend");
+            intro?.abort();
+            intro = current_options = void 0;
+            element.style.overflow = overflow;
+          }
+        );
+      },
+      out(fn) {
+        if (!is_outro) {
+          fn?.();
+          current_options = void 0;
+          return;
+        }
+        element.inert = true;
+        outro = animate(
+          element,
+          get_options(),
+          intro,
+          0,
+          () => {
+            dispatch_event(element, "outrostart");
+          },
+          () => {
+            dispatch_event(element, "outroend");
+            fn?.();
+          }
+        );
+      },
+      stop: () => {
+        intro?.abort();
+        outro?.abort();
+      }
+    };
+    var e = (
+      /** @type {Effect & { nodes: EffectNodes }} */
+      active_effect
+    );
+    (e.nodes.t ??= []).push(transition2);
+    if (is_intro && should_intro) {
+      var run = is_global;
+      if (!run) {
+        var block2 = (
+          /** @type {Effect | null} */
+          e.parent
+        );
+        while (block2 && (block2.f & EFFECT_TRANSPARENT) !== 0) {
+          while (block2 = block2.parent) {
+            if ((block2.f & BLOCK_EFFECT) !== 0) break;
+          }
+        }
+        run = !block2 || (block2.f & REACTION_RAN) !== 0;
+      }
+      if (run) {
+        effect(() => {
+          untrack(() => transition2.in());
+        });
+      }
+    }
+  }
+  function animate(element, options, counterpart, t2, on_begin, on_finish) {
+    var is_intro = t2 === 1;
+    if (is_function(options)) {
+      var a;
+      var aborted = false;
+      queue_micro_task(() => {
+        if (aborted) return;
+        var o = options({ direction: is_intro ? "in" : "out" });
+        a = animate(element, o, counterpart, t2, on_begin, on_finish);
+      });
+      return {
+        abort: () => {
+          aborted = true;
+          a?.abort();
+        },
+        deactivate: () => a.deactivate(),
+        reset: () => a.reset(),
+        t: () => a.t()
+      };
+    }
+    counterpart?.deactivate();
+    if (!options?.duration && !options?.delay) {
+      on_begin();
+      on_finish();
+      return {
+        abort: noop,
+        deactivate: noop,
+        reset: noop,
+        t: () => t2
+      };
+    }
+    const { delay = 0, css, tick: tick2, easing = linear } = options;
+    var keyframes = [];
+    if (is_intro && counterpart === void 0) {
+      if (tick2) {
+        tick2(0, 1);
+      }
+      if (css) {
+        var styles = css_to_keyframe(css(0, 1));
+        keyframes.push(styles, styles);
+      }
+    }
+    var get_t = () => 1 - t2;
+    var animation2 = element.animate(keyframes, { duration: delay, fill: "forwards" });
+    animation2.onfinish = () => {
+      animation2.cancel();
+      on_begin();
+      var t1 = counterpart?.t() ?? 1 - t2;
+      counterpart?.abort();
+      var delta = t2 - t1;
+      var duration2 = (
+        /** @type {number} */
+        options.duration * Math.abs(delta)
+      );
+      var keyframes2 = [];
+      if (duration2 > 0) {
+        var needs_overflow_hidden = false;
+        if (css) {
+          var n = Math.ceil(duration2 / (1e3 / 60));
+          for (var i = 0; i <= n; i += 1) {
+            var t = t1 + delta * easing(i / n);
+            var styles2 = css_to_keyframe(css(t, 1 - t));
+            keyframes2.push(styles2);
+            needs_overflow_hidden ||= styles2.overflow === "hidden";
+          }
+        }
+        if (needs_overflow_hidden) {
+          element.style.overflow = "hidden";
+        }
+        get_t = () => {
+          var time = (
+            /** @type {number} */
+            /** @type {globalThis.Animation} */
+            animation2.currentTime
+          );
+          return t1 + delta * easing(time / duration2);
+        };
+        if (tick2) {
+          loop(() => {
+            if (animation2.playState !== "running") return false;
+            var t3 = get_t();
+            tick2(t3, 1 - t3);
+            return true;
+          });
+        }
+      }
+      animation2 = element.animate(keyframes2, { duration: duration2, fill: "forwards" });
+      animation2.onfinish = () => {
+        get_t = () => t2;
+        tick2?.(t2, 1 - t2);
+        on_finish();
+      };
+    };
+    return {
+      abort: () => {
+        if (animation2) {
+          animation2.cancel();
+          animation2.effect = null;
+          animation2.onfinish = noop;
+        }
+      },
+      deactivate: () => {
+        on_finish = noop;
+      },
+      reset: () => {
+        if (t2 === 0) {
+          tick2?.(1, 0);
+        }
+      },
+      t: () => get_t()
+    };
+  }
   const whitespace = [..." 	\n\r\f \v\uFEFF"];
   function to_class(value, hash, directives) {
     var classname = value == null ? "" : "" + value;
@@ -4949,6 +5314,40 @@
     get size() {
       get(this.#size);
       return super.size;
+    }
+  }
+  class ReactiveValue {
+    #fn;
+    #subscribe;
+    /**
+     *
+     * @param {() => T} fn
+     * @param {(update: () => void) => void} onsubscribe
+     */
+    constructor(fn, onsubscribe) {
+      this.#fn = fn;
+      this.#subscribe = createSubscriber(onsubscribe);
+    }
+    get current() {
+      this.#subscribe();
+      return this.#fn();
+    }
+  }
+  const parenthesis_regex = /\(.+\)/;
+  const non_parenthesized_keywords = /* @__PURE__ */ new Set(["all", "print", "screen", "and", "or", "not", "only"]);
+  class MediaQuery extends ReactiveValue {
+    /**
+     * @param {string} query A media query string
+     * @param {boolean} [fallback] Fallback value for the server
+     */
+    constructor(query, fallback) {
+      let final_query = parenthesis_regex.test(query) || // we need to use `some` here because technically this `window.matchMedia('random,screen')` still returns true
+      query.split(/[\s,]+/).some((keyword) => non_parenthesized_keywords.has(keyword.trim())) ? query : `(${query})`;
+      const q = window.matchMedia(final_query);
+      super(
+        () => q.matches,
+        (update) => on(q, "change", update)
+      );
     }
   }
   const constructFromSymbol = /* @__PURE__ */ Symbol.for("constructDateFrom");
@@ -5908,6 +6307,71 @@
       }
     };
   }
+  function cubic_out(t) {
+    const f = t - 1;
+    return f * f * f + 1;
+  }
+  function assign(tar, src) {
+    for (const k in src) tar[k] = src[k];
+    return (
+      /** @type {T & S} */
+      tar
+    );
+  }
+  function crossfade({ fallback, ...defaults }) {
+    const to_receive = /* @__PURE__ */ new Map();
+    const to_send = /* @__PURE__ */ new Map();
+    function crossfade2(from_node, node, params) {
+      const {
+        delay = 0,
+        duration: duration2 = (
+          /** @param {number} d */
+          (d2) => Math.sqrt(d2) * 30
+        ),
+        easing = cubic_out
+      } = assign(assign({}, defaults), params);
+      const from = from_node.getBoundingClientRect();
+      const to = node.getBoundingClientRect();
+      const dx = from.left - to.left;
+      const dy = from.top - to.top;
+      const dw = from.width / to.width;
+      const dh = from.height / to.height;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      const style = getComputedStyle(node);
+      const transform = style.transform === "none" ? "" : style.transform;
+      const opacity = +style.opacity;
+      return {
+        delay,
+        duration: typeof duration2 === "function" ? duration2(d) : duration2,
+        easing,
+        css: (t, u) => `
+			   opacity: ${t * opacity};
+			   transform-origin: top left;
+			   transform: ${transform} translate(${u * dx}px,${u * dy}px) scale(${t + (1 - t) * dw}, ${t + (1 - t) * dh});
+		   `
+      };
+    }
+    function transition2(items, counterparts, intro) {
+      return (node, params) => {
+        items.set(params.key, node);
+        return () => {
+          if (counterparts.has(params.key)) {
+            const other_node = counterparts.get(params.key);
+            counterparts.delete(params.key);
+            return crossfade2(
+              /** @type {Element} */
+              other_node,
+              node,
+              params
+            );
+          }
+          items.delete(params.key);
+          return fallback && fallback(node, params, intro);
+        };
+      };
+    }
+    return [transition2(to_send, to_receive, false), transition2(to_receive, to_send, true)];
+  }
   function createClock() {
     let tick2 = /* @__PURE__ */ state(proxy(Date.now()));
     let today = /* @__PURE__ */ state(proxy(sod(Date.now())));
@@ -6211,7 +6675,7 @@
       contentGap: 6
     });
     const positionedEvents = /* @__PURE__ */ user_derived(() => {
-      const now = clock.tick;
+      const now2 = clock.tick;
       const dragP = get(drag)?.active && get(drag).mode === "move" ? get(drag).payload : null;
       const staticEvents = [];
       let draggedEv = null;
@@ -6220,13 +6684,13 @@
         else staticEvents.push(ev);
       }
       const sorted = [...staticEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
-      const todayStart = sod(now);
+      const todayStart = sod(now2);
       const todayEnd = todayStart + DAY_MS;
       let nextEventId = null;
       for (const ev of sorted) {
         const s = ev.start.getTime();
         const e = ev.end.getTime();
-        if (s >= todayStart && s < todayEnd && s > now && !(s <= now && e > now)) {
+        if (s >= todayStart && s < todayEnd && s > now2 && !(s <= now2 && e > now2)) {
           nextEventId = ev.id;
           break;
         }
@@ -6242,7 +6706,7 @@
           width: Math.max(xEnd - x, 28),
           row: 0,
           groupMaxRow: 1,
-          isCurrent: s <= now && e > now,
+          isCurrent: s <= now2 && e > now2,
           isNext: ev.id === nextEventId,
           isDragged: false,
           startMs: s,
@@ -6315,7 +6779,7 @@
           groupMaxRow: 1,
           topPx: get(contentTop),
           heightPx: dragH,
-          isCurrent: draggedEv.start.getTime() <= now && draggedEv.end.getTime() > now,
+          isCurrent: draggedEv.start.getTime() <= now2 && draggedEv.end.getTime() > now2,
           isNext: false,
           isDragged: true,
           fit: measure.fitContent({
@@ -6889,6 +7353,60 @@
     pop();
   }
   delegate(["pointerdown", "click", "keydown"]);
+  function cubicOut(t) {
+    const f = t - 1;
+    return f * f * f + 1;
+  }
+  function flip(node, { from, to }, params = {}) {
+    var { delay = 0, duration: duration2 = (d) => Math.sqrt(d) * 120, easing = cubicOut } = params;
+    var style = getComputedStyle(node);
+    var transform = style.transform === "none" ? "" : style.transform;
+    var [ox, oy] = style.transformOrigin.split(" ").map(parseFloat);
+    ox /= node.clientWidth;
+    oy /= node.clientHeight;
+    var zoom = get_zoom(node);
+    var sx = node.clientWidth / to.width / zoom;
+    var sy = node.clientHeight / to.height / zoom;
+    var fx = from.left + from.width * ox;
+    var fy = from.top + from.height * oy;
+    var tx = to.left + to.width * ox;
+    var ty = to.top + to.height * oy;
+    var dx = (fx - tx) * sx;
+    var dy = (fy - ty) * sy;
+    var dsx = from.width / to.width;
+    var dsy = from.height / to.height;
+    return {
+      delay,
+      duration: typeof duration2 === "function" ? duration2(Math.sqrt(dx * dx + dy * dy)) : duration2,
+      easing,
+      css: (t, u) => {
+        var x = u * dx;
+        var y = u * dy;
+        var sx2 = t + u * dsx;
+        var sy2 = t + u * dsy;
+        return `transform: ${transform} translate(${x}px, ${y}px) scale(${sx2}, ${sy2});`;
+      }
+    };
+  }
+  function get_zoom(element) {
+    if ("currentCSSZoom" in element) {
+      return (
+        /** @type {number} */
+        element.currentCSSZoom
+      );
+    }
+    var current = element;
+    var zoom = 1;
+    while (current !== null) {
+      zoom *= +getComputedStyle(current).zoom;
+      current = /** @type {Element | null} */
+      current.parentElement;
+    }
+    return zoom;
+  }
+  const prefersReducedMotion = /* @__PURE__ */ new MediaQuery(
+    "(prefers-reduced-motion: reduce)"
+  );
   const allDaySegmentContent = ($$anchor, seg = noop) => {
     var fragment = root_3$5();
     var node = first_child(fragment);
@@ -6980,6 +7498,8 @@
     let mondayStart = prop($$props, "mondayStart", 3, true), height = prop($$props, "height", 3, 520), events = prop($$props, "events", 19, () => []), style = prop($$props, "style", 3, ""), selectedEventId = prop($$props, "selectedEventId", 3, null), readOnly = prop($$props, "readOnly", 3, false);
     const ctx = useCalendarContext();
     const clock = createClock();
+    const ANIM = /* @__PURE__ */ user_derived(() => prefersReducedMotion.current ? 0 : 180);
+    const [previewSend, previewReceive] = crossfade({ duration: () => prefersReducedMotion.current ? 0 : 160 });
     const drag = /* @__PURE__ */ user_derived(() => ctx.drag);
     const commitDragCtx = /* @__PURE__ */ user_derived(() => ctx.commitDrag);
     const viewState = /* @__PURE__ */ user_derived(() => ctx.viewState);
@@ -7167,16 +7687,21 @@
       if (!get(dragPreviewEvent)) return day.events;
       return day.events.filter((ev) => ev.id !== get(dragPreviewEvent).id);
     }
+    const previewKeySnapshot = /* @__PURE__ */ new Map();
     function dragPreviewTimedForDay(dayMs) {
       const ev = get(dragPreviewEvent);
       if (!ev || isAllDay(ev) || isMultiDay(ev)) return null;
       const dayEnd = dayMs + DAY_MS;
-      return ev.start.getTime() < dayEnd && ev.end.getTime() > dayMs ? ev : null;
+      const hit = ev.start.getTime() < dayEnd && ev.end.getTime() > dayMs;
+      if (hit) previewKeySnapshot.set("timed", ev.id);
+      return hit ? ev : null;
     }
     function dragPreviewSegmentForDay(dayMs) {
       const ev = get(dragPreviewEvent);
       if (!ev || !isAllDay(ev) && !isMultiDay(ev)) return null;
-      return segmentForDay(ev, dayMs);
+      const seg = segmentForDay(ev, dayMs);
+      if (seg) previewKeySnapshot.set(dayMs, `${ev.id}:${seg.dayIndex}`);
+      return seg;
     }
     function getCellWidth() {
       const cell = el?.querySelector(".wg-cell");
@@ -7360,7 +7885,7 @@
           var consequent_10 = ($$anchor4) => {
             var div_9 = root_13$3();
             var node_12 = child(div_9);
-            each(node_12, 17, () => get(visibleAllDaySegments), (seg) => seg.ev.id, ($$anchor5, seg) => {
+            each(node_12, 25, () => get(visibleAllDaySegments), (seg) => seg.ev.id, ($$anchor5, seg) => {
               var div_10 = root_11$4();
               let classes_5;
               let styles_1;
@@ -7390,6 +7915,9 @@
                   $$props.oneventclick?.(get(seg).ev);
                 }
               });
+              animation(div_10, () => flip, () => ({ duration: get(ANIM) }));
+              transition(1, div_10, () => previewReceive, () => ({ key: `${get(seg).ev.id}:${get(seg).dayIndex}` }));
+              transition(2, div_10, () => previewSend, () => ({ key: `${get(seg).ev.id}:${get(seg).dayIndex}` }));
               append($$anchor5, div_10);
             });
             var node_14 = sibling(node_12, 2);
@@ -7411,6 +7939,8 @@
                     "--ev-color": get(previewSegment).ev.color ?? "var(--dt-accent)"
                   });
                 });
+                transition(1, div_11, () => previewReceive, () => ({ key: previewKeySnapshot.get(get(day).ms) ?? "" }));
+                transition(2, div_11, () => previewSend, () => ({ key: previewKeySnapshot.get(get(day).ms) ?? "" }));
                 append($$anchor5, div_11);
               };
               if_block(node_14, ($$render) => {
@@ -7426,7 +7956,7 @@
         }
         var div_12 = sibling(node_11, 2);
         var node_16 = child(div_12);
-        each(node_16, 17, () => get(visibleTimedEvents).slice(0, MAX_EVENTS_SHOWN), (ev) => ev.id, ($$anchor4, ev) => {
+        each(node_16, 25, () => get(visibleTimedEvents).slice(0, MAX_EVENTS_SHOWN), (ev) => ev.id, ($$anchor4, ev) => {
           var div_13 = root_11$4();
           let classes_7;
           let styles_3;
@@ -7462,6 +7992,9 @@
               $$props.oneventclick?.(get(ev));
             }
           });
+          animation(div_13, () => flip, () => ({ duration: get(ANIM) }));
+          transition(1, div_13, () => previewReceive, () => ({ key: get(ev).id }));
+          transition(2, div_13, () => previewSend, () => ({ key: get(ev).id }));
           append($$anchor4, div_13);
         });
         var node_18 = sibling(node_16, 2);
@@ -7475,6 +8008,8 @@
             template_effect(() => styles_4 = set_style(div_14, "", styles_4, {
               "--ev-color": get(previewTimedEvent).color ?? "var(--dt-accent)"
             }));
+            transition(1, div_14, () => previewReceive, () => ({ key: previewKeySnapshot.get("timed") ?? "" }));
+            transition(2, div_14, () => previewSend, () => ({ key: previewKeySnapshot.get("timed") ?? "" }));
             append($$anchor4, div_14);
           };
           if_block(node_18, ($$render) => {
@@ -7576,9 +8111,9 @@
   function duration(ev) {
     return fmtDuration(ev.start, ev.end);
   }
-  function timeUntilMs(ms, now) {
+  function timeUntilMs(ms, now2) {
     const L = getLabels();
-    const diff = ms - now;
+    const diff = ms - now2;
     if (diff <= 0) return L.now;
     const tMins = Math.floor(diff / 6e4);
     if (tMins < 60) return `in ${tMins}m`;
@@ -7588,10 +8123,10 @@
     const days = Math.floor(hrs / 24);
     return `in ${days}d`;
   }
-  function progress(ev, now) {
+  function progress(ev, now2) {
     const s = ev.start.getTime();
     const e = ev.end.getTime();
-    return Math.min(1, Math.max(0, (now - s) / (e - s)));
+    return Math.min(1, Math.max(0, (now2 - s) / (e - s)));
   }
   function groupIntoSlots(evts) {
     const sorted = [...evts].sort((a, b) => a.start.getTime() - b.start.getTime());
@@ -7685,15 +8220,15 @@
     const allDayBanner = /* @__PURE__ */ user_derived(() => get(dayEvents).filter((ev) => isAllDay(ev) || isMultiDay(ev)));
     const timedDayEvents = /* @__PURE__ */ user_derived(() => get(dayEvents).filter((ev) => !isAllDay(ev) && !isMultiDay(ev)));
     const dayCat = /* @__PURE__ */ user_derived(() => {
-      const now = clock.tick;
+      const now2 = clock.tick;
       const past = [];
       const current = [];
       const upcoming = [];
       for (const ev of get(timedDayEvents)) {
         const s = ev.start.getTime();
         const e = ev.end.getTime();
-        if (e <= now) past.push(ev);
-        else if (s <= now && e > now) current.push(ev);
+        if (e <= now2) past.push(ev);
+        else if (s <= now2 && e > now2) current.push(ev);
         else upcoming.push(ev);
       }
       return {
@@ -8485,7 +9020,7 @@
     const weekStartMs = /* @__PURE__ */ user_derived(() => $$props.focusDate ? get(viewState)?.dayCount === 7 ? startOfWeek(sod($$props.focusDate.getTime()), mondayStart()) : sod($$props.focusDate.getTime()) : get(viewState)?.dayCount === 7 ? startOfWeek(clock.today, mondayStart()) : clock.today);
     const customDays = /* @__PURE__ */ user_derived(() => get(viewState)?.dayCount ?? 7);
     const weekDays = /* @__PURE__ */ user_derived(() => {
-      const now = clock.tick;
+      const now2 = clock.tick;
       const todayMs = clock.today;
       const tomorrowMs = todayMs + DAY_MS;
       const out = [];
@@ -8507,8 +9042,8 @@
         const currentEvents = [];
         const upcomingEvents = [];
         for (const ev of timedEvts) {
-          if (ev.end.getTime() <= now) pastEvents.push(ev);
-          else if (ev.start.getTime() <= now && ev.end.getTime() > now) currentEvents.push(ev);
+          if (ev.end.getTime() <= now2) pastEvents.push(ev);
+          else if (ev.start.getTime() <= now2 && ev.end.getTime() > now2) currentEvents.push(ev);
           else upcomingEvents.push(ev);
         }
         let tier;
@@ -9085,13 +9620,13 @@
       return segs;
     });
     const positionedEvents = /* @__PURE__ */ user_derived(() => {
-      const now = clock.tick;
+      const now2 = clock.tick;
       const sorted = [...get(timedEvents)];
       let nextEventId = null;
       if (get(isToday)) {
         for (const ev of [...sorted].sort((a, b) => a.start.getTime() - b.start.getTime())) {
           const s = ev.start.getTime();
-          if (s > now) {
+          if (s > now2) {
             nextEventId = ev.id;
             break;
           }
@@ -9106,7 +9641,7 @@
           ev,
           top: topH * HOUR_HEIGHT,
           height: Math.max(24, (botH - topH) * HOUR_HEIGHT),
-          isCurrent: ev.start.getTime() <= now && ev.end.getTime() > now,
+          isCurrent: ev.start.getTime() <= now2 && ev.end.getTime() > now2,
           isNext: ev.id === nextEventId,
           startMs: sMs,
           endMs: eMs,
@@ -10104,9 +10639,9 @@
       if (target) viewState.setView(target.id);
     }
     const viewIncludesToday = /* @__PURE__ */ user_derived(() => {
-      const now = Date.now();
+      const now2 = Date.now();
       const { start, end } = viewState.range;
-      return now >= start.getTime() && now < end.getTime();
+      return now2 >= start.getTime() && now2 < end.getTime();
     });
     const headerCtx = /* @__PURE__ */ user_derived(() => ({
       dateLabel: get(dateLabel),
