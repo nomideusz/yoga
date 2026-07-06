@@ -661,7 +661,7 @@
             </div>
         {/if}
         <a
-            href="mailto:joga@zaur.app?subject={encodeURIComponent(
+            href="mailto:kontakt@szkolyjogi.pl?subject={encodeURIComponent(
                 t('listing_report_subject'),
             )}{encodeURIComponent(listing.name)}"
             class="ld-report"
