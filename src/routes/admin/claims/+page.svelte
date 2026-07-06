@@ -54,6 +54,7 @@
 </svelte:head>
 
 <main class="claims">
+  <p class="crumbs"><a href="/admin/schools">szkoły (edycja) →</a></p>
   <h1>Zgłoszenia przejęcia profili</h1>
   <p class="hint">
     Proces: odpowiedz z kontakt@szkolyjogi.pl (szablony poniżej) → po potwierdzeniu ustaw
@@ -149,6 +150,7 @@
     font-size: 1.4rem;
     margin: 0 0 4px;
   }
+  .crumbs { color: #6b7a8f; }
   .hint {
     color: #6b7a8f;
     margin: 0 0 20px;
