@@ -6,7 +6,7 @@
     import type { ListingCard } from "$lib/data";
     import { normalizePolish } from "$lib/utils/street";
     import { haversineKm } from "$lib/search/geo";
-    import { isYogaPlace } from "$lib/search/rank";
+    import { yogaTier } from "$lib/search/rank";
     import { getListingAbsoluteUrl, getListingPath, getCitySlugPath } from "$lib/paths";
     import { searchSchools } from "$lib/search.remote";
     import { autocomplete as placesAutocomplete } from "$lib/autocomplete.remote";
@@ -973,15 +973,15 @@
                 });
             }
 
-            // Default order: yoga schools first, then pilates/meditation
-            // places; quality (rating weighted by review count) within each
-            // tier, alphabetical as tiebreak.
+            // Default order: dedicated yoga schools, then gym-named places
+            // with yoga, then pilates/meditation; quality (rating weighted
+            // by review count) within each tier, alphabetical as tiebreak.
+            // Without the gym tier, review-heavy fitness clubs top the list.
             const quality = (s: ListingCard) =>
                 (s.rating ?? 0) * Math.log1p(s.reviews ?? 0);
             return [...withDist].sort((a, b) => {
-                const aYoga = isYogaPlace(a.name, a.styles);
-                const bYoga = isYogaPlace(b.name, b.styles);
-                if (aYoga !== bYoga) return aYoga ? -1 : 1;
+                const t = yogaTier(a.name, a.styles) - yogaTier(b.name, b.styles);
+                if (t !== 0) return t;
                 const q = quality(b) - quality(a);
                 if (q !== 0) return q;
                 return plCollator.compare(a.name, b.name);

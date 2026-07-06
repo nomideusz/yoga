@@ -7,7 +7,7 @@ import type { Client } from '@libsql/client';
 import { createSearchEngine, type SchemaAdapter, type SearchParams as BaseSearchParams, type SearchResponse, type SearchResult as BaseSearchResult, type DatabaseClient } from '@nomideusz/svelte-search';
 import { plLocale } from '@nomideusz/svelte-search/locales/pl';
 import { haversineKm, walkingMinutes, normalize, levenshteinSimilarity } from '@nomideusz/svelte-search';
-import { isYogaPlace, wantsNonYoga } from './rank';
+import { yogaTier, wantsNonYoga } from './rank';
 
 /** Yoga search params — backward compat with citySlug/styleSlug */
 export interface SearchParams extends Omit<BaseSearchParams, 'locationSlug' | 'categorySlug'> {
@@ -169,13 +169,12 @@ export async function search(db: Client, params: SearchParams): Promise<SearchRe
     // query is what the user is looking for — never demote it, even if it's
     // a meditation/massage place ("Drzewo życia", "Shambhala").
     const qn = normalize(params.query, plLocale);
-    const top: SearchResult[] = [];
-    const rest: SearchResult[] = [];
+    const tiers: SearchResult[][] = [[], [], []];
     for (const r of resp.results) {
       const navigational = levenshteinSimilarity(qn, r.name, plLocale) >= 0.5;
-      (navigational || isYogaPlace(r.name, r.styles) ? top : rest).push(r);
+      tiers[navigational ? 0 : yogaTier(r.name, r.styles)].push(r);
     }
-    resp.results = [...top, ...rest].slice(0, limit);
+    resp.results = tiers.flat().slice(0, limit);
   }
   return resp;
 }
