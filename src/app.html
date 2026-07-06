@@ -17,6 +17,12 @@
       });
     </script>
     <script src="https://openpanel.dev/op1.js" defer async></script>
+    <!-- Temps analytics SDK: pageviews + Core Web Vitals, same-origin /api/_temps/* ingest
+         (handled by the Temps platform; ignores localhost by default) -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/@temps-sdk/analytics-browser@0.0.1/dist/temps.min.js"
+    ></script>
     <script
       src="https://rybit.picarro.info/api/script.js"
       data-site-id="1"
