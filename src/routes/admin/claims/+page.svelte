@@ -75,6 +75,7 @@
           <th>Wiadomość / RODO</th>
           <th>Status</th>
           <th>Odpowiedz</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -113,6 +114,21 @@
               <a href={mailto(c, 'verify')}>weryfikacja</a> ·
               <a href={mailto(c, 'approved')}>zatwierdzone</a> ·
               <a href={mailto(c, 'rejected')}>odmowa</a>
+            </td>
+            <td>
+              <form
+                method="POST"
+                action="?/delete"
+                use:enhance
+                onsubmit={(e) => {
+                  if (!confirm(`Usunąć zgłoszenie od ${c.name} (${c.schoolName ?? c.schoolId})?`)) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <input type="hidden" name="id" value={c.id} />
+                <button type="submit" class="del" title="Usuń zgłoszenie">✕</button>
+              </form>
             </td>
           </tr>
         {/each}
@@ -176,5 +192,13 @@
   select {
     font: inherit;
     padding: 2px 4px;
+  }
+  .del {
+    font: inherit;
+    border: none;
+    background: none;
+    color: #b0342c;
+    cursor: pointer;
+    padding: 2px 6px;
   }
 </style>

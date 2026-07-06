@@ -44,4 +44,16 @@ export const actions: Actions = {
     await db.update(claimRequests).set({ status }).where(eq(claimRequests.id, id));
     return { success: true, id, status };
   },
+
+  delete: async ({ request }) => {
+    const data = await request.formData();
+    const id = Number(data.get('id'));
+
+    if (!Number.isInteger(id)) {
+      return fail(400, { error: 'Nieprawidłowe dane.' });
+    }
+
+    await db.delete(claimRequests).where(eq(claimRequests.id, id));
+    return { success: true, id };
+  },
 };
