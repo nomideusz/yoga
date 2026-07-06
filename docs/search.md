@@ -325,9 +325,11 @@ clears query and dropdown before locating.
 
 **Enter on unresolvable queries** (`needs_server` with no local matches):
 the resolver's fallback chain is: fuzzy city prefix match → first safe result
-(city/style/redirect only — **never auto-navigates to a school**) → **geocode
-via Google Places** as last resort. This prevents Enter from silently sending
-users to a school listing they didn't choose.
+(city/style/redirect) → **first school result from the dropdown** → **geocode
+via Google Places** as last resort. Cities/styles still win over schools, but
+a school visible in the dropdown beats geocoding the raw query ("budd" +
+Enter opens the Buddhist school's listing — previously it geocoded to a
+retreat village and landed on Warsaw sorted by distance from it).
 
 **Distance display**: ≤ 3 km shows walking time (🚶), > 3 km shows driving
 estimate (🚗) at ~40 km/h. Applied on city page school cards.

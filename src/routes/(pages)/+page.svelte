@@ -1237,8 +1237,16 @@
                             r.type === "city+style" ||
                             r.type === "postal",
                     );
+                    // A school shown in the dropdown beats geocoding the raw
+                    // query — "budd" + Enter must open the Buddhist school,
+                    // not land in Warsaw via some geocoded retreat village.
+                    const school = snapshotCombined.find(
+                        (r) => r.type === "school",
+                    );
                     if (safe) {
                         navigateToResult(safe);
+                    } else if (school) {
+                        navigateToResult(school);
                     } else {
                         geocodeRawQuery(rawQuery);
                     }
@@ -1260,8 +1268,16 @@
                             r.type === "city+style" ||
                             r.type === "postal",
                     );
+                    // A school shown in the dropdown beats geocoding the raw
+                    // query — "budd" + Enter must open the Buddhist school,
+                    // not land in Warsaw via some geocoded retreat village.
+                    const school = snapshotCombined.find(
+                        (r) => r.type === "school",
+                    );
                     if (safe) {
                         navigateToResult(safe);
+                    } else if (school) {
+                        navigateToResult(school);
                     } else {
                         geocodeRawQuery(rawQuery);
                     }
