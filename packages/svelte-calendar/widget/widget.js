@@ -7238,6 +7238,7 @@
           "fs-event--full": get(p).ev.status === "full",
           "fs-event--limited": get(p).ev.status === "limited"
         });
+        set_attribute(div_9, "title", get(p).ev.title);
         set_attribute(div_9, "aria-label", `${get(p).ev.title ?? ""}${get(p).ev.status === "cancelled" ? " (cancelled)" : ""}${get(p).ev.status === "tentative" ? " (tentative)" : ""}${get(p).ev.status === "full" ? " (full)" : ""}${get(p).ev.status === "limited" ? " (limited)" : ""}${get(p).isCurrent ? ` (${get(L).inProgress})` : ""}${get(p).isNext ? ` (${get(L).upNext})` : ""}`);
         styles_7 = set_style(div_9, "", styles_7, {
           left: `${get(p).x ?? ""}px`,
