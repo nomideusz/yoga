@@ -267,5 +267,19 @@
   "faq_trial_a_no": "Currently none of the {total} schools in {cityLoc} list a free trial class.",
   "faq_neighborhoods_q": "Which neighborhoods in {cityLoc} have yoga schools?",
   "faq_neighborhoods_a": "Yoga schools in {cityLoc} are spread across {count} neighborhoods: {list}.",
-  "listing_verified_badge": "Verified profile"
+  "listing_verified_badge": "Verified profile",
+  "feature_prysznice": "Showers",
+  "feature_przebieralnia": "Changing room",
+  "feature_wypozyczenie_mat": "Mat rental",
+  "feature_sklep": "Shop",
+  "feature_parking": "Parking",
+  "feature_klimatyzacja": "Air conditioning",
+  "feature_ogrzewana_sala": "Heated room",
+  "feature_zajecia_online": "Online classes",
+  "feature_zajecia_po_angielsku": "Classes in English",
+  "feature_pierwsze_zajecia_gratis": "First class free",
+  "feature_herbata": "Tea after class",
+  "feature_dostep_dla_niepelnosprawnych": "Wheelchair accessible",
+  "listing_photos_title": "Photos",
+  "listing_features_title": "Amenities"
 }

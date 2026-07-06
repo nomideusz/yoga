@@ -267,5 +267,19 @@
   "faq_trial_a_no": "Наразі жодна з {total} шкіл в {cityLoc} не пропонує безкоштовних пробних занять.",
   "faq_neighborhoods_q": "У яких районах в {cityLoc} є школи йоги?",
   "faq_neighborhoods_a": "Школи йоги в {cityLoc} працюють у {count} районах: {list}.",
-  "listing_verified_badge": "Верифікований профіль"
+  "listing_verified_badge": "Верифікований профіль",
+  "feature_prysznice": "Душові",
+  "feature_przebieralnia": "Роздягальня",
+  "feature_wypozyczenie_mat": "Оренда килимків",
+  "feature_sklep": "Магазин",
+  "feature_parking": "Паркінг",
+  "feature_klimatyzacja": "Кондиціонер",
+  "feature_ogrzewana_sala": "Підігріта зала",
+  "feature_zajecia_online": "Онлайн-заняття",
+  "feature_zajecia_po_angielsku": "Заняття англійською",
+  "feature_pierwsze_zajecia_gratis": "Перше заняття безкоштовно",
+  "feature_herbata": "Чай після занять",
+  "feature_dostep_dla_niepelnosprawnych": "Доступність для людей з інвалідністю",
+  "listing_photos_title": "Фото",
+  "listing_features_title": "Зручності"
 }

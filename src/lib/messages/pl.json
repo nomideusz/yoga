@@ -266,5 +266,19 @@
   "faq_trial_a_no": "Aktualnie żadna z {total} szkół w {cityLoc} nie oferuje darmowych zajęć próbnych.",
   "faq_neighborhoods_q": "W jakich dzielnicach w {cityLoc} są szkoły jogi?",
   "faq_neighborhoods_a": "Szkoły jogi w {cityLoc} działają w {count} dzielnicach: {list}.",
-  "listing_verified_badge": "Zweryfikowany profil"
+  "listing_verified_badge": "Zweryfikowany profil",
+  "feature_prysznice": "Prysznice",
+  "feature_przebieralnia": "Przebieralnia",
+  "feature_wypozyczenie_mat": "Wypożyczenie mat",
+  "feature_sklep": "Sklepik",
+  "feature_parking": "Parking",
+  "feature_klimatyzacja": "Klimatyzacja",
+  "feature_ogrzewana_sala": "Ogrzewana sala",
+  "feature_zajecia_online": "Zajęcia online",
+  "feature_zajecia_po_angielsku": "Zajęcia po angielsku",
+  "feature_pierwsze_zajecia_gratis": "Pierwsze zajęcia gratis",
+  "feature_herbata": "Herbata po zajęciach",
+  "feature_dostep_dla_niepelnosprawnych": "Dostęp dla osób z niepełnosprawnościami",
+  "listing_photos_title": "Zdjęcia",
+  "listing_features_title": "Udogodnienia"
 }

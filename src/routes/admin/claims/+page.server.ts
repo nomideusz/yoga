@@ -4,6 +4,17 @@ import { eq, desc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { claimRequests, schools } from '$lib/server/db/schema';
 
+async function lockSchoolForClaim(claimId: number) {
+  const [claim] = await db
+    .select({ schoolId: claimRequests.schoolId })
+    .from(claimRequests)
+    .where(eq(claimRequests.id, claimId))
+    .limit(1);
+  if (claim) {
+    await db.update(schools).set({ scrapeLocked: true }).where(eq(schools.id, claim.schoolId));
+  }
+}
+
 const STATUSES = ['pending', 'approved', 'rejected'] as const;
 
 export const load: PageServerLoad = async () => {
@@ -42,6 +53,9 @@ export const actions: Actions = {
     }
 
     await db.update(claimRequests).set({ status }).where(eq(claimRequests.id, id));
+    // Approval is the promise that the owner's data won't be overwritten —
+    // lock the school against the scraper in the same step.
+    if (status === 'approved') await lockSchoolForClaim(id);
     return { success: true, id, status };
   },
 

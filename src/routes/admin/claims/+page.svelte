@@ -85,6 +85,7 @@
             <td>
               <a href={listingUrl(c)} target="_blank">{c.schoolName ?? c.schoolId}</a>
               {#if c.schoolCity}<span class="muted">{c.schoolCity}</span>{/if}
+              <br /><a href={`/admin/schools/${c.schoolId}`}>edytuj</a>
             </td>
             <td>
               {c.name}<br />

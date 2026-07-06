@@ -70,6 +70,13 @@ export interface Listing {
   source: string | null;
   styles: string[];
   schedule: ScheduleEntryData[];
+  photos: UploadedPhoto[];
+  features: string[];
+}
+
+export interface UploadedPhoto {
+  key: string;   // S3 object key under the yoga-photos bucket; served via /api/uploads/{key}
+  alt?: string;
 }
 
 export interface ReviewData {

@@ -32,6 +32,9 @@ importers:
       '@sentry/sveltekit':
         specifier: ^10.63.0
         version: 10.63.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@sveltejs/kit@2.69.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.56.4)(vite@7.3.6(@types/node@25.9.4)(tsx@4.23.0)))(svelte@5.56.4)(typescript@5.9.3)(vite@7.3.6(@types/node@25.9.4)(tsx@4.23.0)))(rollup@4.59.0)(svelte@5.56.4)(vite@7.3.6(@types/node@25.9.4)(tsx@4.23.0))
+      aws4fetch:
+        specifier: ^1.0.20
+        version: 1.0.20
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -1517,6 +1520,9 @@ packages:
   astring@1.9.0:
     resolution: {integrity: sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==}
     hasBin: true
+
+  aws4fetch@1.0.20:
+    resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -3246,6 +3252,8 @@ snapshots:
   aria-query@5.3.1: {}
 
   astring@1.9.0: {}
+
+  aws4fetch@1.0.20: {}
 
   axobject-query@4.1.0: {}
 

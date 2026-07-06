@@ -10,6 +10,7 @@
     import type { Listing, ScheduleEntry } from "$lib/data";
     import type { ReviewData } from "$lib/server/db/queries/index";
     import { i18n } from "$lib/i18n.js";
+    import { isFeatureSlug, featureMessageKey } from "$lib/features";
     const t = i18n.t;
     import {
         createRecurringAdapter,
@@ -220,6 +221,16 @@
                 {/each}
             </ul>
         {/if}
+
+        {#if listing.features.length > 0}
+            <ul class="ld-styles ld-features" aria-label={t("listing_features_title")}>
+                {#each listing.features as feature}
+                    <li class="ld-style ld-feature">
+                        {isFeatureSlug(feature) ? t(featureMessageKey(feature)) : feature}
+                    </li>
+                {/each}
+            </ul>
+        {/if}
     </header>
 
     <!-- ═══ HERO PHOTO ═══ -->
@@ -303,6 +314,21 @@
         <div class="ld-hero ld-hero--placeholder" aria-hidden="true">
             <span>{t("listing_photo_placeholder")}</span>
         </div>
+    {/if}
+
+    {#if listing.photos.length > 0}
+        <section class="ld-gallery" aria-label={t("listing_photos_title")}>
+            {#each listing.photos as photo (photo.key)}
+                <a href={`/api/uploads/${photo.key}`} target="_blank" rel="noopener" class="ld-gallery-item">
+                    <img
+                        src={`/api/uploads/${photo.key}`}
+                        alt={photo.alt || listing.name}
+                        loading="lazy"
+                        decoding="async"
+                    />
+                </a>
+            {/each}
+        </section>
     {/if}
 
     <!-- ═══ BODY: learn (left, threaded spine) + act (right) ═══ -->
@@ -780,6 +806,30 @@
         background: color-mix(in srgb, var(--sf-ice) 60%, transparent);
         color: color-mix(in srgb, var(--sf-text) 86%, var(--sf-muted) 14%);
         font-weight: 500;
+    }
+    .ld-feature {
+        background: transparent;
+        border: 1px solid color-mix(in srgb, var(--sf-muted) 28%, transparent);
+        color: var(--sf-muted);
+    }
+
+    /* ═══ Uploaded photo gallery ═══ */
+    .ld-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .ld-gallery-item {
+        display: block;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        border-radius: var(--radius-md, 8px);
+    }
+    .ld-gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     /* ═══ Hero ═══ */

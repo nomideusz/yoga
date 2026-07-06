@@ -20,6 +20,16 @@ function parsePlaceholder(json: string | null): Listing["photoPlaceholder"] {
   }
 }
 
+function parseJsonArray<T>(json: string | null): T[] {
+  if (!json) return [];
+  try {
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 function mapScheduleRow(
   row: typeof scheduleEntries.$inferSelect,
 ): ScheduleEntryData {
@@ -96,6 +106,8 @@ function buildListing(
     source: school.source,
     styles: styleNames,
     schedule,
+    photos: parseJsonArray<Listing["photos"][number]>(school.photosJson),
+    features: parseJsonArray<string>(school.featuresJson),
   };
 }
 

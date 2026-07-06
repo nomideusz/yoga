@@ -40,6 +40,7 @@
 		"@nomideusz/svelte-i18n": "file:packages/svelte-i18n",
 		"@nomideusz/svelte-search": "file:packages/svelte-search",
 		"@sentry/sveltekit": "^10.63.0",
+		"aws4fetch": "^1.0.20",
 		"dotenv": "^17.4.2",
 		"drizzle-orm": "^0.45.2",
 		"lucide-svelte": "^1.0.1"
