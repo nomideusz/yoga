@@ -642,6 +642,7 @@
 					style:--ev-color={p.ev.color ?? 'var(--dt-accent)'}
 					role="button"
 					tabindex="0"
+					title={p.ev.title}
 					aria-label="{p.ev.title}{p.ev.status === 'cancelled' ? ' (cancelled)' : ''}{p.ev.status === 'tentative' ? ' (tentative)' : ''}{p.ev.status === 'full' ? ' (full)' : ''}{p.ev.status === 'limited' ? ' (limited)' : ''}{p.isCurrent ? ` (${L.inProgress})` : ''}{p.isNext ? ` (${L.upNext})` : ''}"
 					onpointerdown={(e) => onEventPointerDown(e, p.ev)}
 					onpointerenter={() => oneventhover?.(p.ev)}
@@ -975,8 +976,7 @@
 		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ev-color) 20%, transparent);
 	}
 	.fs-event--next {
-		background: color-mix(in srgb, var(--ev-color) 12%, var(--dt-surface, var(--dt-bg, #ffffff)));
-		border: 1px dashed color-mix(in srgb, var(--ev-color) 35%, transparent);
+		border-color: color-mix(in srgb, var(--ev-color) 75%, transparent);
 	}
 	.fs-event--dragging {
 		opacity: 0.85;
@@ -1053,7 +1053,13 @@
 		color: var(--dt-text, rgba(0, 0, 0, 0.87));
 		overflow: hidden;
 		text-overflow: ellipsis;
-		white-space: nowrap;
+		/* In vertical writing mode line boxes stack as columns — allow a
+		   second column before truncating so overlapping (short) cards keep
+		   readable names. Full name is in the title tooltip. */
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		white-space: normal;
 		max-height: 100%;
 		flex-shrink: 0;
 	}

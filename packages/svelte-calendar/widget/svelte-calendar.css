@@ -242,8 +242,11 @@
 		z-index: 6;
 		border-radius: 6px;
 		cursor: pointer;
-		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, var(--dt-bg, #ffffff)));
+		background: color-mix(in srgb, var(--ev-color) 22%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		border: 1px solid color-mix(in srgb, var(--ev-color) 40%, transparent);
+		/* Solid stripe at the start edge — matches the week view, keeps the
+		   pure tour color visible while the body stays a readable tint. */
+		border-left: 3px solid var(--ev-color);
 		overflow: hidden;
 		display: flex;
 		align-items: center;
@@ -254,7 +257,7 @@
 			top 180ms cubic-bezier(0.2, 0.8, 0.2, 1), height 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
 	.fs-event.svelte-mrwdy7:hover {
-		background: color-mix(in srgb, var(--ev-color) 25%, var(--dt-surface, var(--dt-bg, #ffffff)));
+		background: color-mix(in srgb, var(--ev-color) 32%, var(--dt-surface, var(--dt-bg, #ffffff)));
 		box-shadow: 0 2px 12px color-mix(in srgb, var(--ev-color) 25%, transparent);
 	}
 	.fs-event--selected.svelte-mrwdy7 {
