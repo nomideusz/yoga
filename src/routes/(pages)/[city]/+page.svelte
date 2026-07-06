@@ -140,12 +140,17 @@
                 : "";
             serverSuggestions = [];
             placeSuggestions = [];
-            // Preserve ?style= param from URL (e.g. coming from category page)
-            const urlStyle = typeof window !== "undefined"
-                ? new URL(window.location.href).searchParams.get("style")
+            // Preserve ?style= and ?district= params from URL (e.g. coming
+            // from the category page or a main-page district search)
+            const urlParams = typeof window !== "undefined"
+                ? new URL(window.location.href).searchParams
                 : null;
+            const urlStyle = urlParams?.get("style") ?? null;
             activeStyles = urlStyle ? [resolveStyleName(urlStyle)] : [];
-            activeDistrict = undefined;
+            const urlDistrict = urlParams?.get("district") ?? null;
+            activeDistrict = urlDistrict
+                ? resolveDistrictName(urlDistrict)
+                : undefined;
             if (serverDebounceTimer) clearTimeout(serverDebounceTimer);
             if (debounceTimer) clearTimeout(debounceTimer);
         }
