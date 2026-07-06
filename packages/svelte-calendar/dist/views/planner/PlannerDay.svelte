@@ -950,6 +950,7 @@
 		border-radius: 6px;
 		cursor: pointer;
 		background: color-mix(in srgb, var(--ev-color) 15%, var(--dt-surface, var(--dt-bg, #ffffff)));
+		border: 1px solid color-mix(in srgb, var(--ev-color) 40%, transparent);
 		overflow: hidden;
 		display: flex;
 		align-items: center;
