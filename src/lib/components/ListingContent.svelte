@@ -19,6 +19,7 @@
     import { getListingPath } from "$lib/paths";
     import Globe from "lucide-svelte/icons/globe";
     import MapPin from "lucide-svelte/icons/map-pin";
+    import BadgeCheck from "lucide-svelte/icons/badge-check";
     import Phone from "lucide-svelte/icons/phone";
     import { GeometrizedImage } from "@nomideusz/svelte-geometrize";
 
@@ -26,10 +27,12 @@
         listing,
         reviews: rawReviews = [],
         preferredLangs = ["pl", "en"],
+        verifiedOwner = false,
     }: {
         listing: Listing;
         reviews?: ReviewData[];
         preferredLangs?: string[];
+        verifiedOwner?: boolean;
     } = $props();
 
     // ── Pricing ───────────────────────────────────────────
@@ -176,6 +179,9 @@
     <!-- ═══ IDENTITY (name leads, photo follows) ═══ -->
     <header class="ld-id">
         <h1 class="ld-name">{listing.name}</h1>
+        {#if verifiedOwner}
+            <span class="ld-verified"><BadgeCheck size={15} /> {t("listing_verified_badge")}</span>
+        {/if}
 
         <div class="ld-facts">
             {#if listing.googleMapsUrl}
@@ -702,6 +708,15 @@
         color: var(--sf-dark);
         margin: 0;
         max-width: 18ch;
+    }
+    .ld-verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--sf-accent);
     }
     .ld-facts {
         display: flex;

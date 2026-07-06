@@ -4,11 +4,9 @@
   "back": "Back",
   "close": "Close",
   "footer_terms": "terms",
-
   "error_system": "System error",
   "error_page_not_found": "The requested page was not found.",
   "error_go_home": "Go to home page",
-
   "hero_tag": "CATALOG",
   "hero_title": "Yoga Schools in Poland",
   "hero_sub_cities": "cities",
@@ -30,11 +28,9 @@
   "label_other_activity": "ACTIVITY",
   "cities_collapse": "Show less",
   "cities_more": "+ {count} more",
-
   "school_one": "school",
   "school_few": "schools",
   "school_many": "schools",
-
   "city_change": "Change city",
   "city_search_placeholder": "School, style, district…",
   "city_search_aria": "Search school, style, district or postal code",
@@ -68,7 +64,6 @@
   "filter_style": "Style",
   "filter_district": "District",
   "filter_near_me": "Near me",
-
   "cat_intensity": "Intensity",
   "cat_intensity_low": "Low",
   "cat_intensity_medium": "Medium",
@@ -83,7 +78,6 @@
   "cat_cities_many": "cities",
   "cat_no_results": "No schools in this category.",
   "cat_empty_results": "No results for category:",
-
   "listing_email": "E-mail",
   "listing_website": "Website",
   "preview_details": "View details →",
@@ -118,25 +112,21 @@
   "listing_load_error": "Could not load school data.",
   "retry": "Try again",
   "listing_yoga_classes": "Yoga classes",
-
   "listing_meta_studio": "Yoga studio:",
   "listing_meta_monthly": "Monthly pass: {price} PLN.",
   "listing_meta_styles": "Styles:",
   "listing_meta_check": "Check details on szkolyjogi.pl.",
-
   "reviews_label": "Google Reviews",
   "reviews_stars": "{rating} out of 5 stars",
   "reviews_show_all": "Show all reviews ({count})",
   "reviews_attribution": "Google Reviews",
   "reviews_see_remaining": "See remaining {count} reviews ↗",
   "reviews_all": "All {count} reviews ↗",
-
   "schedule_title": "Class schedule",
   "schedule_stale": "Schedule may be outdated — last classes are in the past.",
   "schedule_preparing": "Schedule in preparation",
   "schedule_preparing_text": "We're working on automatically fetching the class schedule for this studio. The schedule will appear on this page soon.",
   "schedule_unavailable": "Class schedule is not yet available for this studio.",
-
   "claim_all_schools": "All schools",
   "claim_title": "Claim profile",
   "claim_subtitle": "Fill out the form to take over the profile of {name}. We will verify your identity and contact you within 2 business days.",
@@ -160,7 +150,6 @@
   "claim_step_2": "We verify your identity",
   "claim_step_3": "You get full control over the profile",
   "claim_free_note": "Claiming a profile is free and comes with no obligations.",
-
   "claim_consent_modal_title": "Data processing consent (GDPR)",
   "claim_consent_intro": "Before sending your request, please read the information below and consent to the processing of your data.",
   "claim_consent_controller": "The data controller is szkolyjogi.pl (contact: kontakt@szkolyjogi.pl).",
@@ -172,7 +161,6 @@
   "claim_consent_confirm": "Confirm and send",
   "claim_consent_cancel": "Cancel",
   "claim_consent_required_error": "To send your request, you must consent to the processing of your data.",
-
   "about_title": "About",
   "about_meta_desc": "szkolyjogi.pl is a directory of yoga schools in Poland — compare prices, styles and locations in one place.",
   "about_mission_title": "Mission: Simple Practice",
@@ -181,7 +169,6 @@
   "about_owners_title": "For studio owners",
   "about_owners_p1": "Your school is probably already in our catalog. You can <strong>claim your profile for free</strong> to update your schedule, add photos and a description.",
   "about_owners_p2": "Questions or want to add a new studio? Write to us: <a href=\"mailto:kontakt@szkolyjogi.pl\">kontakt@szkolyjogi.pl</a>.",
-
   "terms_title": "Terms of Service",
   "terms_meta_desc": "Terms of service for szkolyjogi.pl — yoga school directory in Poland.",
   "terms_s1_title": "§1 General provisions",
@@ -201,7 +188,6 @@
   "terms_s4_2": "The administrator is not responsible for decisions made based on information presented in the Service.",
   "terms_s5_title": "§5 Contact",
   "terms_s5_text": "For matters related to the Service, please contact us at <a href=\"mailto:kontakt@szkolyjogi.pl\">kontakt@szkolyjogi.pl</a>.",
-
   "post_title": "Add studio",
   "post_meta_desc": "Add or claim your yoga studio profile in the szkolyjogi.pl directory — for free.",
   "post_already_title": "Is your studio already listed?",
@@ -215,17 +201,14 @@
   "post_benefit_2_text": "Edit description, schedule, photos and contact details at any time.",
   "post_benefit_3_title": "Free, forever",
   "post_benefit_3_text": "The directory is free — no hidden fees or time limits.",
-
   "pagination_label": "Pagination",
   "pagination_prev": "Previous page",
   "pagination_next": "Next page",
   "pagination_page": "Page {page}",
-
   "locate_button": "Use my location",
   "map_loading": "Loading map…",
   "map_error": "Failed to load map",
   "slide_over_back": "List",
-
   "health_site_down": "site unavailable",
   "health_site_slow": "site responding slowly",
   "tier_unlimited": "Unlimited",
@@ -235,9 +218,7 @@
   "tier_intro": "Intro offer",
   "tier_private": "Private",
   "tier_other": "Other",
-
   "free_tag": "Free",
-
   "cal_today": "Today",
   "cal_yesterday": "Yesterday",
   "cal_tomorrow": "Tomorrow",
@@ -262,17 +243,14 @@
   "cal_n_more": "+{n} more",
   "cal_n_events_one": "{n} class",
   "cal_n_events_many": "{n} classes",
-
   "meta_yoga_schools": "Yoga Schools — Directory",
   "meta_prices_locations_reviews": "Pass Prices, Locations, Reviews",
   "meta_city_desc": "Yoga school directory: {city}. Check reviews, compare monthly pass prices and find the best studio with free trial classes. Listing of {count} schools.",
   "footer_schools": "schools",
   "footer_cities": "cities",
   "footer_styles": "styles",
-
   "meta_main_title": "Yoga Schools in Poland — Directory & Search | szkolyjogi.pl",
   "meta_main_desc": "Directory of yoga schools in Poland — compare prices, reviews and locations. Find the best yoga school in your city.",
-
   "cat_meta_desc": "{style} yoga schools — {count} schools in the szkolyjogi.pl directory.",
   "cat_faq_price_q": "How much does {style} cost?",
   "cat_faq_price_a": "A monthly pass at schools offering {style} averages {avg} zł, ranging from {min} zł to {max} zł.",
@@ -280,7 +258,6 @@
   "cat_faq_trial_a_yes": "{count} of {total} schools offering {style} have a free first class: {names}.",
   "cat_faq_cities_q": "Where in Poland can I find {style} classes?",
   "cat_faq_cities_a": "{style} classes are available in {count} cities: {cities}.",
-
   "city_intro_heading": "Yoga in {cityLoc}",
   "faq_heading": "Frequently asked questions",
   "faq_price_q": "How much does yoga cost in {cityLoc}?",
@@ -289,5 +266,6 @@
   "faq_trial_a_yes": "{count} of {total} schools in {cityLoc} offer a free first class: {names}.",
   "faq_trial_a_no": "Currently none of the {total} schools in {cityLoc} list a free trial class.",
   "faq_neighborhoods_q": "Which neighborhoods in {cityLoc} have yoga schools?",
-  "faq_neighborhoods_a": "Yoga schools in {cityLoc} are spread across {count} neighborhoods: {list}."
+  "faq_neighborhoods_a": "Yoga schools in {cityLoc} are spread across {count} neighborhoods: {list}.",
+  "listing_verified_badge": "Verified profile"
 }

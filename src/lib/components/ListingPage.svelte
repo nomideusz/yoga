@@ -14,10 +14,12 @@
         listing,
         reviews = [],
         preferredLangs = ["pl", "en"],
+        verifiedOwner = false,
     }: {
         listing: Listing;
         reviews?: ReviewData[];
         preferredLangs?: string[];
+        verifiedOwner?: boolean;
     } = $props();
 
     $effect(() => {
@@ -270,6 +272,7 @@
         {listing}
         {reviews}
         {preferredLangs}
+        {verifiedOwner}
     />
 </section>
 

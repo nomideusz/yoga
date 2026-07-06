@@ -4,11 +4,9 @@
   "back": "Назад",
   "close": "Закрити",
   "footer_terms": "умови",
-
   "error_system": "Системна помилка",
   "error_page_not_found": "Запитану сторінку не знайдено.",
   "error_go_home": "На головну сторінку",
-
   "hero_tag": "КАТАЛОГ",
   "hero_title": "Школи Йоги в Польщі",
   "hero_sub_cities": "містах",
@@ -30,11 +28,9 @@
   "label_other_activity": "АКТИВНІСТЬ",
   "cities_collapse": "Згорнути",
   "cities_more": "+ {count} ще",
-
   "school_one": "школа",
   "school_few": "школи",
   "school_many": "шкіл",
-
   "city_change": "Змінити місто",
   "city_search_placeholder": "Школа, стиль, район…",
   "city_search_aria": "Шукати школу, стиль, район або поштовий індекс",
@@ -68,7 +64,6 @@
   "filter_style": "Стиль",
   "filter_district": "Район",
   "filter_near_me": "Поблизу",
-
   "cat_intensity": "Інтенсивність",
   "cat_intensity_low": "Низька",
   "cat_intensity_medium": "Середня",
@@ -83,7 +78,6 @@
   "cat_cities_many": "містах",
   "cat_no_results": "Немає шкіл у цій категорії.",
   "cat_empty_results": "Немає результатів для категорії:",
-
   "listing_email": "Ел. пошта",
   "listing_website": "Вебсайт",
   "preview_details": "Детальніше →",
@@ -118,25 +112,21 @@
   "listing_load_error": "Не вдалося завантажити дані школи.",
   "retry": "Спробувати знову",
   "listing_yoga_classes": "Заняття йогою",
-
   "listing_meta_studio": "Студія йоги:",
   "listing_meta_monthly": "Місячний абонемент: {price} PLN.",
   "listing_meta_styles": "Стилі:",
   "listing_meta_check": "Дивіться деталі на szkolyjogi.pl.",
-
   "reviews_label": "Відгуки Google",
   "reviews_stars": "{rating} з 5 зірок",
   "reviews_show_all": "Показати всі відгуки ({count})",
   "reviews_attribution": "Відгуки Google",
   "reviews_see_remaining": "Переглянути решту {count} відгуків ↗",
   "reviews_all": "Усі {count} відгуків ↗",
-
   "schedule_title": "Розклад занять",
   "schedule_stale": "Розклад може бути застарілим — останні заняття в минулому.",
   "schedule_preparing": "Розклад готується",
   "schedule_preparing_text": "Ми працюємо над автоматичним отриманням розкладу занять для цієї студії. Незабаром розклад з'явиться на цій сторінці.",
   "schedule_unavailable": "Розклад занять ще не доступний для цієї студії.",
-
   "claim_all_schools": "Усі школи",
   "claim_title": "Отримати профіль",
   "claim_subtitle": "Заповніть форму, щоб отримати контроль над профілем {name}. Ми перевіримо вашу особу та зв'яжемося протягом 2 робочих днів.",
@@ -160,7 +150,6 @@
   "claim_step_2": "Ми перевіримо вашу особу",
   "claim_step_3": "Ви отримаєте повний контроль над профілем",
   "claim_free_note": "Отримання профілю безкоштовне та без зобов'язань.",
-
   "claim_consent_modal_title": "Згода на обробку даних (GDPR)",
   "claim_consent_intro": "Перш ніж надіслати запит, ознайомтеся з наведеною нижче інформацією та надайте згоду на обробку ваших даних.",
   "claim_consent_controller": "Розпорядником даних є szkolyjogi.pl (контакт: kontakt@szkolyjogi.pl).",
@@ -172,7 +161,6 @@
   "claim_consent_confirm": "Підтвердити та надіслати",
   "claim_consent_cancel": "Скасувати",
   "claim_consent_required_error": "Щоб надіслати запит, ви маєте надати згоду на обробку ваших даних.",
-
   "about_title": "Про проєкт",
   "about_meta_desc": "szkolyjogi.pl — каталог шкіл йоги в Польщі. Порівнюйте ціни, стилі та розташування в одному місці.",
   "about_mission_title": "Місія: Проста Практика",
@@ -181,7 +169,6 @@
   "about_owners_title": "Для власників студій",
   "about_owners_p1": "Ваша школа, ймовірно, вже є в нашому каталозі. Ви можете <strong>безкоштовно отримати свій профіль</strong>, щоб оновлювати розклад, додавати фото та опис.",
   "about_owners_p2": "Маєте питання або хочете додати нову студію? Напишіть нам: <a href=\"mailto:kontakt@szkolyjogi.pl\">kontakt@szkolyjogi.pl</a>.",
-
   "terms_title": "Умови використання",
   "terms_meta_desc": "Умови використання сервісу szkolyjogi.pl — каталог шкіл йоги в Польщі.",
   "terms_s1_title": "§1 Загальні положення",
@@ -201,7 +188,6 @@
   "terms_s4_2": "Адміністратор не несе відповідальності за рішення, прийняті на основі інформації, представленої в Сервісі.",
   "terms_s5_title": "§5 Контакт",
   "terms_s5_text": "З питань, пов'язаних із Сервісом, звертайтеся за адресою <a href=\"mailto:kontakt@szkolyjogi.pl\">kontakt@szkolyjogi.pl</a>.",
-
   "post_title": "Додати студію",
   "post_meta_desc": "Додайте або отримайте профіль своєї студії йоги в каталозі szkolyjogi.pl — безкоштовно.",
   "post_already_title": "Ваша студія вже в каталозі?",
@@ -215,17 +201,14 @@
   "post_benefit_2_text": "Редагуйте опис, розклад, фото та контактні дані в будь-який час.",
   "post_benefit_3_title": "Безкоштовно, назавжди",
   "post_benefit_3_text": "Каталог безкоштовний — без прихованих платежів і обмежень у часі.",
-
   "pagination_label": "Пагінація",
   "pagination_prev": "Попередня сторінка",
   "pagination_next": "Наступна сторінка",
   "pagination_page": "Сторінка {page}",
-
   "locate_button": "Використати моє місцезнаходження",
   "map_loading": "Завантаження карти…",
   "map_error": "Не вдалося завантажити карту",
   "slide_over_back": "Список",
-
   "health_site_down": "сайт недоступний",
   "health_site_slow": "сайт повільно відповідає",
   "tier_unlimited": "Без обмежень",
@@ -235,9 +218,7 @@
   "tier_intro": "Стартова пропозиція",
   "tier_private": "Індивідуальні",
   "tier_other": "Інші",
-
   "free_tag": "Безкоштовно",
-
   "cal_today": "Сьогодні",
   "cal_yesterday": "Вчора",
   "cal_tomorrow": "Завтра",
@@ -262,17 +243,14 @@
   "cal_n_more": "+{n} ще",
   "cal_n_events_one": "{n} заняття",
   "cal_n_events_many": "{n} занять",
-
   "meta_yoga_schools": "Школи Йоги — Каталог",
   "meta_prices_locations_reviews": "Ціни Абонементів, Розташування, Відгуки",
   "meta_city_desc": "Каталог шкіл йоги: {city}. Перевірте відгуки, порівняйте місячні ціни абонементів і знайдіть найкращу студію з безкоштовними пробними заняттями. Список {count} закладів.",
   "footer_schools": "шкіл",
   "footer_cities": "міст",
   "footer_styles": "стилів",
-
   "meta_main_title": "Школи Йоги в Польщі — Каталог і Пошук | szkolyjogi.pl",
   "meta_main_desc": "Каталог шкіл йоги в Польщі — порівняйте ціни, відгуки та розташування. Знайдіть найкращу школу йоги у вашому місті.",
-
   "cat_meta_desc": "Школи йоги в стилі {style} — {count} закладів у каталозі szkolyjogi.pl.",
   "cat_faq_price_q": "Скільки коштує {style}?",
   "cat_faq_price_a": "Середній місячний абонемент у школах з {style} — {avg} зл. Ціни від {min} зл до {max} зл.",
@@ -280,7 +258,6 @@
   "cat_faq_trial_a_yes": "Безкоштовне перше заняття {style} пропонують {count} з {total} шкіл: {names}.",
   "cat_faq_cities_q": "Де в Польщі є заняття {style}?",
   "cat_faq_cities_a": "Заняття {style} доступні у {count} містах: {cities}.",
-
   "city_intro_heading": "Йога в {cityLoc}",
   "faq_heading": "Поширені питання",
   "faq_price_q": "Скільки коштує йога в {cityLoc}?",
@@ -289,5 +266,6 @@
   "faq_trial_a_yes": "Безкоштовне перше заняття в {cityLoc} пропонують {count} з {total} шкіл: {names}.",
   "faq_trial_a_no": "Наразі жодна з {total} шкіл в {cityLoc} не пропонує безкоштовних пробних занять.",
   "faq_neighborhoods_q": "У яких районах в {cityLoc} є школи йоги?",
-  "faq_neighborhoods_a": "Школи йоги в {cityLoc} працюють у {count} районах: {list}."
+  "faq_neighborhoods_a": "Школи йоги в {cityLoc} працюють у {count} районах: {list}.",
+  "listing_verified_badge": "Верифікований профіль"
 }

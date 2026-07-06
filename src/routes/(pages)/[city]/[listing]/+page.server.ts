@@ -1,4 +1,7 @@
 import { error, redirect } from "@sveltejs/kit";
+import { and, eq } from "drizzle-orm";
+import { db } from "$lib/server/db";
+import { claimRequests } from "$lib/server/db/schema";
 import { getListingByIdentifier, getReviewsBySchoolId, getSchoolTranslation, applyTranslation } from "$lib/server/db/queries";
 import { getListingPath } from "$lib/paths";
 import { localizeHref } from "@nomideusz/svelte-i18n";
@@ -9,7 +12,7 @@ export const load: PageServerLoad = async ({ params, request, url, locals }) => 
   const listing = await getListingByIdentifier(params.listing);
 
   if (!listing) {
-    throw error(404, "Nie znaleziono szko\u0142y");
+    throw error(404, "Nie znaleziono szkoły");
   }
 
   const reviews = await getReviewsBySchoolId(listing.id);
@@ -30,15 +33,21 @@ export const load: PageServerLoad = async ({ params, request, url, locals }) => 
     .filter(Boolean);
 
   // Fetch translations for EN and UK (they'll be applied client-side based on locale)
-  const [translationEn, translationUk] = await Promise.all([
+  const [translationEn, translationUk, approvedClaim] = await Promise.all([
     getSchoolTranslation(listing.id, 'en'),
     getSchoolTranslation(listing.id, 'uk'),
+    db
+      .select({ id: claimRequests.id })
+      .from(claimRequests)
+      .where(and(eq(claimRequests.schoolId, listing.id), eq(claimRequests.status, 'approved')))
+      .limit(1),
   ]);
 
   return {
     listing,
     reviews,
     preferredLangs,
+    verifiedOwner: approvedClaim.length > 0,
     translations: {
       en: translationEn,
       uk: translationUk,

@@ -25,4 +25,5 @@
     listing={translatedListing}
     reviews={data.reviews}
     preferredLangs={data.preferredLangs}
+    verifiedOwner={data.verifiedOwner}
 />

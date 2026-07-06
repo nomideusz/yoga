@@ -4,11 +4,9 @@
   "back": "Wróć",
   "close": "Zamknij",
   "footer_terms": "regulamin",
-
   "error_system": "Błąd systemu",
   "error_page_not_found": "Nie znaleziono żądanej strony.",
   "error_go_home": "Wróć na stronę główną",
-
   "hero_tag": "KATALOG",
   "hero_title": "Szkoły Jogi w Polsce",
   "hero_sub_cities": "miastach",
@@ -30,11 +28,9 @@
   "label_other_activity": "AKTYWNOŚĆ",
   "cities_collapse": "Zwiń",
   "cities_more": "+ {count} więcej",
-
   "school_one": "szkoła",
   "school_few": "szkoły",
   "school_many": "szkół",
-
   "city_change": "Zmień miasto",
   "city_search_placeholder": "Szkoła, styl, dzielnica…",
   "city_search_aria": "Szukaj szkoły, stylu, dzielnicy lub kodu pocztowego",
@@ -68,7 +64,6 @@
   "filter_style": "Styl",
   "filter_district": "Dzielnica",
   "filter_near_me": "Blisko mnie",
-
   "cat_intensity": "Intensywność",
   "cat_intensity_low": "Niska",
   "cat_intensity_medium": "Średnia",
@@ -83,7 +78,6 @@
   "cat_cities_many": "miastach",
   "cat_no_results": "Brak szkół w tej kategorii.",
   "cat_empty_results": "Brak wyników dla kategorii:",
-
   "listing_email": "E-mail",
   "listing_website": "WWW",
   "preview_details": "Zobacz szczegóły →",
@@ -118,25 +112,21 @@
   "listing_load_error": "Nie udało się załadować danych szkoły.",
   "retry": "Spróbuj ponownie",
   "listing_yoga_classes": "Zajęcia jogi",
-
   "listing_meta_studio": "Studio jogi:",
   "listing_meta_monthly": "Miesięczny karnet: {price} PLN.",
   "listing_meta_styles": "Style:",
   "listing_meta_check": "Sprawdź szczegóły na szkolyjogi.pl.",
-
   "reviews_label": "Opinie z Google",
   "reviews_stars": "{rating} z 5 gwiazdek",
   "reviews_show_all": "Pokaż wszystkie opinie ({count})",
   "reviews_attribution": "Opinie Google",
   "reviews_see_remaining": "Zobacz pozostałe {count} opinii ↗",
   "reviews_all": "Wszystkie {count} opinii ↗",
-
   "schedule_title": "Grafik zajęć",
   "schedule_stale": "Grafik może być nieaktualny — ostatnie zajęcia w przeszłości.",
   "schedule_preparing": "Grafik w przygotowaniu",
   "schedule_preparing_text": "Pracujemy nad automatycznym pobieraniem grafiku zajęć dla tego studia. Wkrótce grafik pojawi się na tej stronie.",
   "schedule_unavailable": "Grafik zajęć nie jest jeszcze dostępny dla tego studia.",
-
   "claim_all_schools": "Wszystkie szkoły",
   "claim_title": "Przejmij profil",
   "claim_subtitle": "Wypełnij formularz, aby przejąć zarządzanie profilem studia {name}. Zweryfikujemy Twoją tożsamość i skontaktujemy się w ciągu 2 dni roboczych.",
@@ -160,7 +150,6 @@
   "claim_step_2": "Zweryfikujemy Twoją tożsamość",
   "claim_step_3": "Otrzymasz pełną kontrolę nad profilem",
   "claim_free_note": "Przejęcie profilu jest bezpłatne i nie wymaga zobowiązań.",
-
   "claim_consent_modal_title": "Zgoda na przetwarzanie danych (RODO)",
   "claim_consent_intro": "Zanim wyślesz zgłoszenie, prosimy o zapoznanie się z poniższą informacją i wyrażenie zgody na przetwarzanie Twoich danych.",
   "claim_consent_controller": "Administratorem danych jest szkolyjogi.pl (kontakt: kontakt@szkolyjogi.pl).",
@@ -172,7 +161,6 @@
   "claim_consent_confirm": "Potwierdzam i wysyłam",
   "claim_consent_cancel": "Anuluj",
   "claim_consent_required_error": "Aby wysłać zgłoszenie, musisz wyrazić zgodę na przetwarzanie danych.",
-
   "about_title": "O projekcie",
   "about_meta_desc": "szkolyjogi.pl to katalog szkół jogi w Polsce — porównuj ceny, style i lokalizacje w jednym miejscu.",
   "about_mission_title": "Misja: Prosta Praktyka",
@@ -181,11 +169,10 @@
   "about_owners_title": "Dla właścicieli studiów",
   "about_owners_p1": "Twoja szkoła prawdopodobnie już znajduje się w naszym katalogu. Możesz <strong>bezpłatnie przejąć swój profil</strong>, aby samodzielnie aktualizować grafik, dodać zdjęcia i opis.",
   "about_owners_p2": "Masz pytania lub chcesz dodać nowe studio? Napisz do nas: <a href=\"mailto:kontakt@szkolyjogi.pl\">kontakt@szkolyjogi.pl</a>.",
-
   "terms_title": "Regulamin",
   "terms_meta_desc": "Regulamin serwisu szkolyjogi.pl — katalog szkół jogi w Polsce.",
   "terms_s1_title": "§1 Postanowienia ogólne",
-  "terms_s1_1": "Serwis szkolyjogi.pl (dalej: \u201eSerwis\u201D) jest katalogiem szkół jogi działających na terenie Polski.",
+  "terms_s1_1": "Serwis szkolyjogi.pl (dalej: „Serwis”) jest katalogiem szkół jogi działających na terenie Polski.",
   "terms_s1_2": "Administratorem Serwisu jest szkolyjogi.pl.",
   "terms_s1_3": "Korzystanie z Serwisu jest bezpłatne.",
   "terms_s2_title": "§2 Zakres usług",
@@ -201,7 +188,6 @@
   "terms_s4_2": "Administrator nie ponosi odpowiedzialności za decyzje podjęte na podstawie informacji prezentowanych w Serwisie.",
   "terms_s5_title": "§5 Kontakt",
   "terms_s5_text": "W sprawach związanych z Serwisem prosimy o kontakt na adres <a href=\"mailto:kontakt@szkolyjogi.pl\">kontakt@szkolyjogi.pl</a>.",
-
   "post_title": "Dodaj studio",
   "post_meta_desc": "Dodaj lub przejmij profil swojego studia jogi w katalogu szkolyjogi.pl — bezpłatnie.",
   "post_already_title": "Twoje studio jest już w katalogu?",
@@ -215,16 +201,13 @@
   "post_benefit_2_text": "Edytuj opis, grafik, zdjęcia i dane kontaktowe w dowolnym momencie.",
   "post_benefit_3_title": "Bezpłatnie, na zawsze",
   "post_benefit_3_text": "Katalog jest darmowy — bez ukrytych opłat i limitów czasowych.",
-
   "pagination_label": "Paginacja",
   "pagination_prev": "Poprzednia strona",
   "pagination_next": "Następna strona",
   "pagination_page": "Strona {page}",
-
   "locate_button": "Użyj mojej lokalizacji",
   "map_loading": "Wczytywanie mapy…",
   "map_error": "Nie udało się załadować mapy",
-
   "health_site_down": "strona niedostępna",
   "health_site_slow": "strona wolno odpowiada",
   "tier_unlimited": "Bez limitu",
@@ -234,9 +217,7 @@
   "tier_intro": "Oferta startowa",
   "tier_private": "Indywidualne",
   "tier_other": "Inne",
-
   "free_tag": "Bezpłatne",
-
   "cal_today": "Dziś",
   "cal_yesterday": "Wczoraj",
   "cal_tomorrow": "Jutro",
@@ -261,17 +242,14 @@
   "cal_n_more": "+{n} więcej",
   "cal_n_events_one": "{n} zajęcia",
   "cal_n_events_many": "{n} zajęć",
-
   "meta_yoga_schools": "Szkoły Jogi — Katalog",
   "meta_prices_locations_reviews": "Ceny Karnetów, Lokalizacje, Opinie",
   "meta_city_desc": "Baza szkół jogi: {city}. Sprawdź opinie, porównaj miesięczne ceny karnetów i znajdź najlepsze studio z darmowymi pierwszymi zajęciami. Zestawienie {count} placówek.",
   "footer_schools": "szkół",
   "footer_cities": "miast",
   "footer_styles": "stylów",
-
   "meta_main_title": "Szkoły Jogi w Polsce — Katalog i Wyszukiwarka | szkolyjogi.pl",
   "meta_main_desc": "Katalog szkół jogi w Polsce — porównaj ceny, opinie i lokalizacje. Znajdź najlepszą szkołę jogi w swoim mieście.",
-
   "cat_meta_desc": "Szkoły jogi w stylu {style} — {count} placówek w katalogu szkolyjogi.pl.",
   "cat_faq_price_q": "Ile kosztuje {style}?",
   "cat_faq_price_a": "Miesięczny karnet w szkołach z zajęciami {style} kosztuje średnio {avg} zł. Ceny wahają się od {min} zł do {max} zł.",
@@ -279,7 +257,6 @@
   "cat_faq_trial_a_yes": "Bezpłatne pierwsze zajęcia {style} oferuje {count} z {total} szkół: {names}.",
   "cat_faq_cities_q": "Gdzie w Polsce są zajęcia {style}?",
   "cat_faq_cities_a": "Zajęcia {style} znajdziesz w {count} miastach: {cities}.",
-
   "city_intro_heading": "Joga w {cityLoc}",
   "faq_heading": "Często zadawane pytania",
   "faq_price_q": "Ile kosztuje joga w {cityLoc}?",
@@ -288,5 +265,6 @@
   "faq_trial_a_yes": "Bezpłatne pierwsze zajęcia w {cityLoc} oferuje {count} z {total} szkół: {names}.",
   "faq_trial_a_no": "Aktualnie żadna z {total} szkół w {cityLoc} nie oferuje darmowych zajęć próbnych.",
   "faq_neighborhoods_q": "W jakich dzielnicach w {cityLoc} są szkoły jogi?",
-  "faq_neighborhoods_a": "Szkoły jogi w {cityLoc} działają w {count} dzielnicach: {list}."
+  "faq_neighborhoods_a": "Szkoły jogi w {cityLoc} działają w {count} dzielnicach: {list}.",
+  "listing_verified_badge": "Zweryfikowany profil"
 }
