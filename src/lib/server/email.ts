@@ -6,7 +6,7 @@ import { env } from '$env/dynamic/private';
 // unset and sending throws (callers treat email as best-effort).
 const FROM = 'noreply@szkolyjogi.pl';
 const FROM_NAME = 'szkolyjogi.pl';
-const ADMIN_EMAIL = 'joga@zaur.app';
+const ADMIN_EMAIL = 'kontakt@szkolyjogi.pl';
 
 export type ClaimNotificationData = {
   schoolName: string;
