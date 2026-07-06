@@ -6,6 +6,7 @@ export interface GeometrizeSource {
     media?: string;
     sizes?: string;
 }
+export type GeometrizeReveal = 'fade' | 'pop' | 'scatter';
 interface Props extends Omit<HTMLImgAttributes, 'src' | 'alt' | 'class' | 'placeholder'> {
     placeholder: GeometrizePlaceholder;
     src?: string;
@@ -14,6 +15,8 @@ interface Props extends Omit<HTMLImgAttributes, 'src' | 'alt' | 'class' | 'place
     alt: string;
     /** Class applied to the wrapper element. */
     class?: string;
+    /** How each shape animates in: plain fade, scale-in pop, or fly-in scatter. Default 'fade'. */
+    reveal?: GeometrizeReveal;
     /** Delay between consecutive shapes appearing, in ms. Default 15. */
     stagger?: number;
     /** Fade-in duration of each individual shape, in ms. Default 400. */
