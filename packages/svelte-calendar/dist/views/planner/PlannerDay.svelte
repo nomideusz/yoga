@@ -712,6 +712,10 @@
 		overflow: hidden;
 		user-select: none;
 		font-variant-numeric: tabular-nums;
+		/* The track is px-sized from the container width; never let it feed
+		   back into our own intrinsic size (host flex/grid min-width:auto
+		   would otherwise loop container → hourWidth → track → container). */
+		contain: inline-size;
 	}
 	.fs--auto { overflow: visible; }
 
@@ -726,7 +730,9 @@
 		scrollbar-width: thin;
 		scrollbar-color: var(--dt-scrollbar, rgba(0, 0, 0, 0.1)) transparent;
 	}
-	.fs--auto .fs-scroll { height: auto; overflow: visible; }
+	/* Auto height grows vertically, but horizontal containment must stay —
+	   overflow: visible here painted the whole track outside the calendar. */
+	.fs--auto .fs-scroll { height: auto; overflow-x: auto; overflow-y: hidden; }
 	.fs-scroll::-webkit-scrollbar { height: 5px; }
 	.fs-scroll::-webkit-scrollbar-thumb {
 		background: var(--dt-scrollbar, rgba(0, 0, 0, 0.1));
