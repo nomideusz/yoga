@@ -1,28 +1,8 @@
-<script lang="ts">
-  import type { Locale, I18nInstance } from "../core/types.js";
-
-  interface Props {
-    /**
-     * The i18n instance created by createI18n().
-     */
-    i18n: I18nInstance;
-    /**
-     * Optional display name map, e.g. { en: 'English', pl: 'Polski' }.
-     * Falls back to the locale code itself if not provided.
-     */
-    labels?: Record<Locale, string>;
-    /**
-     * Optional CSS class for the wrapper.
-     */
-    class?: string;
-  }
-
-  let { i18n, labels, class: className = "" }: Props = $props();
-
-  function handleChange(e: Event) {
-    const target = e.target as HTMLSelectElement;
-    i18n.setLocale(target.value);
-  }
+<script lang="ts">let { i18n, labels, class: className = "" } = $props();
+function handleChange(e) {
+  const target = e.target;
+  i18n.setLocale(target.value);
+}
 </script>
 
 <select

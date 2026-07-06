@@ -5,271 +5,217 @@
   Large touch targets, swipe left/right to change day.
   Events positioned absolutely within hour lanes.
 -->
-<script lang="ts">
-	import { onMount } from 'svelte';
-	import { useCalendarContext } from '../shared/context.svelte.js';
-	import { createClock } from '../../core/clock.svelte.js';
-	import type { TimelineEvent, BlockedSlot } from '../../core/types.js';
-	import { DAY_MS, HOUR_MS, sod, isAllDay, isMultiDay, segmentForDay } from '../../core/time.js';
-	import type { DaySegment } from '../../core/time.js';
-	import { fmtH, fmtTime, getLabels } from '../../core/locale.js';
-
-	const L = $derived(getLabels());
-
-	interface Props {
-		height?: number | null;
-		events?: TimelineEvent[];
-		style?: string;
-		focusDate?: Date;
-		locale?: string;
-		oneventclick?: (event: TimelineEvent) => void;
-		oneventcreate?: (range: { start: Date; end: Date }) => void;
-		selectedEventId?: string | null;
-		readOnly?: boolean;
-		visibleHours?: [number, number];
-		[key: string]: unknown;
-	}
-
-	let {
-		height = null,
-		events = [],
-		style = '',
-		locale,
-		focusDate,
-		oneventclick,
-		oneventcreate,
-		selectedEventId = null,
-		readOnly = false,
-		visibleHours,
-	}: Props = $props();
-
-	// ── Context ────────────────────────────────────────
-	const ctx = useCalendarContext();
-	const viewState = $derived(ctx.viewState);
-	const autoHeight = $derived(ctx.autoHeight);
-	const oneventhover = $derived(ctx.oneventhover);
-	const disabledSet = $derived(ctx.disabledSet);
-	const loadRangeCtx = $derived(ctx.loadRange);
-	const minDuration = $derived(ctx.minDuration);
-	const blockedSlots = $derived(ctx.blockedSlots);
-
-	const clock = createClock();
-
-	// ── Config ─────────────────────────────────────────
-	const HOUR_HEIGHT = 64;
-	const GUTTER_W = 40;
-	const startHour = $derived(visibleHours?.[0] ?? 0);
-	const endHour = $derived(visibleHours?.[1] ?? 24);
-	const hourCount = $derived(Math.max(1, endHour - startHour));
-	const gridHeight = $derived(hourCount * HOUR_HEIGHT);
-
-	// ── Day state ──────────────────────────────────────
-	const dayMs = $derived(focusDate ? sod(focusDate.getTime()) : clock.today);
-	const dayEnd = $derived(dayMs + DAY_MS);
-	const isToday = $derived(dayMs === clock.today);
-	const isPast = $derived(dayMs < clock.today);
-	const isDisabled = $derived(disabledSet.has(dayMs));
-
-	// ── Load range ─────────────────────────────────────
-	$effect(() => {
-		if (!loadRangeCtx) return;
-		const rangeStart = new Date(dayMs - 2 * DAY_MS);
-		const rangeEnd = new Date(dayMs + 3 * DAY_MS);
-		loadRangeCtx.set({ start: rangeStart, end: rangeEnd });
-		return () => loadRangeCtx.set(null);
-	});
-
-	// ── Events partition ───────────────────────────────
-	const timedEvents = $derived(
-		events
-			.filter(ev => !isAllDay(ev) && !isMultiDay(ev) && ev.start.getTime() < dayEnd && ev.end.getTime() > dayMs)
-			.sort((a, b) => a.start.getTime() - b.start.getTime())
-	);
-
-	const allDayEvents = $derived.by(() => {
-		const segs: DaySegment[] = [];
-		for (const ev of events) {
-			if (!isAllDay(ev) && !isMultiDay(ev)) continue;
-			const seg = segmentForDay(ev, dayMs);
-			if (seg) segs.push(seg);
-		}
-		return segs;
-	});
-
-	// ── Positioned events ──────────────────────────────
-	interface PosEvent {
-		ev: TimelineEvent;
-		top: number;
-		height: number;
-		left: string;
-		width: string;
-		isCurrent: boolean;
-		isNext: boolean;
-		col: number;
-		totalCols: number;
-	}
-
-	const positionedEvents = $derived.by(() => {
-		const now = clock.tick;
-		const sorted = [...timedEvents];
-
-		// Find the next upcoming event today
-		let nextEventId: string | null = null;
-		if (isToday) {
-			for (const ev of [...sorted].sort((a, b) => a.start.getTime() - b.start.getTime())) {
-				const s = ev.start.getTime();
-				if (s > now) { nextEventId = ev.id; break; }
-			}
-		}
-
-		// Overlap grouping
-		const infos = sorted.map(ev => {
-			const sMs = Math.max(ev.start.getTime(), dayMs + startHour * HOUR_MS);
-			const eMs = Math.min(ev.end.getTime(), dayMs + endHour * HOUR_MS);
-			const topH = (sMs - dayMs) / HOUR_MS - startHour;
-			const botH = (eMs - dayMs) / HOUR_MS - startHour;
-			return {
-				ev,
-				top: topH * HOUR_HEIGHT,
-				height: Math.max(24, (botH - topH) * HOUR_HEIGHT),
-				isCurrent: ev.start.getTime() <= now && ev.end.getTime() > now,
-				isNext: ev.id === nextEventId,
-				startMs: sMs,
-				endMs: eMs,
-				col: 0,
-				totalCols: 1,
-			};
-		});
-
-		// Assign columns for overlapping events
-		const par = infos.map((_, i) => i);
-		function find(i: number): number {
-			while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; }
-			return i;
-		}
-		for (let i = 0; i < infos.length; i++) {
-			for (let j = i + 1; j < infos.length; j++) {
-				if (infos[j].startMs < infos[i].endMs) par[find(i)] = find(j);
-				else break;
-			}
-		}
-
-		const groups = new Map<number, number[]>();
-		for (let i = 0; i < infos.length; i++) {
-			const root = find(i);
-			if (!groups.has(root)) groups.set(root, []);
-			groups.get(root)!.push(i);
-		}
-
-		for (const [, indices] of groups) {
-			const rows: number[] = [];
-			for (const idx of indices) {
-				let row = 0;
-				for (let r = 0; r < rows.length; r++) {
-					if (rows[r] <= infos[idx].startMs) { row = r; rows[r] = infos[idx].endMs; break; }
-					row = r + 1;
-				}
-				if (row >= rows.length) rows.push(infos[idx].endMs);
-				infos[idx].col = row;
-			}
-			for (const idx of indices) infos[idx].totalCols = rows.length;
-		}
-
-		return infos.map(info => ({
-			ev: info.ev,
-			top: info.top,
-			height: info.height,
-			left: `calc(${GUTTER_W}px + ${(info.col / info.totalCols) * 100}% - ${(GUTTER_W * info.col) / info.totalCols}px)`,
-			width: `calc(${100 / info.totalCols}% - ${GUTTER_W / info.totalCols + 2}px)`,
-			isCurrent: info.isCurrent,
-			isNext: info.isNext,
-			col: info.col,
-			totalCols: info.totalCols,
-		})) as PosEvent[];
-	});
-
-	// ── Now indicator ──────────────────────────────────
-	const nowOffset = $derived.by(() => {
-		if (!isToday) return -1;
-		const h = (clock.tick - dayMs) / HOUR_MS - startHour;
-		if (h < 0 || h > hourCount) return -1;
-		return h * HOUR_HEIGHT;
-	});
-
-	// ── Blocked slot check ─────────────────────────────
-	function isBlockedAt(hour: number): boolean {
-		if (!blockedSlots?.length) return false;
-		const jsDay = new Date(dayMs).getDay();
-		const isoDay = jsDay === 0 ? 7 : jsDay;
-		return blockedSlots.some(slot => {
-			if (slot.day && slot.day !== isoDay) return false;
-			return hour >= slot.start && hour < slot.end;
-		});
-	}
-
-	// ── Touch swipe navigation ─────────────────────────
-	let el: HTMLDivElement;
-	let touchStartX = 0;
-	let touchStartY = 0;
-	let swiping = false;
-	let swipeOffset = $state(0);
-	const SWIPE_THRESHOLD = 50;
-
-	function onTouchStart(e: TouchEvent) {
-		const t = e.touches[0];
-		touchStartX = t.clientX;
-		touchStartY = t.clientY;
-		swiping = true;
-		swipeOffset = 0;
-	}
-
-	function onTouchMove(e: TouchEvent) {
-		if (!swiping) return;
-		const t = e.touches[0];
-		const dx = t.clientX - touchStartX;
-		const dy = t.clientY - touchStartY;
-		// Only swipe if horizontal movement dominates
-		if (Math.abs(dy) > Math.abs(dx) * 0.8) { swiping = false; return; }
-		swipeOffset = dx;
-	}
-
-	function onTouchEnd() {
-		if (!swiping) { swipeOffset = 0; return; }
-		if (Math.abs(swipeOffset) > SWIPE_THRESHOLD) {
-			if (swipeOffset > 0) {
-				viewState?.prev();
-			} else {
-				viewState?.next();
-			}
-		}
-		swipeOffset = 0;
-		swiping = false;
-	}
-
-	// ── Click-to-create ────────────────────────────────
-	function handleGridClick(e: MouseEvent) {
-		if (!oneventcreate || readOnly || isDisabled) return;
-		if ((e.target as HTMLElement).closest('.mb-event')) return;
-		const grid = (e.currentTarget as HTMLElement);
-		const rect = grid.getBoundingClientRect();
-		const y = e.clientY - rect.top + grid.scrollTop;
-		const hour = startHour + y / HOUR_HEIGHT;
-		if (isBlockedAt(hour)) return;
-		const snapHour = Math.floor(hour);
-		const durMin = minDuration ? Math.max(60, minDuration) : 60;
-		const start = new Date(dayMs + snapHour * HOUR_MS);
-		const end = new Date(start.getTime() + durMin * 60_000);
-		oneventcreate({ start, end });
-	}
-
-	// ── Auto-scroll to now ─────────────────────────────
-	let gridEl: HTMLDivElement;
-	onMount(() => {
-		if (nowOffset > 0 && gridEl) {
-			const scrollTarget = Math.max(0, nowOffset - 120);
-			gridEl.scrollTop = scrollTarget;
-		}
-	});
+<script lang="ts">import { onMount } from "svelte";
+import { useCalendarContext } from "../shared/context.svelte.js";
+import { createClock } from "../../core/clock.svelte.js";
+import { DAY_MS, HOUR_MS, sod, isAllDay, isMultiDay, segmentForDay } from "../../core/time.js";
+import { fmtH, fmtTime, getLabels } from "../../core/locale.js";
+const L = $derived(getLabels());
+let {
+  height = null,
+  events = [],
+  style = "",
+  locale,
+  focusDate,
+  oneventclick,
+  oneventcreate,
+  selectedEventId = null,
+  readOnly = false,
+  visibleHours
+} = $props();
+const ctx = useCalendarContext();
+const viewState = $derived(ctx.viewState);
+const autoHeight = $derived(ctx.autoHeight);
+const oneventhover = $derived(ctx.oneventhover);
+const disabledSet = $derived(ctx.disabledSet);
+const loadRangeCtx = $derived(ctx.loadRange);
+const minDuration = $derived(ctx.minDuration);
+const blockedSlots = $derived(ctx.blockedSlots);
+const clock = createClock();
+const HOUR_HEIGHT = 64;
+const GUTTER_W = 40;
+const startHour = $derived(visibleHours?.[0] ?? 0);
+const endHour = $derived(visibleHours?.[1] ?? 24);
+const hourCount = $derived(Math.max(1, endHour - startHour));
+const gridHeight = $derived(hourCount * HOUR_HEIGHT);
+const dayMs = $derived(focusDate ? sod(focusDate.getTime()) : clock.today);
+const dayEnd = $derived(dayMs + DAY_MS);
+const isToday = $derived(dayMs === clock.today);
+const isPast = $derived(dayMs < clock.today);
+const isDisabled = $derived(disabledSet.has(dayMs));
+$effect(() => {
+  if (!loadRangeCtx) return;
+  const rangeStart = new Date(dayMs - 2 * DAY_MS);
+  const rangeEnd = new Date(dayMs + 3 * DAY_MS);
+  loadRangeCtx.set({ start: rangeStart, end: rangeEnd });
+  return () => loadRangeCtx.set(null);
+});
+const timedEvents = $derived(
+  events.filter((ev) => !isAllDay(ev) && !isMultiDay(ev) && ev.start.getTime() < dayEnd && ev.end.getTime() > dayMs).sort((a, b) => a.start.getTime() - b.start.getTime())
+);
+const allDayEvents = $derived.by(() => {
+  const segs = [];
+  for (const ev of events) {
+    if (!isAllDay(ev) && !isMultiDay(ev)) continue;
+    const seg = segmentForDay(ev, dayMs);
+    if (seg) segs.push(seg);
+  }
+  return segs;
+});
+const positionedEvents = $derived.by(() => {
+  const now = clock.tick;
+  const sorted = [...timedEvents];
+  let nextEventId = null;
+  if (isToday) {
+    for (const ev of [...sorted].sort((a, b) => a.start.getTime() - b.start.getTime())) {
+      const s = ev.start.getTime();
+      if (s > now) {
+        nextEventId = ev.id;
+        break;
+      }
+    }
+  }
+  const infos = sorted.map((ev) => {
+    const sMs = Math.max(ev.start.getTime(), dayMs + startHour * HOUR_MS);
+    const eMs = Math.min(ev.end.getTime(), dayMs + endHour * HOUR_MS);
+    const topH = (sMs - dayMs) / HOUR_MS - startHour;
+    const botH = (eMs - dayMs) / HOUR_MS - startHour;
+    return {
+      ev,
+      top: topH * HOUR_HEIGHT,
+      height: Math.max(24, (botH - topH) * HOUR_HEIGHT),
+      isCurrent: ev.start.getTime() <= now && ev.end.getTime() > now,
+      isNext: ev.id === nextEventId,
+      startMs: sMs,
+      endMs: eMs,
+      col: 0,
+      totalCols: 1
+    };
+  });
+  const par = infos.map((_, i) => i);
+  function find(i) {
+    while (par[i] !== i) {
+      par[i] = par[par[i]];
+      i = par[i];
+    }
+    return i;
+  }
+  for (let i = 0; i < infos.length; i++) {
+    for (let j = i + 1; j < infos.length; j++) {
+      if (infos[j].startMs < infos[i].endMs) par[find(i)] = find(j);
+      else break;
+    }
+  }
+  const groups = /* @__PURE__ */ new Map();
+  for (let i = 0; i < infos.length; i++) {
+    const root = find(i);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(i);
+  }
+  for (const [, indices] of groups) {
+    const rows = [];
+    for (const idx of indices) {
+      let row = 0;
+      for (let r = 0; r < rows.length; r++) {
+        if (rows[r] <= infos[idx].startMs) {
+          row = r;
+          rows[r] = infos[idx].endMs;
+          break;
+        }
+        row = r + 1;
+      }
+      if (row >= rows.length) rows.push(infos[idx].endMs);
+      infos[idx].col = row;
+    }
+    for (const idx of indices) infos[idx].totalCols = rows.length;
+  }
+  return infos.map((info) => ({
+    ev: info.ev,
+    top: info.top,
+    height: info.height,
+    left: `calc(${GUTTER_W}px + ${info.col / info.totalCols * 100}% - ${GUTTER_W * info.col / info.totalCols}px)`,
+    width: `calc(${100 / info.totalCols}% - ${GUTTER_W / info.totalCols + 2}px)`,
+    isCurrent: info.isCurrent,
+    isNext: info.isNext,
+    col: info.col,
+    totalCols: info.totalCols
+  }));
+});
+const nowOffset = $derived.by(() => {
+  if (!isToday) return -1;
+  const h = (clock.tick - dayMs) / HOUR_MS - startHour;
+  if (h < 0 || h > hourCount) return -1;
+  return h * HOUR_HEIGHT;
+});
+function isBlockedAt(hour) {
+  if (!blockedSlots?.length) return false;
+  const jsDay = new Date(dayMs).getDay();
+  const isoDay = jsDay === 0 ? 7 : jsDay;
+  return blockedSlots.some((slot) => {
+    if (slot.day && slot.day !== isoDay) return false;
+    return hour >= slot.start && hour < slot.end;
+  });
+}
+let el;
+let touchStartX = 0;
+let touchStartY = 0;
+let swiping = false;
+let swipeOffset = $state(0);
+const SWIPE_THRESHOLD = 50;
+function onTouchStart(e) {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+  swiping = true;
+  swipeOffset = 0;
+}
+function onTouchMove(e) {
+  if (!swiping) return;
+  const t = e.touches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  if (Math.abs(dy) > Math.abs(dx) * 0.8) {
+    swiping = false;
+    return;
+  }
+  swipeOffset = dx;
+}
+function onTouchEnd() {
+  if (!swiping) {
+    swipeOffset = 0;
+    return;
+  }
+  if (Math.abs(swipeOffset) > SWIPE_THRESHOLD) {
+    if (swipeOffset > 0) {
+      viewState?.prev();
+    } else {
+      viewState?.next();
+    }
+  }
+  swipeOffset = 0;
+  swiping = false;
+}
+function handleGridClick(e) {
+  if (!oneventcreate || readOnly || isDisabled) return;
+  if (e.target.closest(".mb-event")) return;
+  const grid = e.currentTarget;
+  const rect = grid.getBoundingClientRect();
+  const y = e.clientY - rect.top + grid.scrollTop;
+  const hour = startHour + y / HOUR_HEIGHT;
+  if (isBlockedAt(hour)) return;
+  const snapHour = Math.floor(hour);
+  const durMin = minDuration ? Math.max(60, minDuration) : 60;
+  const start = new Date(dayMs + snapHour * HOUR_MS);
+  const end = new Date(start.getTime() + durMin * 6e4);
+  oneventcreate({ start, end });
+}
+let gridEl;
+onMount(() => {
+  if (nowOffset > 0 && gridEl) {
+    const scrollTarget = Math.max(0, nowOffset - 120);
+    gridEl.scrollTop = scrollTarget;
+  }
+});
 </script>
 
 <div

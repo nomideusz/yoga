@@ -1,13 +1,6 @@
-<script lang="ts">
-	import PlannerDay from './PlannerDay.svelte';
-	import PlannerWeek from './PlannerWeek.svelte';
-
-	interface Props {
-		mode?: 'day' | 'week';
-		[key: string]: unknown;
-	}
-
-	let { mode = 'week', ...rest }: Props = $props();
+<script lang="ts">import PlannerDay from "./PlannerDay.svelte";
+import PlannerWeek from "./PlannerWeek.svelte";
+let { mode = "week", ...rest } = $props();
 </script>
 
 {#if mode === 'day'}

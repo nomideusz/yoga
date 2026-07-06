@@ -1,99 +1,56 @@
-<script lang="ts">
-	import type { HTMLImgAttributes } from 'svelte/elements';
-	import type { GeometrizePlaceholder } from '../core/types.js';
-
-	export interface GeometrizeSource {
-		srcset: string;
-		type?: string;
-		media?: string;
-		sizes?: string;
-	}
-
-	export type GeometrizeReveal = 'fade' | 'pop' | 'scatter';
-
-	interface Props extends Omit<HTMLImgAttributes, 'src' | 'alt' | 'class' | 'placeholder'> {
-		placeholder: GeometrizePlaceholder;
-		src?: string;
-		srcset?: string;
-		sources?: GeometrizeSource[];
-		alt: string;
-		/** Class applied to the wrapper element. */
-		class?: string;
-		/** How each shape animates in: plain fade, scale-in pop, or fly-in scatter. Default 'fade'. */
-		reveal?: GeometrizeReveal;
-		/** Delay between consecutive shapes appearing, in ms. Default 15. */
-		stagger?: number;
-		/** Fade-in duration of each individual shape, in ms. Default 400. */
-		shapeDuration?: number;
-		/** Crossfade duration of the photo once loaded, in ms. Default 600. */
-		fadeDuration?: number;
-	}
-
-	let {
-		placeholder,
-		src,
-		srcset,
-		sources = [],
-		alt,
-		class: className = '',
-		reveal: revealKind = 'fade',
-		stagger = 15,
-		shapeDuration = 400,
-		fadeDuration = 600,
-		...rest
-	}: Props = $props();
-
-	let img: HTMLImageElement | undefined = $state();
-	let loaded = $state(false);
-	let revealToken = 0; // bumped on every src/sources change to cancel a stale pending reveal
-
-	function reveal() {
-		const el = img;
-		if (!el || !el.complete || el.naturalWidth === 0) return; // not ready / broken → keep placeholder
-		const token = revealToken;
-		const flip = () => {
-			const e2 = img;
-			if (token !== revealToken || !e2 || !e2.complete || e2.naturalWidth === 0) return;
-			requestAnimationFrame(() =>
-				requestAnimationFrame(() => {
-					if (token === revealToken) loaded = true;
-				})
-			);
-		};
-		if (el.decode) el.decode().then(flip, flip);
-		else flip();
-	}
-
-	$effect(() => {
-		void src;
-		void srcset;
-		void sources;
-		revealToken++;
-		loaded = false;
-		if (src || srcset || (sources && sources.length > 0)) reveal();
-	});
-
-	const svgMarkup = $derived.by(() => {
-		const last = Math.max(placeholder.s.length - 1, 1);
-		const dist = placeholder.fw * 0.1; // scatter fly-in distance, in viewBox units
-		return (
-			`<svg viewBox="0 0 ${placeholder.fw} ${placeholder.fh}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">` +
-			`<rect width="${placeholder.fw}" height="${placeholder.fh}" fill="${placeholder.bg}"/>` +
-			placeholder.s
-				.map((frag, i) => {
-					const delay = Math.round((i / last) ** 1.6 * last * stagger);
-					let style = `animation-delay:${delay}ms`;
-					if (revealKind === 'scatter') {
-						// deterministic pseudo-random direction per shape (golden angle)
-						const a = (i * 2.39996) % (Math.PI * 2);
-						style += `;--gdx:${(Math.cos(a) * dist).toFixed(1)}px;--gdy:${(Math.sin(a) * dist).toFixed(1)}px`;
-					}
-					return `<g style="${style}">${frag}</g>`;
-				})
-				.join('') +
-			`</svg>`
-		);
-	});
+<script lang="ts">let {
+  placeholder,
+  src,
+  srcset,
+  sources = [],
+  alt,
+  class: className = "",
+  reveal: revealKind = "fade",
+  stagger = 15,
+  shapeDuration = 400,
+  fadeDuration = 600,
+  ...rest
+} = $props();
+let img = $state();
+let loaded = $state(false);
+let revealToken = 0;
+function reveal() {
+  const el = img;
+  if (!el || !el.complete || el.naturalWidth === 0) return;
+  const token = revealToken;
+  const flip = () => {
+    const e2 = img;
+    if (token !== revealToken || !e2 || !e2.complete || e2.naturalWidth === 0) return;
+    requestAnimationFrame(
+      () => requestAnimationFrame(() => {
+        if (token === revealToken) loaded = true;
+      })
+    );
+  };
+  if (el.decode) el.decode().then(flip, flip);
+  else flip();
+}
+$effect(() => {
+  void src;
+  void srcset;
+  void sources;
+  revealToken++;
+  loaded = false;
+  if (src || srcset || sources && sources.length > 0) reveal();
+});
+const svgMarkup = $derived.by(() => {
+  const last = Math.max(placeholder.s.length - 1, 1);
+  const dist = placeholder.fw * 0.1;
+  return `<svg viewBox="0 0 ${placeholder.fw} ${placeholder.fh}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="${placeholder.fw}" height="${placeholder.fh}" fill="${placeholder.bg}"/>` + placeholder.s.map((frag, i) => {
+    const delay = Math.round((i / last) ** 1.6 * last * stagger);
+    let style = `animation-delay:${delay}ms`;
+    if (revealKind === "scatter") {
+      const a = i * 2.39996 % (Math.PI * 2);
+      style += `;--gdx:${(Math.cos(a) * dist).toFixed(1)}px;--gdy:${(Math.sin(a) * dist).toFixed(1)}px`;
+    }
+    return `<g style="${style}">${frag}</g>`;
+  }).join("") + `</svg>`;
+});
 </script>
 
 <div

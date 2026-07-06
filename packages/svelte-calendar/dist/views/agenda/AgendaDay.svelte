@@ -1,141 +1,89 @@
-<script lang="ts">
-	/**
-	 * AgendaDay — single-day agenda view.
-	 *
-	 * Today ("The Queue"):
-	 *   3-column layout: Done | Now | Up next (hero).
-	 *   Answers: "What's coming up next?"
-	 *
-	 * Past day ("The Log"):
-	 *   Quiet chronological record of completed events.
-	 *
-	 * Future day ("The Plan"):
-	 *   Clean numbered schedule list.
-	 */
-	import { createClock } from '../../core/clock.svelte.js';
-	import type { TimelineEvent } from '../../core/types.js';
-	import { sod, DAY_MS, isAllDay, isMultiDay } from '../../core/time.js';
-	import { getLabels } from '../../core/locale.js';
-	import { useCalendarContext } from '../shared/context.svelte.js';
-	import { fmtTime, duration, timeUntilMs, progress, groupIntoSlots } from '../shared/format.js';
-	import type { TimeSlot } from '../shared/format.js';
-
-	const L = $derived(getLabels());
-	const ctx = useCalendarContext();
-
-	interface Props {
-		locale?: string;
-		height?: number;
-		events?: TimelineEvent[];
-		style?: string;
-		focusDate?: Date;
-		oneventclick?: (event: TimelineEvent) => void;
-		selectedEventId?: string | null;
-		[key: string]: unknown;
-	}
-
-	let {
-		locale,
-		height,
-		events = [],
-		style = '',
-		focusDate,
-		oneventclick,
-		selectedEventId = null,
-	}: Props = $props();
-
-	const clock = createClock();
-	const viewState = $derived(ctx.viewState);
-	const equalDays = $derived(ctx.equalDays);
-	const isMobile = $derived(ctx.isMobile);
-	const autoHeight = $derived(ctx.autoHeight);
-	const compact = $derived(ctx.compact);
-	const oneventhover = $derived(ctx.oneventhover);
-	const disabledSet = $derived(ctx.disabledSet);
-
-	// ── Swipe navigation (mobile) ──────────────────────
-	let swipeStartX = 0;
-	let swipeStartY = 0;
-	const SWIPE_THRESHOLD = 50;
-
-	function onPointerDown(e: PointerEvent) {
-		if (!isMobile) return;
-		swipeStartX = e.clientX;
-		swipeStartY = e.clientY;
-	}
-
-	function onPointerUp(e: PointerEvent) {
-		if (!isMobile) return;
-		const dx = e.clientX - swipeStartX;
-		const dy = e.clientY - swipeStartY;
-		if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.4) {
-			if (dx > 0) viewState?.prev();
-			else viewState?.next();
-		}
-	}
-
-	// ── Format helpers (delegated to shared/format.ts) ──
-	const fmt = (d: Date) => fmtTime(d, locale);
-	const eta = (ms: number) => timeUntilMs(ms, clock.tick);
-	const prog = (ev: TimelineEvent) => progress(ev, clock.tick);
-
-	// ── Event handlers ──────────────────────────────────
-	function handleClick(ev: TimelineEvent): void {
-		oneventclick?.(ev);
-	}
-
-	function handleKeydown(e: KeyboardEvent, ev: TimelineEvent): void {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			oneventclick?.(ev);
-		}
-	}
-
-	// ── Day derivations ─────────────────────────────────
-	const dayMs = $derived(focusDate ? sod(focusDate.getTime()) : clock.today);
-	const dayEnd = $derived(dayMs + DAY_MS);
-	const isToday = $derived(dayMs === clock.today);
-	const isPastDay = $derived(equalDays ? false : dayMs < clock.today);
-
-	/** All events for this day, sorted chronologically */
-	const dayEvents = $derived.by((): TimelineEvent[] => {
-		return events
-			.filter((ev) => ev.start.getTime() < dayEnd && ev.end.getTime() > dayMs)
-			.sort((a, b) => a.start.getTime() - b.start.getTime());
-	});
-
-	/** All-day / multi-day events shown in a separate strip */
-	const allDayBanner = $derived(dayEvents.filter((ev) => isAllDay(ev) || isMultiDay(ev)));
-
-	/** Timed events (non-all-day) for normal slot rendering */
-	const timedDayEvents = $derived(dayEvents.filter((ev) => !isAllDay(ev) && !isMultiDay(ev)));
-
-	const dayCat = $derived.by(() => {
-		const now = clock.tick;
-		const past: TimelineEvent[] = [];
-		const current: TimelineEvent[] = [];
-		const upcoming: TimelineEvent[] = [];
-		for (const ev of timedDayEvents) {
-			const s = ev.start.getTime();
-			const e = ev.end.getTime();
-			if (e <= now) past.push(ev);
-			else if (s <= now && e > now) current.push(ev);
-			else upcoming.push(ev);
-		}
-		return { past, current, upcomingSlots: groupIntoSlots(upcoming), totalUp: upcoming.length };
-	});
-
-	/** Flat list of next upcoming events (max 5) for the "Up next" column */
-	const upcomingNext = $derived.by((): TimelineEvent[] => {
-		const all: TimelineEvent[] = [];
-		for (const slot of dayCat.upcomingSlots) {
-			for (const ev of slot.events) {
-				all.push(ev);
-				if (all.length >= 5) return all;
-			}
-		}
-		return all;
-	});
+<script lang="ts">import { createClock } from "../../core/clock.svelte.js";
+import { sod, DAY_MS, isAllDay, isMultiDay } from "../../core/time.js";
+import { getLabels } from "../../core/locale.js";
+import { useCalendarContext } from "../shared/context.svelte.js";
+import { fmtTime, duration, timeUntilMs, progress, groupIntoSlots } from "../shared/format.js";
+const L = $derived(getLabels());
+const ctx = useCalendarContext();
+let {
+  locale,
+  height,
+  events = [],
+  style = "",
+  focusDate,
+  oneventclick,
+  selectedEventId = null
+} = $props();
+const clock = createClock();
+const viewState = $derived(ctx.viewState);
+const equalDays = $derived(ctx.equalDays);
+const isMobile = $derived(ctx.isMobile);
+const autoHeight = $derived(ctx.autoHeight);
+const compact = $derived(ctx.compact);
+const oneventhover = $derived(ctx.oneventhover);
+const disabledSet = $derived(ctx.disabledSet);
+let swipeStartX = 0;
+let swipeStartY = 0;
+const SWIPE_THRESHOLD = 50;
+function onPointerDown(e) {
+  if (!isMobile) return;
+  swipeStartX = e.clientX;
+  swipeStartY = e.clientY;
+}
+function onPointerUp(e) {
+  if (!isMobile) return;
+  const dx = e.clientX - swipeStartX;
+  const dy = e.clientY - swipeStartY;
+  if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.4) {
+    if (dx > 0) viewState?.prev();
+    else viewState?.next();
+  }
+}
+const fmt = (d) => fmtTime(d, locale);
+const eta = (ms) => timeUntilMs(ms, clock.tick);
+const prog = (ev) => progress(ev, clock.tick);
+function handleClick(ev) {
+  oneventclick?.(ev);
+}
+function handleKeydown(e, ev) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    oneventclick?.(ev);
+  }
+}
+const dayMs = $derived(focusDate ? sod(focusDate.getTime()) : clock.today);
+const dayEnd = $derived(dayMs + DAY_MS);
+const isToday = $derived(dayMs === clock.today);
+const isPastDay = $derived(equalDays ? false : dayMs < clock.today);
+const dayEvents = $derived.by(() => {
+  return events.filter((ev) => ev.start.getTime() < dayEnd && ev.end.getTime() > dayMs).sort((a, b) => a.start.getTime() - b.start.getTime());
+});
+const allDayBanner = $derived(dayEvents.filter((ev) => isAllDay(ev) || isMultiDay(ev)));
+const timedDayEvents = $derived(dayEvents.filter((ev) => !isAllDay(ev) && !isMultiDay(ev)));
+const dayCat = $derived.by(() => {
+  const now = clock.tick;
+  const past = [];
+  const current = [];
+  const upcoming = [];
+  for (const ev of timedDayEvents) {
+    const s = ev.start.getTime();
+    const e = ev.end.getTime();
+    if (e <= now) past.push(ev);
+    else if (s <= now && e > now) current.push(ev);
+    else upcoming.push(ev);
+  }
+  return { past, current, upcomingSlots: groupIntoSlots(upcoming), totalUp: upcoming.length };
+});
+const upcomingNext = $derived.by(() => {
+  const all = [];
+  for (const slot of dayCat.upcomingSlots) {
+    for (const ev of slot.events) {
+      all.push(ev);
+      if (all.length >= 5) return all;
+    }
+  }
+  return all;
+});
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->

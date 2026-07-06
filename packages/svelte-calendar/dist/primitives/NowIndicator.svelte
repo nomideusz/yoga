@@ -11,48 +11,22 @@
     <NowIndicator mode="dot" position={nowPx} time={clock.hm} />
     <NowIndicator mode="badge" />
 -->
-<script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { getLabels } from '../core/locale.js';
-
-	const L = $derived(getLabels());
-
-	interface Props {
-		/** Visual mode */
-		mode?: 'line' | 'dot' | 'badge';
-		/** Pixel offset for positioning (line/dot modes) */
-		position?: number;
-		/** Orientation of the line/dot */
-		orientation?: 'vertical' | 'horizontal';
-		/** Formatted time string (e.g. "14:30") */
-		time?: string;
-		/** Formatted seconds string (e.g. ":05") */
-		seconds?: string;
-		/** Show the time label */
-		showLabel?: boolean;
-		/** Accent color override */
-		color?: string;
-		/** Custom content slot */
-		children?: Snippet;
-	}
-
-	let {
-		mode = 'line',
-		position = 0,
-		orientation = 'vertical',
-		time = '',
-		seconds = '',
-		showLabel = true,
-		color,
-		children,
-	}: Props = $props();
-
-	const posStyle = $derived(
-		orientation === 'vertical'
-			? `left: ${position}px`
-			: `top: ${position}px`,
-	);
-	const colorVar = $derived(color ? `--ni-color: ${color}` : '');
+<script lang="ts">import { getLabels } from "../core/locale.js";
+const L = $derived(getLabels());
+let {
+  mode = "line",
+  position = 0,
+  orientation = "vertical",
+  time = "",
+  seconds = "",
+  showLabel = true,
+  color,
+  children
+} = $props();
+const posStyle = $derived(
+  orientation === "vertical" ? `left: ${position}px` : `top: ${position}px`
+);
+const colorVar = $derived(color ? `--ni-color: ${color}` : "");
 </script>
 
 {#if mode === 'badge'}

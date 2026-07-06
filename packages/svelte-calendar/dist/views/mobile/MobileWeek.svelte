@@ -5,192 +5,134 @@
   list of events. Tap a day to drill into MobileDay. Swipe
   left/right to navigate weeks.
 -->
-<script lang="ts">
-	import { useCalendarContext } from '../shared/context.svelte.js';
-	import { createClock } from '../../core/clock.svelte.js';
-	import type { TimelineEvent } from '../../core/types.js';
-	import { DAY_MS, sod, isAllDay, isMultiDay } from '../../core/time.js';
-	import { startOfWeek as sowFn } from '../../core/time.js';
-	import { fmtTime as _fmtTime, weekdayShort, getLabels } from '../../core/locale.js';
-
-	const L = $derived(getLabels());
-
-	interface Props {
-		mondayStart?: boolean;
-		locale?: string;
-		height?: number | null;
-		events?: TimelineEvent[];
-		style?: string;
-		focusDate?: Date;
-		oneventclick?: (event: TimelineEvent) => void;
-		oneventcreate?: (range: { start: Date; end: Date }) => void;
-		selectedEventId?: string | null;
-		readOnly?: boolean;
-		[key: string]: unknown;
-	}
-
-	let {
-		mondayStart = true,
-		locale,
-		height = null,
-		events = [],
-		style = '',
-		focusDate,
-		oneventclick,
-		oneventcreate,
-		selectedEventId = null,
-		readOnly = false,
-	}: Props = $props();
-
-	// ── Context ────────────────────────────────────────
-	const ctx = useCalendarContext();
-	const viewState = $derived(ctx.viewState);
-	const equalDays = $derived(ctx.equalDays);
-	const showDates = $derived(ctx.showDates);
-	const hideDays = $derived(ctx.hideDays);
-	const autoHeight = $derived(ctx.autoHeight);
-	const oneventhover = $derived(ctx.oneventhover);
-	const disabledSet = $derived(ctx.disabledSet);
-	const loadRangeCtx = $derived(ctx.loadRange);
-	const minDuration = $derived(ctx.minDuration);
-
-	const clock = createClock();
-
-	// ── Config ─────────────────────────────────────────
-	const MAX_EVENTS = 3;
-	const customDays = $derived(viewState?.dayCount ?? 7);
-
-	// ── Derived week data ──────────────────────────────
-	const todayMs = $derived(clock.today);
-	const focusMs = $derived(focusDate ? sod(focusDate.getTime()) : todayMs);
-
-	const weekStart = $derived(
-		customDays === 7
-			? sowFn(focusMs, mondayStart)
-			: sod(focusMs)
-	);
-
-	// ── Load range ─────────────────────────────────────
-	$effect(() => {
-		if (!loadRangeCtx) return;
-		const rangeStart = new Date(weekStart - 7 * DAY_MS);
-		const rangeEnd = new Date(weekStart + (customDays + 7) * DAY_MS);
-		loadRangeCtx.set({ start: rangeStart, end: rangeEnd });
-		return () => loadRangeCtx.set(null);
-	});
-
-	// ── Day cells ──────────────────────────────────────
-	interface DayCell {
-		ms: number;
-		dayNum: number;
-		dayName: string;
-		isToday: boolean;
-		isPast: boolean;
-		isDisabled: boolean;
-		isWeekend: boolean;
-		events: TimelineEvent[];
-		allDayCount: number;
-		totalCount: number;
-	}
-
-	const dayCells = $derived.by(() => {
-		const result: DayCell[] = [];
-		const hideSet = new Set(hideDays ?? []);
-
-		for (let i = 0; i < customDays; i++) {
-			const ms = weekStart + i * DAY_MS;
-			const d = new Date(ms);
-			const jsDay = d.getDay();
-			const isoDay = jsDay === 0 ? 7 : jsDay;
-
-			if (hideSet.has(isoDay)) continue;
-
-			const isToday = ms === todayMs;
-			const isPast = equalDays ? false : ms < todayMs;
-			const isWeekend = jsDay === 0 || jsDay === 6;
-			const isDisabled = disabledSet.has(ms);
-			const dayEnd = ms + DAY_MS;
-
-			const dayEvents = events
-				.filter(ev => ev.start.getTime() < dayEnd && ev.end.getTime() > ms)
-				.sort((a, b) => a.start.getTime() - b.start.getTime());
-
-			const allDayCount = dayEvents.filter(ev => isAllDay(ev) || isMultiDay(ev)).length;
-
-			result.push({
-				ms,
-				dayNum: d.getDate(),
-				dayName: weekdayShort(ms, locale),
-				isToday,
-				isPast,
-				isDisabled,
-				isWeekend,
-				events: dayEvents,
-				allDayCount,
-				totalCount: dayEvents.length,
-			});
-		}
-		return result;
-	});
-
-	// ── Format helpers ─────────────────────────────────
-	function fmtTime(d: Date): string {
-		return _fmtTime(d, locale);
-	}
-
-	// ── Touch swipe ────────────────────────────────────
-	let touchStartX = 0;
-	let touchStartY = 0;
-	let swiping = false;
-	let swipeOffset = $state(0);
-	const SWIPE_THRESHOLD = 60;
-
-	function onTouchStart(e: TouchEvent) {
-		const t = e.touches[0];
-		touchStartX = t.clientX;
-		touchStartY = t.clientY;
-		swiping = true;
-		swipeOffset = 0;
-	}
-
-	function onTouchMove(e: TouchEvent) {
-		if (!swiping) return;
-		const t = e.touches[0];
-		const dx = t.clientX - touchStartX;
-		const dy = t.clientY - touchStartY;
-		if (Math.abs(dy) > Math.abs(dx) * 0.8) { swiping = false; return; }
-		swipeOffset = dx;
-	}
-
-	function onTouchEnd() {
-		if (!swiping) { swipeOffset = 0; return; }
-		if (Math.abs(swipeOffset) > SWIPE_THRESHOLD) {
-			if (swipeOffset > 0) {
-				viewState?.prev();
-			} else {
-				viewState?.next();
-			}
-		}
-		swipeOffset = 0;
-		swiping = false;
-	}
-
-	// ── Day tap → switch to day mode ───────────────────
-	function handleDayTap(dayMs: number) {
-		if (viewState) {
-			viewState.setFocusDate(new Date(dayMs));
-			// Switch to day-mobile view if available
-			const currentView = viewState.view;
-			const dayView = currentView.replace('week', 'day');
-			viewState.setView(dayView);
-		}
-	}
-
-	function handleDayKeydown(e: KeyboardEvent, dayMs: number) {
-		if (e.key !== 'Enter' && e.key !== ' ') return;
-		e.preventDefault();
-		handleDayTap(dayMs);
-	}
+<script lang="ts">import { useCalendarContext } from "../shared/context.svelte.js";
+import { createClock } from "../../core/clock.svelte.js";
+import { DAY_MS, sod, isAllDay, isMultiDay } from "../../core/time.js";
+import { startOfWeek as sowFn } from "../../core/time.js";
+import { fmtTime as _fmtTime, weekdayShort, getLabels } from "../../core/locale.js";
+const L = $derived(getLabels());
+let {
+  mondayStart = true,
+  locale,
+  height = null,
+  events = [],
+  style = "",
+  focusDate,
+  oneventclick,
+  oneventcreate,
+  selectedEventId = null,
+  readOnly = false
+} = $props();
+const ctx = useCalendarContext();
+const viewState = $derived(ctx.viewState);
+const equalDays = $derived(ctx.equalDays);
+const showDates = $derived(ctx.showDates);
+const hideDays = $derived(ctx.hideDays);
+const autoHeight = $derived(ctx.autoHeight);
+const oneventhover = $derived(ctx.oneventhover);
+const disabledSet = $derived(ctx.disabledSet);
+const loadRangeCtx = $derived(ctx.loadRange);
+const minDuration = $derived(ctx.minDuration);
+const clock = createClock();
+const MAX_EVENTS = 3;
+const customDays = $derived(viewState?.dayCount ?? 7);
+const todayMs = $derived(clock.today);
+const focusMs = $derived(focusDate ? sod(focusDate.getTime()) : todayMs);
+const weekStart = $derived(
+  customDays === 7 ? sowFn(focusMs, mondayStart) : sod(focusMs)
+);
+$effect(() => {
+  if (!loadRangeCtx) return;
+  const rangeStart = new Date(weekStart - 7 * DAY_MS);
+  const rangeEnd = new Date(weekStart + (customDays + 7) * DAY_MS);
+  loadRangeCtx.set({ start: rangeStart, end: rangeEnd });
+  return () => loadRangeCtx.set(null);
+});
+const dayCells = $derived.by(() => {
+  const result = [];
+  const hideSet = new Set(hideDays ?? []);
+  for (let i = 0; i < customDays; i++) {
+    const ms = weekStart + i * DAY_MS;
+    const d = new Date(ms);
+    const jsDay = d.getDay();
+    const isoDay = jsDay === 0 ? 7 : jsDay;
+    if (hideSet.has(isoDay)) continue;
+    const isToday = ms === todayMs;
+    const isPast = equalDays ? false : ms < todayMs;
+    const isWeekend = jsDay === 0 || jsDay === 6;
+    const isDisabled = disabledSet.has(ms);
+    const dayEnd = ms + DAY_MS;
+    const dayEvents = events.filter((ev) => ev.start.getTime() < dayEnd && ev.end.getTime() > ms).sort((a, b) => a.start.getTime() - b.start.getTime());
+    const allDayCount = dayEvents.filter((ev) => isAllDay(ev) || isMultiDay(ev)).length;
+    result.push({
+      ms,
+      dayNum: d.getDate(),
+      dayName: weekdayShort(ms, locale),
+      isToday,
+      isPast,
+      isDisabled,
+      isWeekend,
+      events: dayEvents,
+      allDayCount,
+      totalCount: dayEvents.length
+    });
+  }
+  return result;
+});
+function fmtTime(d) {
+  return _fmtTime(d, locale);
+}
+let touchStartX = 0;
+let touchStartY = 0;
+let swiping = false;
+let swipeOffset = $state(0);
+const SWIPE_THRESHOLD = 60;
+function onTouchStart(e) {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+  swiping = true;
+  swipeOffset = 0;
+}
+function onTouchMove(e) {
+  if (!swiping) return;
+  const t = e.touches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  if (Math.abs(dy) > Math.abs(dx) * 0.8) {
+    swiping = false;
+    return;
+  }
+  swipeOffset = dx;
+}
+function onTouchEnd() {
+  if (!swiping) {
+    swipeOffset = 0;
+    return;
+  }
+  if (Math.abs(swipeOffset) > SWIPE_THRESHOLD) {
+    if (swipeOffset > 0) {
+      viewState?.prev();
+    } else {
+      viewState?.next();
+    }
+  }
+  swipeOffset = 0;
+  swiping = false;
+}
+function handleDayTap(dayMs) {
+  if (viewState) {
+    viewState.setFocusDate(new Date(dayMs));
+    const currentView = viewState.view;
+    const dayView = currentView.replace("week", "day");
+    viewState.setView(dayView);
+  }
+}
+function handleDayKeydown(e, dayMs) {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  e.preventDefault();
+  handleDayTap(dayMs);
+}
 </script>
 
 <div

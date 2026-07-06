@@ -5,552 +5,444 @@
   The now-line tracks the current time. Drag to scroll through days.
   Events are positioned as horizontal cards with overlap support.
 -->
-<script lang="ts">
-	import { onMount, tick, untrack } from 'svelte';
-	import { useCalendarContext } from '../shared/context.svelte.js';
-	import { fly } from 'svelte/transition';
-	import { createClock } from '../../core/clock.svelte.js';
-	import { createTextMeasure, type ContentFit } from '../../core/measure.js';
-	import type { TimelineEvent, BlockedSlot } from '../../core/types.js';
-	import type { DragState } from '../../engine/drag.svelte.js';
-	import type { ViewState } from '../../engine/view-state.svelte.js';
-	import { DAY_MS, HOUR_MS, sod } from '../../core/time.js';
-	import { isAllDay, isMultiDay, segmentForDay } from '../../core/time.js';
-	import type { DaySegment } from '../../core/time.js';
-	import { fmtH, fmtTime, weekdayShort } from '../../core/locale.js';
-	import { getLabels } from '../../core/locale.js';
-
-	const L = $derived(getLabels());
-
-	interface Props {
-		/** Total height (null = fill parent) */
-		height?: number | null;
-		/** Events to render */
-		events?: TimelineEvent[];
-		/** Inline style for CSS variable overrides (theme) */
-		style?: string;
-		/** The date to centre this view on */
-		focusDate?: Date;
-		/** Locale for labels */
-		locale?: string;
-		/** Called when the user clicks an event */
-		oneventclick?: (event: TimelineEvent) => void;
-		/** Called when the user clicks an empty time slot */
-		oneventcreate?: (range: { start: Date; end: Date }) => void;
-		/** Currently selected event ID (for highlight) */
-		selectedEventId?: string | null;
-		/** Read-only mode */
-		readOnly?: boolean;
-		/** Visible hour range [startHour, endHour) */
-		visibleHours?: [number, number];
-		[key: string]: unknown;
-	}
-
-	let {
-		height = 520,
-		events = [],
-		style = '',
-		locale,
-		focusDate,
-		oneventclick,
-		oneventcreate,
-		selectedEventId = null,
-		readOnly = false,
-		visibleHours,
-	}: Props = $props();
-
-	// ── Context (available when inside Calendar) ──
-	const ctx = useCalendarContext();
-	const clock = createClock();
-	const drag = $derived(ctx.drag);
-	const commitDragCtx = $derived(ctx.commitDrag);
-	const viewState = $derived(ctx.viewState);
-	const loadRangeCtx = $derived(ctx.loadRange);
-	const blockedSlots = $derived(ctx.blockedSlots);
-	const dayHeaderSnippet = $derived(ctx.dayHeaderSnippet);
-	const minDuration = $derived(ctx.minDuration);
-	const autoHeight = $derived(ctx.autoHeight);
-	const oneventhover = $derived(ctx.oneventhover);
-	const disabledSet = $derived(ctx.disabledSet);
-	const SNAP_MS = $derived(ctx.snapInterval * 60_000);
-
-	// ─── State ──────────────────────────────────────────
-	let following = $state(true);
-	let scrollDragging = $state(false);
-	let wasDragging = false;
-	let el: HTMLDivElement;
-	let containerW = $state(0);
-	let containerH = $state(520);
-	let dragStartX = 0;
-	let dragScrollStart = 0;
-	let rafId = 0;
-
-	// ─── Infinite-scroll config ────────────────────────
-	const BUFFER_DAYS = 7;      // days rendered on each side of centre
-	const EDGE_DAYS = 2;        // rebase when this close to an edge
-	const SHIFT_DAYS = 5;       // days to shift per rebase
-
-	// Internal centre drives layout; syncs bidirectionally with focusDate.
-	const _initMs = untrack(() => sod(focusDate?.getTime() ?? Date.now()));
-	let internalCenterMs = $state(_initMs);
-	let lastExternalMs = _initMs;
-	let rebasing = false;
-	let visibleDayMs = $state(_initMs);
-
-	// ─── Derived Config ─────────────────────────────────
-	const startHour = $derived(visibleHours?.[0] ?? 0);
-	const endHour = $derived(visibleHours?.[1] ?? 24);
-	const hourCount = $derived(Math.max(1, endHour - startHour));
-	const DAY_GAP = 2;
-
-	const count = 1 + 2 * BUFFER_DAYS;
-	const origin = $derived(internalCenterMs - BUFFER_DAYS * DAY_MS);
-
-	// ─── Declare load range for entire visible buffer ────────
-	$effect(() => {
-		if (!loadRangeCtx) return;
-		const rangeStart = new Date(internalCenterMs - BUFFER_DAYS * DAY_MS);
-		const rangeEnd = new Date(internalCenterMs + (BUFFER_DAYS + 1) * DAY_MS);
-		loadRangeCtx.set({ start: rangeStart, end: rangeEnd });
-		return () => loadRangeCtx.set(null);
-	});
-
-	// Auto-calculate hourWidth — minimum 60px so hours stay readable.
-	// When 24h × 60px exceeds the container, the timeline scrolls horizontally.
-	const MIN_HOUR_W = 60;
-	const hourWidth = $derived(containerW > 0 ? Math.max(MIN_HOUR_W, containerW / hourCount) : 110);
-	const dayWidth = $derived(hourCount * hourWidth);
-	const totalWidth = $derived(count * (dayWidth + DAY_GAP));
-
-	// ─── Day Layouts ────────────────────────────────────
-	interface DayLayout {
-		ms: number;
-		today: boolean;
-		past: boolean;
-		x: number;
-	}
-
-	const days = $derived.by(() => {
-		const result: DayLayout[] = [];
-		for (let i = 0; i < count; i++) {
-			const ms = origin + i * DAY_MS;
-			result.push({
-				ms,
-				today: ms === clock.today,
-				past: ms < clock.today,
-				x: i * (dayWidth + DAY_GAP),
-			});
-		}
-		return result;
-	});
-
-	// ─── Coordinate Conversion ──────────────────────────
-	function timeToPx(ms: number): number {
-		const elapsed = ms - origin;
-		const dayIndex = Math.floor(elapsed / DAY_MS);
-		const hourInDay = (elapsed - dayIndex * DAY_MS) / HOUR_MS;
-		const hourOffset = hourInDay - startHour;
-		return dayIndex * (dayWidth + DAY_GAP) + hourOffset * hourWidth;
-	}
-
-	function pxToTime(px: number): number {
-		const dayStride = dayWidth + DAY_GAP;
-		const dayIndex = Math.max(0, Math.min(count - 1, Math.floor(px / dayStride)));
-		const localPx = px - dayIndex * dayStride;
-		const hour = startHour + localPx / hourWidth;
-		return origin + dayIndex * DAY_MS + hour * HOUR_MS;
-	}
-
-	const nowPx = $derived(timeToPx(clock.tick));
-
-	// ─── Separate all-day from timed events ────────────
-	const timedEvents = $derived(events.filter((ev) => !isAllDay(ev) && !isMultiDay(ev)));
-	const allDayEvents = $derived.by(() => {
-		const segs: DaySegment[] = [];
-		for (const ev of events) {
-			if (!isAllDay(ev) && !isMultiDay(ev)) continue;
-			const seg = segmentForDay(ev, visibleDayMs);
-			if (seg) segs.push(seg);
-		}
-		return segs;
-	});
-
-	// ─── Event Layout ───────────────────────────────────
-	const CONTENT_TOP = 56;
-	const ALLDAY_H = 24;
-	const contentTop = $derived(CONTENT_TOP + (allDayEvents.length > 0 ? ALLDAY_H + 4 : 0));
-	const EVENT_GAP = 5;
-	const MIN_EVENT_H = 32;
-
-	// Text measure for smart content fitting
-	const measure = createTextMeasure({
-		titleFont: '600 13px system-ui, sans-serif',
-		secondaryFont: '400 10px system-ui, sans-serif',
-		tagFont: '500 8px system-ui, sans-serif',
-		titleLineHeight: 16,
-		secondaryLineHeight: 13,
-		contentGap: 6,
-	});
-
-	interface PositionedEvent {
-		ev: TimelineEvent;
-		x: number;
-		width: number;
-		row: number;
-		groupMaxRow: number;
-		topPx: number;
-		heightPx: number;
-		isCurrent: boolean;
-		isNext: boolean;
-		isDragged: boolean;
-		fit: ContentFit;
-	}
-
-	const positionedEvents = $derived.by(() => {
-		const now = clock.tick;
-		const dragP = drag?.active && drag.mode === 'move' ? drag.payload : null;
-
-		const staticEvents: typeof timedEvents = [];
-		let draggedEv: TimelineEvent | null = null;
-		for (const ev of timedEvents) {
-			if (dragP?.eventId === ev.id) draggedEv = ev;
-			else staticEvents.push(ev);
-		}
-
-		const sorted = [...staticEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
-
-		// Find the earliest future event on today to mark as "next"
-		const todayStart = sod(now);
-		const todayEnd = todayStart + DAY_MS;
-		let nextEventId: string | null = null;
-		for (const ev of sorted) {
-			const s = ev.start.getTime();
-			const e = ev.end.getTime();
-			// Must be today, start in the future, and not currently running
-			if (s >= todayStart && s < todayEnd && s > now && !(s <= now && e > now)) {
-				nextEventId = ev.id;
-				break;
-			}
-		}
-
-		const infos = sorted.map((ev) => {
-			const s = ev.start.getTime();
-			const e = ev.end.getTime();
-			const x = timeToPx(s);
-			const xEnd = timeToPx(e);
-			return {
-				ev, x, width: Math.max(xEnd - x, 28), row: 0, groupMaxRow: 1,
-				isCurrent: s <= now && e > now, isNext: ev.id === nextEventId, isDragged: false, startMs: s, endMs: e,
-			};
-		});
-
-		// Union-find overlap groups
-		const par = infos.map((_, i) => i);
-		function find(i: number): number {
-			while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; }
-			return i;
-		}
-		for (let i = 0; i < infos.length; i++) {
-			for (let j = i + 1; j < infos.length; j++) {
-				if (infos[j].startMs < infos[i].endMs) par[find(i)] = find(j);
-				else break;
-			}
-		}
-
-		const groups = new Map<number, number[]>();
-		for (let i = 0; i < infos.length; i++) {
-			const root = find(i);
-			if (!groups.has(root)) groups.set(root, []);
-			groups.get(root)!.push(i);
-		}
-
-		for (const [, indices] of groups) {
-			const rows: number[] = [];
-			for (const idx of indices) {
-				const inf = infos[idx];
-				let row = 0;
-				for (let r = 0; r < rows.length; r++) {
-					if (rows[r] <= inf.startMs) { row = r; rows[r] = inf.endMs; break; }
-					row = r + 1;
-				}
-				if (row >= rows.length) rows.push(inf.endMs);
-				infos[idx].row = row;
-			}
-			for (const idx of indices) infos[idx].groupMaxRow = rows.length;
-		}
-
-		const availH = containerH - contentTop - 8;
-		const result: PositionedEvent[] = infos.map(({ startMs: _s, endMs: _e, ...info }) => {
-			const laneH = Math.max(MIN_EVENT_H, availH / info.groupMaxRow - EVENT_GAP);
-			const topPx = contentTop + info.row * (availH / info.groupMaxRow);
-			// Vertical labels: text runs along lane height, columns stack across duration width.
-			const fit = measure.fitContent({
-				title: info.ev.title,
-				subtitle: info.ev.subtitle,
-				location: info.ev.location,
-				time: `${fmtTime(info.ev.start, locale)} – ${fmtTime(info.ev.end, locale)}`,
-				tags: info.ev.tags,
-				maxWidth: laneH - 16,
-				maxHeight: info.width - 16,
-			});
-			return { ...info, topPx, heightPx: laneH, isNext: info.isNext, fit };
-		});
-
-		if (draggedEv && dragP) {
-			const x = timeToPx(dragP.start.getTime());
-			const xEnd = timeToPx(dragP.end.getTime());
-			const dragH = Math.max(MIN_EVENT_H, availH - EVENT_GAP);
-			const dragW = Math.max(xEnd - x, 28);
-			result.push({
-				ev: draggedEv, x, width: dragW,
-				row: 0, groupMaxRow: 1,
-				topPx: contentTop,
-				heightPx: dragH,
-				isCurrent: draggedEv.start.getTime() <= now && draggedEv.end.getTime() > now,
-				isNext: false,
-				isDragged: true,
-				fit: measure.fitContent({
-					title: draggedEv.title,
-					subtitle: draggedEv.subtitle,
-					location: draggedEv.location,
-					tags: draggedEv.tags,
-					maxWidth: dragH - 16,
-					maxHeight: dragW - 16,
-				}),
-			});
-		}
-
-		return result;
-	});
-
-	// ─── Infinite-scroll helpers ────────────────────────
-
-	/** Detect external focusDate changes (from nav arrows). */
-	$effect(() => {
-		const ext = focusDate ? sod(focusDate.getTime()) : clock.today;
-		if (ext !== lastExternalMs && !rebasing) {
-			lastExternalMs = ext;
-			internalCenterMs = ext;
-			visibleDayMs = ext;
-			// Landing on today (e.g. header "Today" button) resumes auto-follow.
-			following = ext === clock.today;
-			// After DOM update, recenter scroll on focus day.
-			tick().then(() => {
-				if (el) {
-					const focusX = BUFFER_DAYS * (dayWidth + DAY_GAP);
-					el.scrollLeft = focusX + dayWidth / 2 - el.clientWidth / 2;
-				}
-			});
-		}
-	});
-
-	/** Check if viewport is near an edge; if so, rebase the window. */
-	function checkEdges() {
-		if (!el || !viewState || rebasing) return;
-		const stride = dayWidth + DAY_GAP;
-		const threshold = stride * EDGE_DAYS;
-		const maxScroll = el.scrollWidth - el.clientWidth;
-
-		if (el.scrollLeft < threshold) {
-			rebase(-1);
-		} else if (maxScroll > 0 && maxScroll - el.scrollLeft < threshold) {
-			rebase(1);
-		}
-	}
-
-	/** Shift the rendered window by SHIFT_DAYS in the given direction. */
-	function rebase(direction: number) {
-		if (rebasing) return;
-		rebasing = true;
-
-		const shift = SHIFT_DAYS * direction;
-		const stride = dayWidth + DAY_GAP;
-		const adj = -shift * stride;
-
-		// Pre-compensate scroll so the viewport stays visually stable.
-		if (el) el.scrollLeft += adj;
-		dragScrollStart += adj;
-
-		internalCenterMs += shift * DAY_MS;
-		lastExternalMs = internalCenterMs;
-		viewState?.setFocusDate(new Date(internalCenterMs));
-
-		tick().then(() => { rebasing = false; });
-	}
-
-	/** Push the currently visible centre day to viewState (updates Calendar date label). */
-	function syncFocusFromScroll() {
-		if (!el || !viewState || following || rebasing) return;
-		const centerX = el.scrollLeft + el.clientWidth / 2;
-		const centerDayMs = sod(pxToTime(centerX));
-		visibleDayMs = centerDayMs;
-		if (centerDayMs !== lastExternalMs) {
-			lastExternalMs = centerDayMs;
-			viewState.setFocusDate(new Date(centerDayMs));
-		}
-	}
-
-	// ─── Lifecycle ──────────────────────────────────────
-	onMount(() => {
-		const ro = new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				containerW = entry.contentRect.width;
-				containerH = entry.contentRect.height;
-			}
-		});
-		ro.observe(el);
-
-		function frame() {
-			if (following && el && !scrollDragging) {
-				// Ensure today is in the strip.
-				if (internalCenterMs !== clock.today) {
-					internalCenterMs = clock.today;
-					lastExternalMs = clock.today;
-					viewState?.goToday();
-				}
-				visibleDayMs = clock.today;
-				const todayD = days.find((d) => d.today);
-				if (todayD) {
-					el.scrollLeft = todayD.x + dayWidth / 2 - el.clientWidth / 2;
-				}
-			} else if (el && !rebasing) {
-				checkEdges();
-				syncFocusFromScroll();
-			}
-			rafId = requestAnimationFrame(frame);
-		}
-		rafId = requestAnimationFrame(frame);
-		return () => { cancelAnimationFrame(rafId); ro.disconnect(); };
-	});
-
-	// ─── Drag-to-scroll ─────────────────────────────────
-	const SCROLL_THRESHOLD = 3;
-
-	function onPointerDown(e: PointerEvent) {
-		if (e.button !== 0) return;
-		if (!readOnly) return; // drag-to-scroll only in read-only mode
-		if ((e.target as HTMLElement).closest('.fs-event')) return;
-		dragStartX = e.clientX;
-		dragScrollStart = el.scrollLeft;
-		window.addEventListener('pointermove', onScrollMove);
-		window.addEventListener('pointerup', onScrollUp, { once: true });
-		window.addEventListener('pointercancel', onScrollUp, { once: true });
-	}
-
-	function onScrollMove(e: PointerEvent) {
-		const dx = e.clientX - dragStartX;
-		if (!scrollDragging && Math.abs(dx) >= SCROLL_THRESHOLD) {
-			scrollDragging = true;
-			wasDragging = true;
-			following = false;
-		}
-		if (scrollDragging) el.scrollLeft = dragScrollStart - dx;
-	}
-
-	function onScrollUp() {
-		window.removeEventListener('pointermove', onScrollMove);
-		window.removeEventListener('pointerup', onScrollUp);
-		window.removeEventListener('pointercancel', onScrollUp);
-		scrollDragging = false;
-	}
-
-	// ─── Click-to-create ────────────────────────────────
-	function isBlockedAt(dayMs: number, hour: number): boolean {
-		if (!blockedSlots?.length) return false;
-		const jsDay = new Date(dayMs).getDay();
-		const isoDay = jsDay === 0 ? 7 : jsDay;
-		return blockedSlots.some(slot => {
-			if (slot.day && slot.day !== isoDay) return false;
-			return hour >= slot.start && hour < slot.end;
-		});
-	}
-	function handleTrackClick(e: MouseEvent) {
-		if (wasDragging) { wasDragging = false; return; }
-		if (!oneventcreate || readOnly) return;
-		if ((e.target as HTMLElement).closest('.fs-event')) return;
-
-		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-		const clickX = e.clientX - rect.left + el.scrollLeft;
-
-		for (const d of days) {
-			if (clickX >= d.x && clickX < d.x + dayWidth) {
-				// Check disabled dates
-				if (disabledSet.has(d.ms)) return;
-				const frac = (clickX - d.x) / dayWidth;
-				const clickHour = startHour + frac * hourCount;
-				// Check blocked slots
-				if (isBlockedAt(d.ms, clickHour)) return;
-				const hour = Math.floor(clickHour);
-				const durMin = minDuration ? Math.max(60, minDuration) : 60;
-				const start = new Date(d.ms + hour * HOUR_MS);
-				const end = new Date(start.getTime() + durMin * 60_000);
-				oneventcreate({ start, end });
-				return;
-			}
-		}
-	}
-
-	// ─── Event drag-to-move ─────────────────────────────
-	const DRAG_THRESHOLD = 5;
-	let evDragStartX = 0;
-	let evDragOriginPx = 0;
-	let evDragStarted = false;
-	let evDragging = $state(false);
-	let evDragId = $state<string | null>(null);
-	let evDragEvent: TimelineEvent | null = null;
-
-	function onEventPointerDown(e: PointerEvent, ev: TimelineEvent) {
-		if (e.button !== 0 || !drag || readOnly || ev.data?.readOnly) return;
-		e.stopPropagation();
-		evDragStartX = e.clientX;
-		evDragOriginPx = timeToPx(ev.start.getTime());
-		evDragStarted = false;
-		evDragId = ev.id;
-		evDragEvent = ev;
-		window.addEventListener('pointermove', onEvMove);
-		window.addEventListener('pointerup', onEvUp, { once: true });
-		window.addEventListener('pointercancel', onEvCancel, { once: true });
-	}
-
-	function onEvMove(e: PointerEvent) {
-		const ev = evDragEvent;
-		if (!drag || !ev || evDragId !== ev.id) return;
-		const dx = e.clientX - evDragStartX;
-		if (!evDragStarted && Math.abs(dx) < DRAG_THRESHOLD) return;
-
-		if (!evDragStarted) {
-			evDragStarted = true;
-			evDragging = true;
-			drag.beginMove(ev.id, ev.start, ev.end);
-		}
-
-		const duration = ev.end.getTime() - ev.start.getTime();
-		const raw = pxToTime(evDragOriginPx + dx);
-		const snapped = Math.round(raw / SNAP_MS) * SNAP_MS;
-		drag.updatePointer(new Date(snapped), new Date(snapped + duration));
-	}
-
-	function cleanupEvDrag() {
-		window.removeEventListener('pointermove', onEvMove);
-		window.removeEventListener('pointerup', onEvUp);
-		window.removeEventListener('pointercancel', onEvCancel);
-		evDragStarted = false;
-		evDragging = false;
-		evDragId = null;
-		evDragEvent = null;
-	}
-
-	function onEvUp() {
-		if (!drag) { cleanupEvDrag(); return; }
-		if (!evDragStarted && evDragEvent) oneventclick?.(evDragEvent);
-		else if (evDragStarted) commitDragCtx?.();
-		cleanupEvDrag();
-	}
-
-	function onEvCancel() {
-		if (drag && evDragStarted) drag.cancel();
-		cleanupEvDrag();
-	}
+<script lang="ts">import { onMount, tick, untrack } from "svelte";
+import { useCalendarContext } from "../shared/context.svelte.js";
+import { fly } from "svelte/transition";
+import { createClock } from "../../core/clock.svelte.js";
+import { createTextMeasure } from "../../core/measure.js";
+import { DAY_MS, HOUR_MS, sod } from "../../core/time.js";
+import { isAllDay, isMultiDay, segmentForDay } from "../../core/time.js";
+import { fmtH, fmtTime, weekdayShort } from "../../core/locale.js";
+import { getLabels } from "../../core/locale.js";
+const L = $derived(getLabels());
+let {
+  height = 520,
+  events = [],
+  style = "",
+  locale,
+  focusDate,
+  oneventclick,
+  oneventcreate,
+  selectedEventId = null,
+  readOnly = false,
+  visibleHours
+} = $props();
+const ctx = useCalendarContext();
+const clock = createClock();
+const drag = $derived(ctx.drag);
+const commitDragCtx = $derived(ctx.commitDrag);
+const viewState = $derived(ctx.viewState);
+const loadRangeCtx = $derived(ctx.loadRange);
+const blockedSlots = $derived(ctx.blockedSlots);
+const dayHeaderSnippet = $derived(ctx.dayHeaderSnippet);
+const minDuration = $derived(ctx.minDuration);
+const autoHeight = $derived(ctx.autoHeight);
+const oneventhover = $derived(ctx.oneventhover);
+const disabledSet = $derived(ctx.disabledSet);
+const SNAP_MS = $derived(ctx.snapInterval * 6e4);
+let following = $state(true);
+let scrollDragging = $state(false);
+let wasDragging = false;
+let el;
+let containerW = $state(0);
+let containerH = $state(520);
+let dragStartX = 0;
+let dragScrollStart = 0;
+let rafId = 0;
+const BUFFER_DAYS = 7;
+const EDGE_DAYS = 2;
+const SHIFT_DAYS = 5;
+const _initMs = untrack(() => sod(focusDate?.getTime() ?? Date.now()));
+let internalCenterMs = $state(_initMs);
+let lastExternalMs = _initMs;
+let rebasing = false;
+let visibleDayMs = $state(_initMs);
+const startHour = $derived(visibleHours?.[0] ?? 0);
+const endHour = $derived(visibleHours?.[1] ?? 24);
+const hourCount = $derived(Math.max(1, endHour - startHour));
+const DAY_GAP = 2;
+const count = 1 + 2 * BUFFER_DAYS;
+const origin = $derived(internalCenterMs - BUFFER_DAYS * DAY_MS);
+$effect(() => {
+  if (!loadRangeCtx) return;
+  const rangeStart = new Date(internalCenterMs - BUFFER_DAYS * DAY_MS);
+  const rangeEnd = new Date(internalCenterMs + (BUFFER_DAYS + 1) * DAY_MS);
+  loadRangeCtx.set({ start: rangeStart, end: rangeEnd });
+  return () => loadRangeCtx.set(null);
+});
+const MIN_HOUR_W = 60;
+const hourWidth = $derived(containerW > 0 ? Math.max(MIN_HOUR_W, containerW / hourCount) : 110);
+const dayWidth = $derived(hourCount * hourWidth);
+const totalWidth = $derived(count * (dayWidth + DAY_GAP));
+const days = $derived.by(() => {
+  const result = [];
+  for (let i = 0; i < count; i++) {
+    const ms = origin + i * DAY_MS;
+    result.push({
+      ms,
+      today: ms === clock.today,
+      past: ms < clock.today,
+      x: i * (dayWidth + DAY_GAP)
+    });
+  }
+  return result;
+});
+function timeToPx(ms) {
+  const elapsed = ms - origin;
+  const dayIndex = Math.floor(elapsed / DAY_MS);
+  const hourInDay = (elapsed - dayIndex * DAY_MS) / HOUR_MS;
+  const hourOffset = hourInDay - startHour;
+  return dayIndex * (dayWidth + DAY_GAP) + hourOffset * hourWidth;
+}
+function pxToTime(px) {
+  const dayStride = dayWidth + DAY_GAP;
+  const dayIndex = Math.max(0, Math.min(count - 1, Math.floor(px / dayStride)));
+  const localPx = px - dayIndex * dayStride;
+  const hour = startHour + localPx / hourWidth;
+  return origin + dayIndex * DAY_MS + hour * HOUR_MS;
+}
+const nowPx = $derived(timeToPx(clock.tick));
+const timedEvents = $derived(events.filter((ev) => !isAllDay(ev) && !isMultiDay(ev)));
+const allDayEvents = $derived.by(() => {
+  const segs = [];
+  for (const ev of events) {
+    if (!isAllDay(ev) && !isMultiDay(ev)) continue;
+    const seg = segmentForDay(ev, visibleDayMs);
+    if (seg) segs.push(seg);
+  }
+  return segs;
+});
+const CONTENT_TOP = 56;
+const ALLDAY_H = 24;
+const contentTop = $derived(CONTENT_TOP + (allDayEvents.length > 0 ? ALLDAY_H + 4 : 0));
+const EVENT_GAP = 5;
+const MIN_EVENT_H = 32;
+const measure = createTextMeasure({
+  titleFont: "600 13px system-ui, sans-serif",
+  secondaryFont: "400 10px system-ui, sans-serif",
+  tagFont: "500 8px system-ui, sans-serif",
+  titleLineHeight: 16,
+  secondaryLineHeight: 13,
+  contentGap: 6
+});
+const positionedEvents = $derived.by(() => {
+  const now = clock.tick;
+  const dragP = drag?.active && drag.mode === "move" ? drag.payload : null;
+  const staticEvents = [];
+  let draggedEv = null;
+  for (const ev of timedEvents) {
+    if (dragP?.eventId === ev.id) draggedEv = ev;
+    else staticEvents.push(ev);
+  }
+  const sorted = [...staticEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const todayStart = sod(now);
+  const todayEnd = todayStart + DAY_MS;
+  let nextEventId = null;
+  for (const ev of sorted) {
+    const s = ev.start.getTime();
+    const e = ev.end.getTime();
+    if (s >= todayStart && s < todayEnd && s > now && !(s <= now && e > now)) {
+      nextEventId = ev.id;
+      break;
+    }
+  }
+  const infos = sorted.map((ev) => {
+    const s = ev.start.getTime();
+    const e = ev.end.getTime();
+    const x = timeToPx(s);
+    const xEnd = timeToPx(e);
+    return {
+      ev,
+      x,
+      width: Math.max(xEnd - x, 28),
+      row: 0,
+      groupMaxRow: 1,
+      isCurrent: s <= now && e > now,
+      isNext: ev.id === nextEventId,
+      isDragged: false,
+      startMs: s,
+      endMs: e
+    };
+  });
+  const par = infos.map((_, i) => i);
+  function find(i) {
+    while (par[i] !== i) {
+      par[i] = par[par[i]];
+      i = par[i];
+    }
+    return i;
+  }
+  for (let i = 0; i < infos.length; i++) {
+    for (let j = i + 1; j < infos.length; j++) {
+      if (infos[j].startMs < infos[i].endMs) par[find(i)] = find(j);
+      else break;
+    }
+  }
+  const groups = /* @__PURE__ */ new Map();
+  for (let i = 0; i < infos.length; i++) {
+    const root = find(i);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(i);
+  }
+  for (const [, indices] of groups) {
+    const rows = [];
+    for (const idx of indices) {
+      const inf = infos[idx];
+      let row = 0;
+      for (let r = 0; r < rows.length; r++) {
+        if (rows[r] <= inf.startMs) {
+          row = r;
+          rows[r] = inf.endMs;
+          break;
+        }
+        row = r + 1;
+      }
+      if (row >= rows.length) rows.push(inf.endMs);
+      infos[idx].row = row;
+    }
+    for (const idx of indices) infos[idx].groupMaxRow = rows.length;
+  }
+  const availH = containerH - contentTop - 8;
+  const result = infos.map(({ startMs: _s, endMs: _e, ...info }) => {
+    const laneH = Math.max(MIN_EVENT_H, availH / info.groupMaxRow - EVENT_GAP);
+    const topPx = contentTop + info.row * (availH / info.groupMaxRow);
+    const fit = measure.fitContent({
+      title: info.ev.title,
+      subtitle: info.ev.subtitle,
+      location: info.ev.location,
+      time: `${fmtTime(info.ev.start, locale)} \u2013 ${fmtTime(info.ev.end, locale)}`,
+      tags: info.ev.tags,
+      maxWidth: laneH - 16,
+      maxHeight: info.width - 16
+    });
+    return { ...info, topPx, heightPx: laneH, isNext: info.isNext, fit };
+  });
+  if (draggedEv && dragP) {
+    const x = timeToPx(dragP.start.getTime());
+    const xEnd = timeToPx(dragP.end.getTime());
+    const dragH = Math.max(MIN_EVENT_H, availH - EVENT_GAP);
+    const dragW = Math.max(xEnd - x, 28);
+    result.push({
+      ev: draggedEv,
+      x,
+      width: dragW,
+      row: 0,
+      groupMaxRow: 1,
+      topPx: contentTop,
+      heightPx: dragH,
+      isCurrent: draggedEv.start.getTime() <= now && draggedEv.end.getTime() > now,
+      isNext: false,
+      isDragged: true,
+      fit: measure.fitContent({
+        title: draggedEv.title,
+        subtitle: draggedEv.subtitle,
+        location: draggedEv.location,
+        tags: draggedEv.tags,
+        maxWidth: dragH - 16,
+        maxHeight: dragW - 16
+      })
+    });
+  }
+  return result;
+});
+$effect(() => {
+  const ext = focusDate ? sod(focusDate.getTime()) : clock.today;
+  if (ext !== lastExternalMs && !rebasing) {
+    lastExternalMs = ext;
+    internalCenterMs = ext;
+    visibleDayMs = ext;
+    following = ext === clock.today;
+    tick().then(() => {
+      if (el) {
+        const focusX = BUFFER_DAYS * (dayWidth + DAY_GAP);
+        el.scrollLeft = focusX + dayWidth / 2 - el.clientWidth / 2;
+      }
+    });
+  }
+});
+function checkEdges() {
+  if (!el || !viewState || rebasing) return;
+  const stride = dayWidth + DAY_GAP;
+  const threshold = stride * EDGE_DAYS;
+  const maxScroll = el.scrollWidth - el.clientWidth;
+  if (el.scrollLeft < threshold) {
+    rebase(-1);
+  } else if (maxScroll > 0 && maxScroll - el.scrollLeft < threshold) {
+    rebase(1);
+  }
+}
+function rebase(direction) {
+  if (rebasing) return;
+  rebasing = true;
+  const shift = SHIFT_DAYS * direction;
+  const stride = dayWidth + DAY_GAP;
+  const adj = -shift * stride;
+  if (el) el.scrollLeft += adj;
+  dragScrollStart += adj;
+  internalCenterMs += shift * DAY_MS;
+  lastExternalMs = internalCenterMs;
+  viewState?.setFocusDate(new Date(internalCenterMs));
+  tick().then(() => {
+    rebasing = false;
+  });
+}
+function syncFocusFromScroll() {
+  if (!el || !viewState || following || rebasing) return;
+  const centerX = el.scrollLeft + el.clientWidth / 2;
+  const centerDayMs = sod(pxToTime(centerX));
+  visibleDayMs = centerDayMs;
+  if (centerDayMs !== lastExternalMs) {
+    lastExternalMs = centerDayMs;
+    viewState.setFocusDate(new Date(centerDayMs));
+  }
+}
+onMount(() => {
+  const ro = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      containerW = entry.contentRect.width;
+      containerH = entry.contentRect.height;
+    }
+  });
+  ro.observe(el);
+  function frame() {
+    if (following && el && !scrollDragging) {
+      if (internalCenterMs !== clock.today) {
+        internalCenterMs = clock.today;
+        lastExternalMs = clock.today;
+        viewState?.goToday();
+      }
+      visibleDayMs = clock.today;
+      const todayD = days.find((d) => d.today);
+      if (todayD) {
+        el.scrollLeft = todayD.x + dayWidth / 2 - el.clientWidth / 2;
+      }
+    } else if (el && !rebasing) {
+      checkEdges();
+      syncFocusFromScroll();
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+  rafId = requestAnimationFrame(frame);
+  return () => {
+    cancelAnimationFrame(rafId);
+    ro.disconnect();
+  };
+});
+const SCROLL_THRESHOLD = 3;
+function onPointerDown(e) {
+  if (e.button !== 0) return;
+  if (!readOnly) return;
+  if (e.target.closest(".fs-event")) return;
+  dragStartX = e.clientX;
+  dragScrollStart = el.scrollLeft;
+  window.addEventListener("pointermove", onScrollMove);
+  window.addEventListener("pointerup", onScrollUp, { once: true });
+  window.addEventListener("pointercancel", onScrollUp, { once: true });
+}
+function onScrollMove(e) {
+  const dx = e.clientX - dragStartX;
+  if (!scrollDragging && Math.abs(dx) >= SCROLL_THRESHOLD) {
+    scrollDragging = true;
+    wasDragging = true;
+    following = false;
+  }
+  if (scrollDragging) el.scrollLeft = dragScrollStart - dx;
+}
+function onScrollUp() {
+  window.removeEventListener("pointermove", onScrollMove);
+  window.removeEventListener("pointerup", onScrollUp);
+  window.removeEventListener("pointercancel", onScrollUp);
+  scrollDragging = false;
+}
+function isBlockedAt(dayMs, hour) {
+  if (!blockedSlots?.length) return false;
+  const jsDay = new Date(dayMs).getDay();
+  const isoDay = jsDay === 0 ? 7 : jsDay;
+  return blockedSlots.some((slot) => {
+    if (slot.day && slot.day !== isoDay) return false;
+    return hour >= slot.start && hour < slot.end;
+  });
+}
+function handleTrackClick(e) {
+  if (wasDragging) {
+    wasDragging = false;
+    return;
+  }
+  if (!oneventcreate || readOnly) return;
+  if (e.target.closest(".fs-event")) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const clickX = e.clientX - rect.left + el.scrollLeft;
+  for (const d of days) {
+    if (clickX >= d.x && clickX < d.x + dayWidth) {
+      if (disabledSet.has(d.ms)) return;
+      const frac = (clickX - d.x) / dayWidth;
+      const clickHour = startHour + frac * hourCount;
+      if (isBlockedAt(d.ms, clickHour)) return;
+      const hour = Math.floor(clickHour);
+      const durMin = minDuration ? Math.max(60, minDuration) : 60;
+      const start = new Date(d.ms + hour * HOUR_MS);
+      const end = new Date(start.getTime() + durMin * 6e4);
+      oneventcreate({ start, end });
+      return;
+    }
+  }
+}
+const DRAG_THRESHOLD = 5;
+let evDragStartX = 0;
+let evDragOriginPx = 0;
+let evDragStarted = false;
+let evDragging = $state(false);
+let evDragId = $state(null);
+let evDragEvent = null;
+function onEventPointerDown(e, ev) {
+  if (e.button !== 0 || !drag || readOnly || ev.data?.readOnly) return;
+  e.stopPropagation();
+  evDragStartX = e.clientX;
+  evDragOriginPx = timeToPx(ev.start.getTime());
+  evDragStarted = false;
+  evDragId = ev.id;
+  evDragEvent = ev;
+  window.addEventListener("pointermove", onEvMove);
+  window.addEventListener("pointerup", onEvUp, { once: true });
+  window.addEventListener("pointercancel", onEvCancel, { once: true });
+}
+function onEvMove(e) {
+  const ev = evDragEvent;
+  if (!drag || !ev || evDragId !== ev.id) return;
+  const dx = e.clientX - evDragStartX;
+  if (!evDragStarted && Math.abs(dx) < DRAG_THRESHOLD) return;
+  if (!evDragStarted) {
+    evDragStarted = true;
+    evDragging = true;
+    drag.beginMove(ev.id, ev.start, ev.end);
+  }
+  const duration = ev.end.getTime() - ev.start.getTime();
+  const raw = pxToTime(evDragOriginPx + dx);
+  const snapped = Math.round(raw / SNAP_MS) * SNAP_MS;
+  drag.updatePointer(new Date(snapped), new Date(snapped + duration));
+}
+function cleanupEvDrag() {
+  window.removeEventListener("pointermove", onEvMove);
+  window.removeEventListener("pointerup", onEvUp);
+  window.removeEventListener("pointercancel", onEvCancel);
+  evDragStarted = false;
+  evDragging = false;
+  evDragId = null;
+  evDragEvent = null;
+}
+function onEvUp() {
+  if (!drag) {
+    cleanupEvDrag();
+    return;
+  }
+  if (!evDragStarted && evDragEvent) oneventclick?.(evDragEvent);
+  else if (evDragStarted) commitDragCtx?.();
+  cleanupEvDrag();
+}
+function onEvCancel() {
+  if (drag && evDragStarted) drag.cancel();
+  cleanupEvDrag();
+}
 </script>
 
 <div class="fs" class:fs--auto={autoHeight} style={style || undefined} style:height={autoHeight ? undefined : (height ? `${height}px` : '100%')} role="region" aria-label={L.dayPlanner}>

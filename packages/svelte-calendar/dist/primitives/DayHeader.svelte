@@ -5,31 +5,15 @@
     - Relative labels ("Today", "Tomorrow") for day views via fmtDay
     - Short/long weekday + date number for week views
 -->
-<script lang="ts">
-	import { weekdayShort, weekdayLong, monthShort, fmtDay } from '../core/locale.js';
-
-	interface Props {
-		/** Timestamp (ms) of the day to label */
-		dayMs: number;
-		/** Timestamp (ms) of today (for relative labels) */
-		todayMs?: number;
-		/** Display format */
-		format?: 'relative' | 'short' | 'long';
-		/** Whether this day is "today" */
-		isToday?: boolean;
-		/** Whether this day is in the past */
-		isPast?: boolean;
-	}
-
-	let {
-		dayMs,
-		todayMs = Date.now(),
-		format = 'short',
-		isToday = false,
-		isPast = false,
-	}: Props = $props();
-
-	const dayNum = $derived(new Date(dayMs).getDate());
+<script lang="ts">import { weekdayShort, weekdayLong, monthShort, fmtDay } from "../core/locale.js";
+let {
+  dayMs,
+  todayMs = Date.now(),
+  format = "short",
+  isToday = false,
+  isPast = false
+} = $props();
+const dayNum = $derived(new Date(dayMs).getDate());
 </script>
 
 <div

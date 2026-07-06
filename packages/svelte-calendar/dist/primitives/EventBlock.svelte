@@ -8,67 +8,39 @@
 
   Emits: onclick, ondragstart, onresize (for future interaction wiring)
 -->
-<script lang="ts">
-	import type { TimelineEvent } from '../core/types.js';
-	import { fmtTime, fmtDuration, getLabels } from '../core/locale.js';
-	import type { Snippet } from 'svelte';
-
-	const L = $derived(getLabels());
-
-	interface Props {
-		event: TimelineEvent;
-		/** Display variant */
-		variant?: 'chip' | 'card' | 'row';
-		/** Is this event currently in-progress? */
-		active?: boolean;
-		/** Is this event in the past? */
-		past?: boolean;
-		/** Show the time range */
-		showTime?: boolean;
-		/** Show the duration */
-		showDuration?: boolean;
-		/** Editable (shows resize handles in future) */
-		editable?: boolean;
-		/** Click handler */
-		onclick?: (event: TimelineEvent) => void;
-		/** Custom content slot */
-		children?: Snippet<[TimelineEvent]>;
-	}
-
-	let {
-		event,
-		variant = 'chip',
-		active = false,
-		past = false,
-		showTime = false,
-		showDuration = false,
-		editable = false,
-		onclick,
-		children,
-	}: Props = $props();
-
-	const accentColor = $derived(event.color || 'var(--dt-accent, #2563eb)');
-	const isCancelled = $derived(event.status === 'cancelled');
-	const isTentative = $derived(event.status === 'tentative');
-	const isFull = $derived(event.status === 'full');
-	const isLimited = $derived(event.status === 'limited');
-
-	const ariaLabel = $derived.by(() => {
-		const t = event.title;
-		const time = `${fmtTime(event.start)} to ${fmtTime(event.end)}`;
-		const dur = fmtDuration(event.start, event.end);
-		const loc = event.location ? `, ${event.location}` : '';
-		const statusStr = isCancelled ? ', cancelled' : isTentative ? ', tentative' : isFull ? ', full' : isLimited ? ', limited' : '';
-		const activeStr = active ? `, ${L.happeningNow}` : past ? `, ${L.past}` : '';
-		return `${t}${loc}, ${time}, ${dur}${statusStr}${activeStr}`;
-	});
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			onclick?.(event);
-		}
-	}
+<script lang="ts">import { fmtTime, fmtDuration, getLabels } from "../core/locale.js";
+const L = $derived(getLabels());
+let {
+  event,
+  variant = "chip",
+  active = false,
+  past = false,
+  showTime = false,
+  showDuration = false,
+  editable = false,
+  onclick,
+  children
+} = $props();
+const accentColor = $derived(event.color || "var(--dt-accent, #2563eb)");
+const isCancelled = $derived(event.status === "cancelled");
+const isTentative = $derived(event.status === "tentative");
+const isFull = $derived(event.status === "full");
+const isLimited = $derived(event.status === "limited");
+const ariaLabel = $derived.by(() => {
+  const t = event.title;
+  const time = `${fmtTime(event.start)} to ${fmtTime(event.end)}`;
+  const dur = fmtDuration(event.start, event.end);
+  const loc = event.location ? `, ${event.location}` : "";
+  const statusStr = isCancelled ? ", cancelled" : isTentative ? ", tentative" : isFull ? ", full" : isLimited ? ", limited" : "";
+  const activeStr = active ? `, ${L.happeningNow}` : past ? `, ${L.past}` : "";
+  return `${t}${loc}, ${time}, ${dur}${statusStr}${activeStr}`;
+});
+function handleKeydown(e) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    onclick?.(event);
+  }
+}
 </script>
 
 {#snippet content()}

@@ -5,37 +5,21 @@
   the time range when clicked. View components place these in gaps
   between events.
 -->
-<script lang="ts">
-	import { fmtTime, fmtDuration, getLabels } from '../core/locale.js';
-
-	const L = $derived(getLabels());
-
-	interface Props {
-		/** Start time of the empty slot */
-		start: Date;
-		/** End time of the empty slot */
-		end: Date;
-		/** Click handler — create event in this range */
-		onclick?: (range: { start: Date; end: Date }) => void;
-		/** Orientation for cursor hint */
-		orientation?: 'horizontal' | 'vertical';
-	}
-
-	let {
-		start,
-		end,
-		onclick,
-		orientation = 'vertical',
-	}: Props = $props();
-
-	const dur = $derived(`${fmtDuration(start, end)} ${L.free}`);
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			onclick?.({ start, end });
-		}
-	}
+<script lang="ts">import { fmtTime, fmtDuration, getLabels } from "../core/locale.js";
+const L = $derived(getLabels());
+let {
+  start,
+  end,
+  onclick,
+  orientation = "vertical"
+} = $props();
+const dur = $derived(`${fmtDuration(start, end)} ${L.free}`);
+function handleKeydown(e) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    onclick?.({ start, end });
+  }
+}
 </script>
 
 <div

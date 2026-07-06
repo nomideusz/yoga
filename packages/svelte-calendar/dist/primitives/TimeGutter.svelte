@@ -5,29 +5,15 @@
     "horizontal" — ticks along a horizontal track (for day timeline-style layouts)
     "vertical"   — label column along a vertical grid (for WeekTimeline style)
 -->
-<script lang="ts">
-	import { HOURS } from '../core/time.js';
-	import { fmtH } from '../core/locale.js';
-
-	interface Props {
-		orientation?: 'horizontal' | 'vertical';
-		/** Pixel size per hour (width for horizontal, height for vertical) */
-		hourSize?: number;
-		/** Show half-hour ticks (horizontal only) */
-		halfHour?: boolean;
-		/** Hours to display (default 0-23) */
-		hours?: readonly number[];
-		/** Custom hour formatter */
-		formatHour?: (h: number) => string;
-	}
-
-	let {
-		orientation = 'horizontal',
-		hourSize = 120,
-		halfHour = true,
-		hours = HOURS,
-		formatHour = fmtH,
-	}: Props = $props();
+<script lang="ts">import { HOURS } from "../core/time.js";
+import { fmtH } from "../core/locale.js";
+let {
+  orientation = "horizontal",
+  hourSize = 120,
+  halfHour = true,
+  hours = HOURS,
+  formatHour = fmtH
+} = $props();
 </script>
 
 {#if orientation === 'horizontal'}

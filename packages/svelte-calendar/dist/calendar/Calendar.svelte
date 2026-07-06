@@ -17,495 +17,342 @@
       oneventcreate={handleCreate}
     />
 -->
-<script lang="ts">
-	import { setContext, untrack, type Component, type Snippet } from 'svelte';
-	import type { CalendarAdapter } from '../adapters/types.js';
-	import type { CalendarViewId } from '../engine/view-state.svelte.js';
-	import { createEventStore, type EventStore } from '../engine/event-store.svelte.js';
-	import { createViewState, type ViewState } from '../engine/view-state.svelte.js';
-	import { createSelection, type Selection } from '../engine/selection.svelte.js';
-	import { createDragState, type DragState } from '../engine/drag.svelte.js';
-	import { onMount } from 'svelte';
-	import type { TimelineEvent, BlockedSlot } from '../core/types.js';
-	import { getLabels } from '../core/locale.js';
-	import { auto } from '../theme/presets.js';
-	import { probeHostTheme, observeHostTheme } from '../theme/auto.js';
-	import type { AutoThemeOptions } from '../theme/auto.js';
-	import Planner from '../views/planner/Planner.svelte';
-	import Agenda from '../views/agenda/Agenda.svelte';
-	import Mobile from '../views/mobile/Mobile.svelte';
-
-	/** Breakpoint (px) at which auto-mobile activates */
-	const MOBILE_BREAKPOINT = 768;
-
-	/** One view registration */
-	export interface CalendarView {
-		id: CalendarViewId;
-		label: string;
-		/** day or week */
-		mode: 'day' | 'week';
-		/** The Svelte component to render */
-		component: Component<Record<string, unknown>>;
-		/** Extra props to pass through (e.g. hourHeight, specialized settings) */
-		props?: Record<string, unknown>;
-	}
-
-	interface Props {
-		/** Data adapter (required) */
-		adapter: CalendarAdapter;
-		/** Registered views */
-		views?: CalendarView[];
-		/** Active view ID (defaults to first registered view) */
-		view?: CalendarViewId;
-		/** CSS theme string (--dt-* inline style) */
-		theme?: string;
-		/**
-		 * Options for the smart auto-theme.
-		 * When theme is `auto` (empty string), the calendar probes the host page
-		 * and generates matching --dt-* vars automatically.
-		 *
-		 * Pass `{ mode, accent, font }` to override individual aspects.
-		 * Set `autoTheme: false` to disable probing entirely.
-		 */
-		autoTheme?: AutoThemeOptions | false;
-		/** Start week on Monday */
-		mondayStart?: boolean;
-		/** Total height. Use `'auto'` to let content determine height (ideal for Agenda views). */
-		height?: number | 'auto';
-		/** Border radius in px (default: 12). Set to 0 for no rounding. */
-		borderRadius?: number;
-		/** Text direction: 'ltr' (default), 'rtl', or 'auto' */
-		dir?: 'ltr' | 'rtl' | 'auto';
-		/** BCP 47 locale tag (e.g. 'en-US', 'ar-SA') — sets lang and locale for formatting */
-		locale?: string;
-		/** Read-only mode: disables drag, resize, empty-slot creation */
-		readOnly?: boolean;
-		/** Visible hour range: [startHour, endHour). Crops the grid to these hours. */
-		visibleHours?: [number, number];
-		/** Initial date to focus on (defaults to today) */
-		initialDate?: Date;
-		/** Drag snap interval in minutes (default: 15) */
-		snapInterval?: number;
-		/** Show the Day/Week mode pills (default: true) */
-		showModePills?: boolean;
-		/** Show prev/next/today navigation controls (default: true) */
-		showNavigation?: boolean;
-		/** Treat all days equally — no past-day dimming or collapsing (default: false) */
-		equalDays?: boolean;
-		/** Hide date numbers — headers show only day names (Mon, Tue, …). Useful for template/recurring schedules. */
-		showDates?: boolean;
-		/** ISO weekdays to hide (1=Mon … 7=Sun). E.g. [6, 7] hides weekends. */
-		hideDays?: number[];
-		/** Controlled current date — drives which date the calendar focuses on. */
-		currentDate?: Date;
-		/** Blocked/unavailable time slots — rendered as hatched regions, prevent event creation. */
-		blockedSlots?: BlockedSlot[];
-		/** Number of days shown in week mode (default: 7). E.g. 3 for a 3-day view, 5 for workweek. */
-		days?: number;
-		/** Minimum event duration in minutes (enforced during drag-create and click-to-create). */
-		minDuration?: number;
-		/** Maximum event duration in minutes (enforced during drag-create). */
-		maxDuration?: number;
-		/** Specific dates to disable (greyed-out, no event creation). */
-		disabledDates?: Date[];
-		/** Compact mode: use minimal text-row rendering in Agenda views (dot + time + title). */
-		compact?: boolean;
-		/**
-		 * Mobile mode.
-		 * - `'auto'` (default): detect via viewport width (< 768 px)
-		 * - `true`: always use mobile views
-		 * - `false`: never use mobile views
-		 */
-		mobile?: 'auto' | boolean;
-
-		// ── Snippets ──
-		/** Custom event rendering snippet */
-		event?: Snippet<[TimelineEvent]>;
-		/** Content to show when no events are loaded */
-		empty?: Snippet;
-		/** Custom day header snippet. Receives { date, isToday, dayName }. */
-		dayHeader?: Snippet<[{ date: Date; isToday: boolean; dayName: string }]>;
-		/**
-		 * Replace the entire header chrome (date label + mode pills + nav arrows).
-		 * Receives context: { dateLabel, mode, modes, switchMode, prev, next, goToday, isViewOnToday, focusDate }.
-		 */
-		header?: Snippet<[import('../headless/types.js').HeaderContext]>;
-		/**
-		 * Replace just the navigation controls (arrows + today button).
-		 * Receives context: { prev, next, goToday, isViewOnToday, focusDate, mode }.
-		 */
-		navigation?: Snippet<[import('../headless/types.js').NavigationContext]>;
-
-		// ── Callbacks ──
-		oneventclick?: (event: TimelineEvent) => void;
-		oneventcreate?: (range: { start: Date; end: Date }) => void;
-		oneventmove?: (event: TimelineEvent, newStart: Date, newEnd: Date) => void;
-		onviewchange?: (viewId: CalendarViewId) => void;
-		/** Called when the focused date changes (navigation, drag-scroll, etc.) */
-		ondatechange?: (date: Date) => void;
-		/** Called when the pointer enters an event (hover). */
-		oneventhover?: (event: TimelineEvent) => void;
-	}
-
-	// ── Built-in views (used when no custom views are provided) ──
-	const DEFAULT_VIEWS: CalendarView[] = [
-		{ id: 'day-planner',  label: 'Planner', mode: 'day',  component: Planner },
-		{ id: 'week-planner', label: 'Planner', mode: 'week', component: Planner },
-		{ id: 'day-agenda',   label: 'Agenda',  mode: 'day',  component: Agenda },
-		{ id: 'week-agenda',  label: 'Agenda',  mode: 'week', component: Agenda },
-		{ id: 'day-mobile',   label: 'Mobile',  mode: 'day',  component: Mobile },
-		{ id: 'week-mobile',  label: 'Mobile',  mode: 'week', component: Mobile },
-	];
-
-	let {
-		adapter,
-		views = DEFAULT_VIEWS,
-		view: activeViewId,
-		theme = auto,
-		autoTheme,
-		mondayStart = true,
-		height: heightProp = 600,
-		borderRadius = 12,
-		dir,
-		locale,
-		readOnly = false,
-		visibleHours,
-		initialDate,
-		snapInterval = 15,
-		showModePills = true,
-		showNavigation = true,
-		equalDays = false,
-		showDates = true,
-		hideDays,
-		currentDate,
-		blockedSlots,
-		days,
-		minDuration,
-		maxDuration,
-		disabledDates,
-		compact = false,
-		mobile: mobileProp = 'auto',
-		event: eventSnippet,
-		empty: emptySnippet,
-		dayHeader: dayHeaderSnippet,
-		header: headerSnippet,
-		navigation: navigationSnippet,
-		oneventclick,
-		oneventcreate,
-		oneventmove,
-		onviewchange,
-		ondatechange,
-		oneventhover,
-	}: Props = $props();
-
-	// In readOnly mode, suppress mutation callbacks
-	const effectiveCreate = $derived(readOnly ? undefined : oneventcreate);
-	const effectiveMove = $derived(readOnly ? undefined : oneventmove);
-
-	// ── Mobile detection (container-based, not viewport) ──
-	let containerWidth = $state(0);
-	const isMobileContainer = $derived(containerWidth > 0 && containerWidth < MOBILE_BREAKPOINT);
-
-	const useMobile = $derived(
-		mobileProp === 'auto' ? isMobileContainer : Boolean(mobileProp)
-	);
-
-	// ── Smart auto-theme ──
-	// When theme is empty (auto preset) and autoTheme is not false,
-	// probe the host page on mount and reactively watch for host theme changes.
-	let calEl: HTMLElement | undefined = $state();
-	let probedTheme = $state('');
-	// Only delay rendering when auto-probe is actually needed
-	const needsProbe = $derived(theme === auto && autoTheme !== false);
-
-	onMount(() => {
-		if (!calEl) return;
-
-		// Measure container width for mobile detection
-		containerWidth = calEl.clientWidth;
-		const ro = new ResizeObserver((entries) => {
-			containerWidth = Math.round(entries[0].contentRect.width);
-		});
-		ro.observe(calEl);
-
-		// Only probe theme when using the auto preset
-		if (!needsProbe) return () => ro.disconnect();
-
-		const opts: AutoThemeOptions = typeof autoTheme === 'object' ? autoTheme : {};
-		const stopTheme = observeHostTheme(calEl, (vars) => {
-			probedTheme = vars;
-		}, opts);
-		return () => { ro.disconnect(); stopTheme?.(); };
-	});
-
-	/** Effective theme: user-provided takes priority, otherwise probed auto. */
-	const effectiveTheme = $derived(theme === auto && autoTheme !== false ? probedTheme : theme);
-
-	// ── Create reactive state ──
-	const store: EventStore = $derived(createEventStore(adapter));
-	const viewState: ViewState = createViewState(untrack(() => ({
-		view: activeViewId ?? views[0]?.id,
-		mondayStart,
-		initialDate,
-		dayCount: days,
-		modeForView: (viewId) => views.find((v) => v.id === viewId)?.mode,
-	})));
-	const selection: Selection = createSelection();
-	const drag: DragState = createDragState();
-
-	// ── Drag commit handler ──
-	// Views call this on pointer-up to process drag results.
-	async function commitDrag(): Promise<void> {
-		if (readOnly) { drag.cancel(); return; }
-		const mode = drag.mode;
-		const payload = drag.commit();
-		if (!payload) return;
-
-		let { start, end } = payload;
-
-		// Enforce min/max duration for create and resize
-		if (mode === 'create' || mode === 'resize-start' || mode === 'resize-end') {
-			const durationMs = end.getTime() - start.getTime();
-			const durationMin = durationMs / 60_000;
-			if (minDuration && durationMin < minDuration) {
-				if (mode === 'resize-start') {
-					start = new Date(end.getTime() - minDuration * 60_000);
-				} else {
-					end = new Date(start.getTime() + minDuration * 60_000);
-				}
-			}
-			if (maxDuration && durationMin > maxDuration) {
-				if (mode === 'resize-start') {
-					start = new Date(end.getTime() - maxDuration * 60_000);
-				} else {
-					end = new Date(start.getTime() + maxDuration * 60_000);
-				}
-			}
-		}
-
-		// Reject if target lands on a disabled date
-		if (disabledDates?.length) {
-			const startDay = new Date(start); startDay.setHours(0, 0, 0, 0);
-			const endDay = new Date(end.getTime() - 1); endDay.setHours(0, 0, 0, 0);
-			for (const dd of disabledDates) {
-				const dt = new Date(dd); dt.setHours(0, 0, 0, 0);
-				const ts = dt.getTime();
-				if (ts >= startDay.getTime() && ts <= endDay.getTime()) return;
-			}
-		}
-
-		// Reject if target overlaps a blocked slot
-		if (blockedSlots?.length) {
-			const startH = start.getHours() + start.getMinutes() / 60;
-			const endH = end.getHours() + end.getMinutes() / 60 + (end.getDate() !== start.getDate() ? 24 : 0);
-			const jsDay = start.getDay();
-			const isoDay = jsDay === 0 ? 7 : jsDay;
-			for (const slot of blockedSlots) {
-				if (slot.day && slot.day !== isoDay) continue;
-				if (startH < slot.end && endH > slot.start) return;
-			}
-		}
-
-		if ((mode === 'move' || mode === 'resize-start' || mode === 'resize-end') && payload.eventId) {
-			try {
-				await store.move(payload.eventId, start, end);
-				const ev = store.byId(payload.eventId);
-				if (ev) effectiveMove?.(ev, start, end);
-			} catch (e) {
-				// Silently handle read-only / missing event errors.
-				// The optimistic update in store.move() already reverted.
-				const msg = e instanceof Error ? e.message : '';
-				if (!msg.includes('read-only') && !msg.includes('not found')) {
-					console.warn('[calendar] drag commit failed:', e);
-				}
-			}
-		} else if (mode === 'create') {
-			effectiveCreate?.({ start, end });
-		}
-	}
-
-	// ── Load range signal ──
-	// Views can write a wider range here to override the default viewState.range.
-	// This lets infinite-scroll views (PlannerWeek, PlannerDay) declare their
-	// buffer needs without directly calling store.load().
-	let viewLoadRange = $state<{ start: Date; end: Date } | null>(null);
-
-	// ── Single context object ──
-	// All view state is exposed through one context key with reactive getters.
-	// Views read this via useCalendarContext() from views/shared/context.svelte.ts.
-	setContext('calendar', {
-		// Engine objects (hold $state internally)
-		get store() { return store; },
-		viewState,
-		selection,
-		drag,
-		commitDrag,
-
-		// Callbacks
-		get oneventclick() { return oneventclick; },
-		get oneventcreate() { return effectiveCreate; },
-		get oneventmove() { return effectiveMove; },
-		get oneventhover() { return oneventhover; },
-
-		// Config (reactive via getters)
-		get readOnly() { return readOnly; },
-		get visibleHours() { return visibleHours; },
-		get snapInterval() { return snapInterval; },
-		get eventSnippet() { return eventSnippet; },
-		get emptySnippet() { return emptySnippet; },
-		get equalDays() { return equalDays; },
-		get showDates() { return showDates; },
-		get hideDays() { return hideDays; },
-		get blockedSlots() { return blockedSlots; },
-		get dayHeaderSnippet() { return dayHeaderSnippet; },
-		get minDuration() { return minDuration; },
-		get maxDuration() { return maxDuration; },
-		get disabledDates() { return disabledDates; },
-		get mobile() { return useMobile; },
-		get autoHeight() { return heightProp === 'auto'; },
-		get compact() { return compact; },
-
-		// Load range (read/write)
-		get loadRange() { return viewLoadRange; },
-		setLoadRange(range: { start: Date; end: Date } | null) { viewLoadRange = range; },
-	});
-
-	// ── Load events when effective range changes ──
-	$effect(() => {
-		const range = viewLoadRange ?? viewState.range;
-		store.load({ start: range.start, end: range.end });
-	});
-	// Eager initial load — $effect runs after paint, but for sync adapters
-	// (memory, recurring) this resolves in the same microtask.
-	untrack(() => store.load({ start: viewState.range.start, end: viewState.range.end }));
-
-	// Keep active view in sync when external view prop changes after mount.
-	$effect(() => {
-		if (activeViewId) viewState.setView(activeViewId);
-	});
-
-	// Sync controlled currentDate prop → viewState
-	$effect(() => {
-		if (currentDate) viewState.setFocusDate(currentDate);
-	});
-
-	// Sync days prop → viewState.dayCount
-	$effect(() => {
-		if (days !== undefined && viewState.dayCount !== days) viewState.setDayCount(days);
-	});
-
-	// Notify host when focusDate changes
-	$effect(() => {
-		const d = viewState.focusDate;
-		ondatechange?.(d);
-	});
-
-	// Keep view state's week-start rule in sync with incoming prop changes.
-	$effect(() => {
-		if (viewState.mondayStart !== mondayStart) {
-			viewState.setMondayStart(mondayStart);
-		}
-	});
-
-	// Notify host when active view changes (e.g. via mode toggles).
-	$effect(() => {
-		onviewchange?.(viewState.view);
-	});
-
-
-	// ── Resolve active view ──
-	// When mobile is active, Planner views get remapped to Mobile variants.
-	// Agenda views stay as Agenda — they're already list-based and will adapt
-	// via the 'calendar:mobile' context flag.
-	const resolvedView = $derived.by(() => {
-		const requested = views.find((v) => v.id === viewState.view) ?? views[0];
-		if (!useMobile || !requested) return requested;
-		// Already a mobile view? Keep it.
-		if (requested.id.endsWith('-mobile')) return requested;
-		// Agenda views: keep as-is (they adapt internally via mobile context).
-		if (requested.label === 'Agenda') return requested;
-		// Planner / other views: remap to mobile variant with the same mode.
-		const mobileVariant = views.find(
-			(v) => v.id === `${requested.mode}-mobile`
-		);
-		return mobileVariant ?? requested;
-	});
-
-	// Backward-compat alias used in the template.
-	const activeView = $derived(resolvedView);
-
-	// Non-mobile views for mode pills (exclude mobile entries).
-	const desktopViews = $derived(views.filter((v) => !v.id.endsWith('-mobile')));
-
-	// ── Date label (always visible, centered over views) ──
-	const dateLabel = $derived.by(() => {
-		if (!showDates) {
-			// Template week mode: just show weekday name (day) or nothing (week)
-			if (viewState.mode === 'day') {
-				return viewState.focusDate.toLocaleDateString(locale, { weekday: 'long' });
-			}
-			return ''; // week views have their own day headers
-		}
-		if (viewState.mode === 'day') {
-			return viewState.focusDate.toLocaleDateString(locale, {
-				weekday: 'long',
-				month: 'short',
-				day: 'numeric',
-			});
-		}
-		return viewState.focusDate.toLocaleDateString(locale, {
-			month: 'long',
-			year: 'numeric',
-		});
-	});
-
-	// Which modes are available?
-	const modes = $derived.by(() => {
-		const g = new Set(desktopViews.map((v) => v.mode));
-		return (['day', 'week'] as const).filter((key) => g.has(key));
-	});
-
-	const L = $derived(getLabels());
-
-	/** Switch to a different mode (day/week), preserving the current view label. */
-	function switchMode(g: 'day' | 'week') {
-		const currentLabel = desktopViews.find((v) => v.id === viewState.view)?.label
-			?? activeView?.label;
-		const match = desktopViews.find((v) => v.mode === g && v.label === currentLabel);
-		const fallback = desktopViews.find((v) => v.mode === g);
-		const target = match ?? fallback;
-		if (target) viewState.setView(target.id);
-	}
-
-	/** True when the current view range already includes today. */
-	const viewIncludesToday = $derived.by(() => {
-		const now = Date.now();
-		const { start, end } = viewState.range;
-		return now >= start.getTime() && now < end.getTime();
-	});
-
-	/** Header context for custom header snippet */
-	const headerCtx = $derived({
-		dateLabel,
-		mode: viewState.mode,
-		modes,
-		switchMode,
-		prev: () => viewState.prev(),
-		next: () => viewState.next(),
-		goToday: () => viewState.goToday(),
-		isViewOnToday: viewIncludesToday,
-		focusDate: viewState.focusDate,
-	});
-
-	/** Navigation context for custom navigation snippet */
-	const navCtx = $derived({
-		prev: () => viewState.prev(),
-		next: () => viewState.next(),
-		goToday: () => viewState.goToday(),
-		isViewOnToday: viewIncludesToday,
-		focusDate: viewState.focusDate,
-		mode: viewState.mode,
-	});
+<script lang="ts">import { setContext, untrack } from "svelte";
+import { createEventStore } from "../engine/event-store.svelte.js";
+import { createViewState } from "../engine/view-state.svelte.js";
+import { createSelection } from "../engine/selection.svelte.js";
+import { createDragState } from "../engine/drag.svelte.js";
+import { onMount } from "svelte";
+import { getLabels } from "../core/locale.js";
+import { auto } from "../theme/presets.js";
+import { probeHostTheme, observeHostTheme } from "../theme/auto.js";
+import Planner from "../views/planner/Planner.svelte";
+import Agenda from "../views/agenda/Agenda.svelte";
+import Mobile from "../views/mobile/Mobile.svelte";
+const MOBILE_BREAKPOINT = 768;
+const DEFAULT_VIEWS = [
+  { id: "day-planner", label: "Planner", mode: "day", component: Planner },
+  { id: "week-planner", label: "Planner", mode: "week", component: Planner },
+  { id: "day-agenda", label: "Agenda", mode: "day", component: Agenda },
+  { id: "week-agenda", label: "Agenda", mode: "week", component: Agenda },
+  { id: "day-mobile", label: "Mobile", mode: "day", component: Mobile },
+  { id: "week-mobile", label: "Mobile", mode: "week", component: Mobile }
+];
+let {
+  adapter,
+  views = DEFAULT_VIEWS,
+  view: activeViewId,
+  theme = auto,
+  autoTheme,
+  mondayStart = true,
+  height: heightProp = 600,
+  borderRadius = 12,
+  dir,
+  locale,
+  readOnly = false,
+  visibleHours,
+  initialDate,
+  snapInterval = 15,
+  showModePills = true,
+  showNavigation = true,
+  equalDays = false,
+  showDates = true,
+  hideDays,
+  currentDate,
+  blockedSlots,
+  days,
+  minDuration,
+  maxDuration,
+  disabledDates,
+  compact = false,
+  mobile: mobileProp = "auto",
+  event: eventSnippet,
+  empty: emptySnippet,
+  dayHeader: dayHeaderSnippet,
+  header: headerSnippet,
+  navigation: navigationSnippet,
+  oneventclick,
+  oneventcreate,
+  oneventmove,
+  onviewchange,
+  ondatechange,
+  oneventhover
+} = $props();
+const effectiveCreate = $derived(readOnly ? void 0 : oneventcreate);
+const effectiveMove = $derived(readOnly ? void 0 : oneventmove);
+let containerWidth = $state(0);
+const isMobileContainer = $derived(containerWidth > 0 && containerWidth < MOBILE_BREAKPOINT);
+const useMobile = $derived(
+  mobileProp === "auto" ? isMobileContainer : Boolean(mobileProp)
+);
+let calEl = $state();
+let probedTheme = $state("");
+const needsProbe = $derived(theme === auto && autoTheme !== false);
+onMount(() => {
+  if (!calEl) return;
+  containerWidth = calEl.clientWidth;
+  const ro = new ResizeObserver((entries) => {
+    containerWidth = Math.round(entries[0].contentRect.width);
+  });
+  ro.observe(calEl);
+  if (!needsProbe) return () => ro.disconnect();
+  const opts = typeof autoTheme === "object" ? autoTheme : {};
+  const stopTheme = observeHostTheme(calEl, (vars) => {
+    probedTheme = vars;
+  }, opts);
+  return () => {
+    ro.disconnect();
+    stopTheme?.();
+  };
+});
+const effectiveTheme = $derived(theme === auto && autoTheme !== false ? probedTheme : theme);
+const store = $derived(createEventStore(adapter));
+const viewState = createViewState(untrack(() => ({
+  view: activeViewId ?? views[0]?.id,
+  mondayStart,
+  initialDate,
+  dayCount: days,
+  modeForView: (viewId) => views.find((v) => v.id === viewId)?.mode
+})));
+const selection = createSelection();
+const drag = createDragState();
+async function commitDrag() {
+  if (readOnly) {
+    drag.cancel();
+    return;
+  }
+  const mode = drag.mode;
+  const payload = drag.commit();
+  if (!payload) return;
+  let { start, end } = payload;
+  if (mode === "create" || mode === "resize-start" || mode === "resize-end") {
+    const durationMs = end.getTime() - start.getTime();
+    const durationMin = durationMs / 6e4;
+    if (minDuration && durationMin < minDuration) {
+      if (mode === "resize-start") {
+        start = new Date(end.getTime() - minDuration * 6e4);
+      } else {
+        end = new Date(start.getTime() + minDuration * 6e4);
+      }
+    }
+    if (maxDuration && durationMin > maxDuration) {
+      if (mode === "resize-start") {
+        start = new Date(end.getTime() - maxDuration * 6e4);
+      } else {
+        end = new Date(start.getTime() + maxDuration * 6e4);
+      }
+    }
+  }
+  if (disabledDates?.length) {
+    const startDay = new Date(start);
+    startDay.setHours(0, 0, 0, 0);
+    const endDay = new Date(end.getTime() - 1);
+    endDay.setHours(0, 0, 0, 0);
+    for (const dd of disabledDates) {
+      const dt = new Date(dd);
+      dt.setHours(0, 0, 0, 0);
+      const ts = dt.getTime();
+      if (ts >= startDay.getTime() && ts <= endDay.getTime()) return;
+    }
+  }
+  if (blockedSlots?.length) {
+    const startH = start.getHours() + start.getMinutes() / 60;
+    const endH = end.getHours() + end.getMinutes() / 60 + (end.getDate() !== start.getDate() ? 24 : 0);
+    const jsDay = start.getDay();
+    const isoDay = jsDay === 0 ? 7 : jsDay;
+    for (const slot of blockedSlots) {
+      if (slot.day && slot.day !== isoDay) continue;
+      if (startH < slot.end && endH > slot.start) return;
+    }
+  }
+  if ((mode === "move" || mode === "resize-start" || mode === "resize-end") && payload.eventId) {
+    try {
+      await store.move(payload.eventId, start, end);
+      const ev = store.byId(payload.eventId);
+      if (ev) effectiveMove?.(ev, start, end);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      if (!msg.includes("read-only") && !msg.includes("not found")) {
+        console.warn("[calendar] drag commit failed:", e);
+      }
+    }
+  } else if (mode === "create") {
+    effectiveCreate?.({ start, end });
+  }
+}
+let viewLoadRange = $state(null);
+setContext("calendar", {
+  // Engine objects (hold $state internally)
+  get store() {
+    return store;
+  },
+  viewState,
+  selection,
+  drag,
+  commitDrag,
+  // Callbacks
+  get oneventclick() {
+    return oneventclick;
+  },
+  get oneventcreate() {
+    return effectiveCreate;
+  },
+  get oneventmove() {
+    return effectiveMove;
+  },
+  get oneventhover() {
+    return oneventhover;
+  },
+  // Config (reactive via getters)
+  get readOnly() {
+    return readOnly;
+  },
+  get visibleHours() {
+    return visibleHours;
+  },
+  get snapInterval() {
+    return snapInterval;
+  },
+  get eventSnippet() {
+    return eventSnippet;
+  },
+  get emptySnippet() {
+    return emptySnippet;
+  },
+  get equalDays() {
+    return equalDays;
+  },
+  get showDates() {
+    return showDates;
+  },
+  get hideDays() {
+    return hideDays;
+  },
+  get blockedSlots() {
+    return blockedSlots;
+  },
+  get dayHeaderSnippet() {
+    return dayHeaderSnippet;
+  },
+  get minDuration() {
+    return minDuration;
+  },
+  get maxDuration() {
+    return maxDuration;
+  },
+  get disabledDates() {
+    return disabledDates;
+  },
+  get mobile() {
+    return useMobile;
+  },
+  get autoHeight() {
+    return heightProp === "auto";
+  },
+  get compact() {
+    return compact;
+  },
+  // Load range (read/write)
+  get loadRange() {
+    return viewLoadRange;
+  },
+  setLoadRange(range) {
+    viewLoadRange = range;
+  }
+});
+$effect(() => {
+  const range = viewLoadRange ?? viewState.range;
+  store.load({ start: range.start, end: range.end });
+});
+untrack(() => store.load({ start: viewState.range.start, end: viewState.range.end }));
+$effect(() => {
+  if (activeViewId) viewState.setView(activeViewId);
+});
+$effect(() => {
+  if (currentDate) viewState.setFocusDate(currentDate);
+});
+$effect(() => {
+  if (days !== void 0 && viewState.dayCount !== days) viewState.setDayCount(days);
+});
+$effect(() => {
+  const d = viewState.focusDate;
+  ondatechange?.(d);
+});
+$effect(() => {
+  if (viewState.mondayStart !== mondayStart) {
+    viewState.setMondayStart(mondayStart);
+  }
+});
+$effect(() => {
+  onviewchange?.(viewState.view);
+});
+const resolvedView = $derived.by(() => {
+  const requested = views.find((v) => v.id === viewState.view) ?? views[0];
+  if (!useMobile || !requested) return requested;
+  if (requested.id.endsWith("-mobile")) return requested;
+  if (requested.label === "Agenda") return requested;
+  const mobileVariant = views.find(
+    (v) => v.id === `${requested.mode}-mobile`
+  );
+  return mobileVariant ?? requested;
+});
+const activeView = $derived(resolvedView);
+const desktopViews = $derived(views.filter((v) => !v.id.endsWith("-mobile")));
+const dateLabel = $derived.by(() => {
+  if (!showDates) {
+    if (viewState.mode === "day") {
+      return viewState.focusDate.toLocaleDateString(locale, { weekday: "long" });
+    }
+    return "";
+  }
+  if (viewState.mode === "day") {
+    return viewState.focusDate.toLocaleDateString(locale, {
+      weekday: "long",
+      month: "short",
+      day: "numeric"
+    });
+  }
+  return viewState.focusDate.toLocaleDateString(locale, {
+    month: "long",
+    year: "numeric"
+  });
+});
+const modes = $derived.by(() => {
+  const g = new Set(desktopViews.map((v) => v.mode));
+  return ["day", "week"].filter((key) => g.has(key));
+});
+const L = $derived(getLabels());
+function switchMode(g) {
+  const currentLabel = desktopViews.find((v) => v.id === viewState.view)?.label ?? activeView?.label;
+  const match = desktopViews.find((v) => v.mode === g && v.label === currentLabel);
+  const fallback = desktopViews.find((v) => v.mode === g);
+  const target = match ?? fallback;
+  if (target) viewState.setView(target.id);
+}
+const viewIncludesToday = $derived.by(() => {
+  const now = Date.now();
+  const { start, end } = viewState.range;
+  return now >= start.getTime() && now < end.getTime();
+});
+const headerCtx = $derived({
+  dateLabel,
+  mode: viewState.mode,
+  modes,
+  switchMode,
+  prev: () => viewState.prev(),
+  next: () => viewState.next(),
+  goToday: () => viewState.goToday(),
+  isViewOnToday: viewIncludesToday,
+  focusDate: viewState.focusDate
+});
+const navCtx = $derived({
+  prev: () => viewState.prev(),
+  next: () => viewState.next(),
+  goToday: () => viewState.goToday(),
+  isViewOnToday: viewIncludesToday,
+  focusDate: viewState.focusDate,
+  mode: viewState.mode
+});
 </script>
 
 <div
