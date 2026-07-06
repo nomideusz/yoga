@@ -1,17 +1,10 @@
-import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
 
-let _resend: Resend | null = null;
-
-function getResend(): Resend {
-  if (!_resend) {
-    if (!env.RESEND_API_KEY) throw new Error('RESEND_API_KEY not set');
-    _resend = new Resend(env.RESEND_API_KEY);
-  }
-  return _resend;
-}
-
-const FROM = 'noreply@auth.zaur.app';
+// Sent through the Temps transactional-email API (relays via the Zaur Mail
+// SMTP provider / Stalwart on mail.zaur.app). TEMPS_API_URL and
+// TEMPS_API_TOKEN are injected into every Temps deployment; locally they're
+// unset and sending throws (callers treat email as best-effort).
+const FROM = 'noreply@szkolyjogi.pl';
 const FROM_NAME = 'szkolyjogi.pl';
 const ADMIN_EMAIL = 'joga@zaur.app';
 
@@ -93,16 +86,26 @@ function claimNotificationHtml(data: ClaimNotificationData): string {
 }
 
 export async function sendClaimNotification(data: ClaimNotificationData): Promise<void> {
-  const resend = getResend();
-  // Resend's SDK reports API failures via the returned error, it does NOT throw.
-  // Note: a 200 here still isn't delivery — recipients on Resend's suppression
-  // list are dropped after accept (visible only in the dashboard email log).
-  const { data: sent, error } = await resend.emails.send({
-    from: `${FROM_NAME} <${FROM}>`,
-    to: [ADMIN_EMAIL],
-    subject: `Przejęcie profilu: ${data.schoolName}`,
-    html: claimNotificationHtml(data),
+  if (!env.TEMPS_API_URL || !env.TEMPS_API_TOKEN) {
+    throw new Error('TEMPS_API_URL / TEMPS_API_TOKEN not set');
+  }
+  const res = await fetch(`${env.TEMPS_API_URL}/emails`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.TEMPS_API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: FROM,
+      from_name: FROM_NAME,
+      to: [ADMIN_EMAIL],
+      subject: `Przejęcie profilu: ${data.schoolName}`,
+      html: claimNotificationHtml(data),
+    }),
   });
-  if (error) throw new Error(`Resend ${error.name}: ${error.message}`);
-  console.log(`[claim] notification email accepted by Resend, id=${sent?.id}`);
+  if (!res.ok) {
+    throw new Error(`Temps email API ${res.status}: ${await res.text()}`);
+  }
+  const sent = (await res.json()) as { id: string; status: string };
+  console.log(`[claim] notification email ${sent.status} via Temps, id=${sent.id}`);
 }

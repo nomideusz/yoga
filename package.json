@@ -42,7 +42,6 @@
 		"@sentry/sveltekit": "^10.63.0",
 		"dotenv": "^17.4.2",
 		"drizzle-orm": "^0.45.2",
-		"lucide-svelte": "^1.0.1",
-		"resend": "^6.17.1"
+		"lucide-svelte": "^1.0.1"
 	}
 }
