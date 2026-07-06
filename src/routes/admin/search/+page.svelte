@@ -1,7 +1,16 @@
 <script lang="ts">
   import { getListingPath } from '$lib/paths';
 
-  let { data } = $props();
+  let { data, form } = $props();
+
+  // Synonym form state (prefillable from the server-fallback list)
+  let synAlias = $state('');
+  let synCanonical = $state('');
+
+  function prefillAlias(query: string) {
+    synAlias = query;
+    document.getElementById('synonyms')?.scrollIntoView({ behavior: 'smooth' });
+  }
 
   const periods = [1, 7, 14, 30, 90];
 
@@ -67,6 +76,9 @@
     return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
+  const canaryOk = $derived(
+    data.canary.failures.length === 0 && data.canary.unindexedListed === 0,
+  );
   const maxVolume = $derived(Math.max(...data.dailyVolume.map((d) => d.count), 1));
   const maxAction = $derived(Math.max(...data.actions.map((a) => a.count), 1));
   const maxLayer = $derived(Math.max(...data.layers.map((l) => l.count), 1));
@@ -128,6 +140,18 @@
         FTS5 index · {data.fts.inSchools} schools / {data.fts.inFts} rows
         {#if !data.fts.synced}
           · {data.fts.missingFromFts} missing, {data.fts.orphanedInFts} orphaned
+        {/if}
+      </span>
+    </div>
+    <div class="kpi-card" class:kpi-ok={canaryOk} class:kpi-warn={!canaryOk}>
+      <span class="kpi-value">{canaryOk ? 'Passing' : 'Failing'}</span>
+      <span class="kpi-label">
+        Canary · {data.canary.passed}/{data.canary.sampled} schools find themselves
+        {#if data.canary.unindexedListed > 0}
+          · {data.canary.unindexedListed} listed but unindexed!
+        {/if}
+        {#if data.canary.failures.length > 0}
+          · failing: {data.canary.failures.map((f) => f.name).join(', ')}
         {/if}
       </span>
     </div>
@@ -292,13 +316,20 @@
         <div class="table-wrap">
           <table class="data-table">
             <thead>
-              <tr><th>Query</th><th class="num">Count</th></tr>
+              <tr><th>Query</th><th class="num">Count</th><th></th></tr>
             </thead>
             <tbody>
               {#each data.needsServer as q}
                 <tr>
                   <td class="mono query-text">{q.query || '(empty)'}</td>
                   <td class="num"><span class="badge badge--warn">{q.count}</span></td>
+                  <td class="num">
+                    {#if q.query}
+                      <button type="button" class="syn-prefill" onclick={() => prefillAlias(q.query)}>
+                        → alias
+                      </button>
+                    {/if}
+                  </td>
                 </tr>
               {/each}
             </tbody>
@@ -337,6 +368,72 @@
       {/if}
     </section>
   </div>
+
+  <!-- Synonym manager -->
+  <section class="panel panel--wide" id="synonyms">
+    <div class="panel-head">
+      <div>
+        <h2>Synonyms</h2>
+        <p class="panel-hint">
+          alias → canonical, applied at search time (server) and in resolver lookups (client, ≤5 min cache)
+        </p>
+      </div>
+      <span class="panel-meta">{data.synonyms.length} entries</span>
+    </div>
+
+    <form method="POST" action="?/addSynonym" class="syn-form">
+      <input
+        name="alias"
+        placeholder="alias (np. medytacje)"
+        bind:value={synAlias}
+        required
+      />
+      <span class="syn-arrow">→</span>
+      <input
+        name="canonical"
+        placeholder="canonical (np. medytacja)"
+        bind:value={synCanonical}
+        required
+      />
+      <select name="category">
+        <option value="general">general</option>
+        <option value="style">style</option>
+        <option value="city">city</option>
+      </select>
+      <button type="submit" class="syn-submit">Add</button>
+    </form>
+    {#if form?.error}
+      <p class="syn-msg syn-msg--error">{form.error}</p>
+    {:else if form?.added}
+      <p class="syn-msg syn-msg--ok">Added: {form.added}</p>
+    {:else if form?.deleted}
+      <p class="syn-msg syn-msg--ok">Deleted: {form.deleted}</p>
+    {/if}
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Alias</th><th>Canonical</th><th>Category</th><th></th></tr>
+        </thead>
+        <tbody>
+          {#each data.synonyms as s (s.alias + s.canonical)}
+            <tr>
+              <td class="mono">{s.alias}</td>
+              <td class="mono">{s.canonical}</td>
+              <td><span class="badge">{s.category}</span></td>
+              <td class="num">
+                <form method="POST" action="?/deleteSynonym">
+                  <input type="hidden" name="alias" value={s.alias} />
+                  <input type="hidden" name="canonical" value={s.canonical} />
+                  <button type="submit" class="syn-delete" aria-label="Delete {s.alias}">×</button>
+                </form>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  </section>
 
   <!-- Clicks & redirects -->
   <div class="two-col">
@@ -912,4 +1009,65 @@
     font-style: italic;
     margin: var(--spacing-sm) 0;
   }
+
+  /* ── Synonym manager ── */
+  .syn-form {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .syn-form input,
+  .syn-form select {
+    padding: 8px 12px;
+    border: 1px solid var(--sf-line);
+    border-radius: var(--radius-sm, 8px);
+    background: var(--sf-frost);
+    color: var(--sf-text);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    min-width: 180px;
+  }
+
+  .syn-arrow { color: var(--sf-muted); }
+
+  .syn-submit {
+    padding: 8px 18px;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--sf-text);
+    color: var(--sf-bg, #fff);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .syn-prefill {
+    padding: 3px 10px;
+    border: 1px solid var(--sf-line);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--sf-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .syn-prefill:hover { color: var(--sf-text); border-color: var(--sf-text); }
+
+  .syn-delete {
+    border: none;
+    background: transparent;
+    color: var(--sf-muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 8px;
+  }
+  .syn-delete:hover { color: var(--sf-danger); }
+
+  .syn-msg { font-size: 0.9rem; margin: 0 0 var(--spacing-sm); }
+  .syn-msg--ok { color: var(--sf-ok, #2c7a4b); }
+  .syn-msg--error { color: var(--sf-danger); }
 </style>

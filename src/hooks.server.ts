@@ -10,6 +10,7 @@
 // only negotiates Accept-Language at the bare root.
 import * as Sentry from '@sentry/sveltekit';
 import { env } from '$env/dynamic/public';
+import { env as privateEnv } from '$env/dynamic/private';
 import { sequence } from '@sveltejs/kit/hooks';
 import type { Handle } from '@sveltejs/kit';
 import { resolveLocale, negotiateLocale, localizeHref } from '@nomideusz/svelte-i18n';
@@ -19,6 +20,32 @@ Sentry.init({
 	dsn: env.PUBLIC_SENTRY_DSN,
 	environment: process.env.NODE_ENV ?? 'development',
 });
+
+// Basic-Auth gate for /admin/*. Locked shut when ADMIN_PASSWORD is unset —
+// never open by default. Username is ignored; only the password matters.
+const adminAuthHandle: Handle = async ({ event, resolve }) => {
+  if (!event.url.pathname.startsWith('/admin')) return resolve(event);
+
+  const expected = privateEnv.ADMIN_PASSWORD;
+  const header = event.request.headers.get('authorization') ?? '';
+  let ok = false;
+  if (expected && header.startsWith('Basic ')) {
+    try {
+      const decoded = atob(header.slice(6));
+      const password = decoded.slice(decoded.indexOf(':') + 1);
+      ok = password === expected;
+    } catch {
+      ok = false;
+    }
+  }
+  if (!ok) {
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: { 'WWW-Authenticate': 'Basic realm="admin", charset="UTF-8"' },
+    });
+  }
+  return resolve(event);
+};
 
 const localeHandle: Handle = async ({ event, resolve }) => {
   const acceptLanguage = event.request.headers.get('accept-language');
@@ -62,5 +89,5 @@ const localeHandle: Handle = async ({ event, resolve }) => {
 
 // sentryHandle() runs first so request context is attached to any error the
 // locale handle (or downstream load/actions) throws.
-export const handle = sequence(Sentry.sentryHandle(), localeHandle);
+export const handle = sequence(Sentry.sentryHandle(), adminAuthHandle, localeHandle);
 export const handleError = Sentry.handleErrorWithSentry();

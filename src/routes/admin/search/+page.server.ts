@@ -1,5 +1,8 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad, Actions } from './$types';
+import { fail } from '@sveltejs/kit';
 import { checkFtsSync } from '$lib/search/indexer';
+import { runCanary } from '$lib/server/search-canary';
+import { normalize } from '$lib/search';
 import { client } from '$lib/server/db/index';
 
 type Row = Record<string, unknown>;
@@ -22,6 +25,8 @@ export const load: PageServerLoad = async ({ url }) => {
 
   const [
     fts,
+    canary,
+    synonyms,
     needsServer,
     needsGoogle,
     actions,
@@ -41,6 +46,11 @@ export const load: PageServerLoad = async ({ url }) => {
     clickCount,
   ] = await Promise.all([
     checkFtsSync(client),
+    runCanary(client),
+    client.execute({
+      sql: `SELECT alias, canonical, category FROM search_synonyms ORDER BY category, alias`,
+      args: [],
+    }),
     client.execute({
       sql: `SELECT query_normalized, COUNT(*) as c FROM search_events
             WHERE action = 'needs_server' AND created_at >= ? GROUP BY query_normalized ORDER BY c DESC LIMIT 25`,
@@ -161,6 +171,12 @@ export const load: PageServerLoad = async ({ url }) => {
       orphanedInFts: Number((fts as Row).orphanedInFts),
       synced: (fts as Row).missingFromFts === 0 && (fts as Row).orphanedInFts === 0,
     },
+    canary,
+    synonyms: (synonyms.rows as Row[]).map((r) => ({
+      alias: String(r.alias),
+      canonical: String(r.canonical),
+      category: String(r.category),
+    })),
     totalEvents,
     uniqueSessions,
     clicks,
@@ -205,4 +221,37 @@ export const load: PageServerLoad = async ({ url }) => {
       createdAt: String(r.created_at),
     })),
   };
+};
+
+const SYNONYM_CATEGORIES = new Set(['style', 'city', 'general']);
+
+export const actions: Actions = {
+  addSynonym: async ({ request }) => {
+    const fd = await request.formData();
+    const alias = normalize(String(fd.get('alias') ?? ''));
+    const canonical = normalize(String(fd.get('canonical') ?? ''));
+    const category = String(fd.get('category') ?? 'general');
+
+    if (!alias || !canonical) return fail(400, { error: 'Alias i forma kanoniczna są wymagane.' });
+    if (alias === canonical) return fail(400, { error: 'Alias i forma kanoniczna są identyczne.' });
+    if (!SYNONYM_CATEGORIES.has(category)) return fail(400, { error: 'Nieznana kategoria.' });
+
+    await client.execute({
+      sql: 'INSERT OR IGNORE INTO search_synonyms (alias, canonical, category) VALUES (?, ?, ?)',
+      args: [alias, canonical, category],
+    });
+    return { added: `${alias} → ${canonical}` };
+  },
+
+  deleteSynonym: async ({ request }) => {
+    const fd = await request.formData();
+    const alias = String(fd.get('alias') ?? '');
+    const canonical = String(fd.get('canonical') ?? '');
+    if (!alias || !canonical) return fail(400, { error: 'Brak aliasu.' });
+    await client.execute({
+      sql: 'DELETE FROM search_synonyms WHERE alias = ? AND canonical = ?',
+      args: [alias, canonical],
+    });
+    return { deleted: alias };
+  },
 };
