@@ -90,8 +90,10 @@ export const actions: Actions = {
         message,
         consentedAt,
       });
-    } catch {
-      // Email failure should not block the claim submission
+    } catch (e) {
+      // Email failure should not block the claim submission — the claim is
+      // already persisted above — but it must be visible in the deploy logs.
+      console.error('[claim] notification email failed:', e);
     }
 
     return { success: true };

@@ -94,10 +94,15 @@ function claimNotificationHtml(data: ClaimNotificationData): string {
 
 export async function sendClaimNotification(data: ClaimNotificationData): Promise<void> {
   const resend = getResend();
-  await resend.emails.send({
+  // Resend's SDK reports API failures via the returned error, it does NOT throw.
+  // Note: a 200 here still isn't delivery — recipients on Resend's suppression
+  // list are dropped after accept (visible only in the dashboard email log).
+  const { data: sent, error } = await resend.emails.send({
     from: `${FROM_NAME} <${FROM}>`,
     to: [ADMIN_EMAIL],
     subject: `Przejęcie profilu: ${data.schoolName}`,
     html: claimNotificationHtml(data),
   });
+  if (error) throw new Error(`Resend ${error.name}: ${error.message}`);
+  console.log(`[claim] notification email accepted by Resend, id=${sent?.id}`);
 }
