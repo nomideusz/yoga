@@ -4,13 +4,14 @@ import { browser } from '$app/environment';
  * Fire-and-forget Temps Analytics page_view.
  *
  * Temps' analytics ingest is the same-origin path `/api/_temps/event`, which only exists when the
- * app is served through the Temps proxy. So we only fire on Temps-served hosts (`*.rzeka.live`); on
- * Vercel (szkolyjogi.pl) the path 404s, so we skip it. Wire format matches @temps-sdk/react-analytics
+ * app is served through the Temps proxy. All production domains (szkolyjogi.pl + *.rzeka.live) are
+ * served through Temps now, so fire everywhere except local dev; if a host ever isn't behind the
+ * proxy, the 404 response is ignored. Wire format matches @temps-sdk/react-analytics
  * (event_name "page_view" + request_path/query/domain + event_data). Never throws.
  */
 export function trackTempsPageview(pathname: string, searchParams: URLSearchParams): void {
 	if (!browser) return;
-	if (!location.hostname.endsWith('.rzeka.live')) return;
+	if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
 
 	try {
 		const qs = searchParams.toString();
