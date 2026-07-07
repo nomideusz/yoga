@@ -1,5 +1,11 @@
-import { sqliteTable, text, real, integer, unique, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, sqliteView, text, real, integer, unique, index, primaryKey } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+
+// NOTE: the live DB also contains FTS5 search infrastructure that drizzle
+// cannot model: the `schools_fts` virtual table (+ its _config/_data/_docsize/
+// _idx shadow tables) and the schools_fts_ai/au/ad triggers, all managed by
+// scripts/migrate-search.ts. If `drizzle-kit push` ever proposes dropping
+// anything named schools_fts* — abort and investigate.
 
 // ── Schools (main listing) ──────────────────────────────────────────────────
 
@@ -11,6 +17,9 @@ export const schools = sqliteTable('schools', {
   websiteUrl: text('website_url').default(''),
   phone: text('phone'),
   email: text('email'),
+  facebookUrl: text('facebook_url'),
+  instagramUrl: text('instagram_url'),
+  youtubeUrl: text('youtube_url'),
 
   price: real('price'),
   priceEstimated: integer('price_estimated', { mode: 'boolean' }).default(false),
@@ -76,7 +85,18 @@ export const schools = sqliteTable('schools', {
   slug: text('slug'),                          // URL-friendly unique slug
 }, (table) => ({
   idxCityDistrict: index('idx_schools_city_district').on(table.citySlug, table.districtN),
+  idxCitySlug: index('idx_schools_city_slug').on(table.citySlug),
+  idxCityN: index('idx_schools_city_n').on(table.cityN),
+  idxPostcode: index('idx_schools_postcode').on(table.postcode),
+  idxSlug: index('idx_schools_slug').on(table.slug),
 }));
+
+// Read-only view over listed schools, used by the search infrastructure.
+// `.existing()` = declared for drizzle's awareness only; DDL is managed by
+// scripts/migrate-search.ts.
+export const schoolsListed = sqliteView('schools_listed', {
+  id: text('id'),
+}).existing();
 
 // ── Styles (many-to-many via junction) ──────────────────────────────────────
 
@@ -167,7 +187,31 @@ export const scrapeLog = sqliteTable('scrape_log', {
   fieldsUpdated: text('fields_updated'),    // comma-separated list of updated fields
   durationMs: integer('duration_ms'),       // how long the operation took
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-});
+}, (table) => ({
+  idxSchool: index('idx_scrape_log_school').on(table.schoolId, table.task, table.createdAt),
+}));
+
+// ── School Services (bookable services scraped from booking platforms) ──────
+//
+//  Created live by the yoga-scraper (no FK constraint on the live table —
+//  don't add .references() here or drizzle push will want to rebuild it).
+
+export const schoolServices = sqliteTable('school_services', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  schoolId: text('school_id').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  durationMin: integer('duration_min'),
+  priceMin: real('price_min'),
+  priceMax: real('price_max'),
+  isBookableOnline: integer('is_bookable_online', { mode: 'boolean' }).notNull().default(true),
+  source: text('source').notNull().default('fitssey'),
+  externalId: text('external_id'),
+  lastSeenAt: text('last_seen_at').default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  idxSchool: index('idx_services_school').on(table.schoolId),
+}));
 
 // ── Claim Requests ──────────────────────────────────────────────────────────
 
@@ -255,7 +299,9 @@ export const cities = sqliteTable('cities', {
   schoolCount: integer('school_count').notNull().default(0),
   districts: text('districts').notNull().default('[]'),  // JSON array of district names
   intro: text('intro'),                        // editorial city intro (Polish), LLM-generated from DB stats
-});
+}, (table) => ({
+  idxNameN: index('idx_cities_name_n').on(table.nameN),
+}));
 
 // ── Search synonyms (misspellings → canonical terms) ────────────────────────
 
@@ -264,7 +310,10 @@ export const searchSynonyms = sqliteTable('search_synonyms', {
   canonical: text('canonical').notNull(),
   category: text('category').notNull(),        // 'style', 'city', 'general'
 }, (table) => ({
-  pk: unique().on(table.alias, table.canonical),
+  // Live table uses a composite PRIMARY KEY (was declared here as unique(),
+  // which drizzle push would try to "fix" by recreating the table)
+  pk: primaryKey({ columns: [table.alias, table.canonical] }),
+  idxAlias: index('idx_synonyms_alias').on(table.alias),
 }));
 
 // ── School trigrams (fuzzy matching fallback) ───────────────────────────────
@@ -281,6 +330,8 @@ export const schoolTrigrams = sqliteTable('school_trigrams', {
   // unindexed this scanned all 82k rows per school, 135M+ rows read/month
   // (yogadb's single biggest burner per `turso db inspect --queries`)
   idxSchool: index('idx_school_trigrams_school').on(table.schoolId),
+  // Created live by migrate-search — declared so drizzle push won't drop it
+  idxLookup: index('idx_trigrams_lookup').on(table.trigram, table.field),
 }));
 
 // ── Search Events (user behaviour tracking for self-improving search) ────────
@@ -299,9 +350,11 @@ export const searchEvents = sqliteTable('search_events', {
   sessionId: text('session_id'),                     // anonymous UUID (no PII)
   createdAt: text('created_at').default(sql`(datetime('now'))`),
 }, (table) => ({
-  // Matches the live index created by migrate-search (search-health analytics
-  // filter on created_at ranges); declared here so drizzle push won't drop it
+  // These match the live indexes created by migrate-search — declared here so
+  // drizzle push won't drop them (created_at powers search-health analytics)
   idxCreatedAt: index('idx_search_events_created').on(table.createdAt),
+  idxQuery: index('idx_search_events_query').on(table.queryNormalized),
+  idxSession: index('idx_search_events_session').on(table.sessionId),
 }));
 
 // ── School Translations (per-locale content) ───────────────────────────────
