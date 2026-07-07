@@ -174,6 +174,7 @@
 
                 <form
                     method="POST"
+                    action="?/submit"
                     class="claim-form"
                     novalidate
                     bind:this={formEl}

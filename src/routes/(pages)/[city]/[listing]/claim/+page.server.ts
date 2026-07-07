@@ -56,7 +56,7 @@ export const actions: Actions = {
   },
 
   // Step 2 — only reachable once signed in; the email is the verified account's.
-  default: async ({ request, params, locals }) => {
+  submit: async ({ request, params, locals }) => {
     if (!locals.user) {
       return fail(401, { error: 'Zaloguj się, aby wysłać zgłoszenie.' });
     }
