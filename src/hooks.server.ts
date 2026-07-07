@@ -71,8 +71,11 @@ const localeHandle: Handle = async ({ event, resolve }) => {
   }
   event.locals.locale = locale;
 
-  // Sync / refresh the language preference cookie
-  if (cookieLocale !== locale) {
+  // Sync / refresh the language preference cookie. Cookie-less visitors on the
+  // default locale (most humans + every crawler) get NO cookie: Set-Cookie
+  // makes the response uncacheable at the CDN, and the bare-root negotiation
+  // only needs the cookie for non-default locales.
+  if (cookieLocale ? cookieLocale !== locale : locale !== i18nRouting.defaultLocale) {
     event.cookies.set('locale', locale, {
       path: '/',
       maxAge: 60 * 60 * 24 * 365, // 1 year

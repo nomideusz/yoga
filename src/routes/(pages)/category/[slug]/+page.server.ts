@@ -4,6 +4,7 @@ import { normalize } from "$lib/search";
 import { STYLES_METADATA } from "$lib/styles-metadata";
 import { localizeHref } from "@nomideusz/svelte-i18n";
 import { i18nRouting } from "$lib/i18n-routing";
+import { CDN_CACHE_HEADER } from "$lib/server/cdn-cache";
 import type { PageServerLoad } from "./$types";
 
 function slugToStyleName(slug: string): string {
@@ -21,7 +22,8 @@ function metadataStyleNameFromSlug(slug: string): string | null {
   return null;
 }
 
-export const load: PageServerLoad = async ({ params, parent, locals }) => {
+export const load: PageServerLoad = async ({ params, parent, locals, setHeaders }) => {
+  setHeaders(CDN_CACHE_HEADER);
   const slug = params.slug;
   const parentData = await parent();
   const lookups = parentData.lookups;

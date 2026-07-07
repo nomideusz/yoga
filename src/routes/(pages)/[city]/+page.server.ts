@@ -7,9 +7,11 @@ import {
 import { normalize } from "$lib/search";
 import { localizeHref } from "@nomideusz/svelte-i18n";
 import { i18nRouting } from "$lib/i18n-routing";
+import { CDN_CACHE_HEADER } from "$lib/server/cdn-cache";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params, url, parent, locals }) => {
+export const load: PageServerLoad = async ({ params, url, parent, locals, setHeaders }) => {
+  setHeaders(CDN_CACHE_HEADER);
   const requestedCity = params.city;
   // URL slugs use hyphens for spaces: "wola-kopcowa" → "wola kopcowa"
   const requestedNorm = normalize(requestedCity.replace(/-/g, " "));

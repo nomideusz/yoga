@@ -1,6 +1,7 @@
 import { getAutocompleteIndex } from '$lib/server/db/queries/index';
 import type { AutocompleteEntry } from '$lib/server/db/queries/types';
 import { normalizePolish } from '$lib/utils/street';
+import { CDN_CACHE_HEADER } from '$lib/server/cdn-cache';
 import type { PageServerLoad } from './$types';
 
 const NON_YOGA_STYLES = new Set(['Stretching', 'Barre', 'Tai Chi']);
@@ -56,7 +57,11 @@ function buildHomepageSearchData(autocomplete: AutocompleteEntry[]) {
   };
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ url, setHeaders }) => {
+  // Locale-prefixed homepages (/en, /uk) are edge-cacheable; the bare root
+  // stays dynamic — hooks negotiate Accept-Language/cookie there and may 302.
+  if (url.pathname !== '/') setHeaders(CDN_CACHE_HEADER);
+
   const autocomplete = await getAutocompleteIndex();
   return {
     ...buildHomepageSearchData(autocomplete),

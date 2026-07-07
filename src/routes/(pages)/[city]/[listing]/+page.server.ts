@@ -6,9 +6,11 @@ import { getListingByIdentifier, getReviewsBySchoolId, getSchoolTranslation, app
 import { getListingPath } from "$lib/paths";
 import { localizeHref } from "@nomideusz/svelte-i18n";
 import { i18nRouting } from "$lib/i18n-routing";
+import { CDN_CACHE_HEADER } from "$lib/server/cdn-cache";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params, request, url, locals }) => {
+export const load: PageServerLoad = async ({ params, request, url, locals, setHeaders }) => {
+  setHeaders(CDN_CACHE_HEADER);
   const listing = await getListingByIdentifier(params.listing);
 
   if (!listing) {
