@@ -219,7 +219,13 @@ export const walkingDistances = sqliteTable('walking_distances', {
   distanceMeters: integer('distance_meters').notNull(),
   durationMinutes: integer('duration_minutes').notNull(),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-});
+}, (table) => ({
+  // Stale-entry cleanup filters on created_at — without this it full-scans
+  // the table (Turso bills rows scanned, not returned)
+  idxCreatedAt: index('idx_walking_distances_created_at').on(table.createdAt),
+  // Cache lookups filter on the rounded origin grid cell
+  idxOrigin: index('idx_walking_distances_origin').on(table.originLat, table.originLng),
+}));
 
 // ── API usage tracking (monthly budget caps) ────────────────────────────────
 
@@ -260,7 +266,11 @@ export const schoolTrigrams = sqliteTable('school_trigrams', {
   trigram: text('trigram').notNull(),
   schoolId: text('school_id').notNull(),
   field: text('field').notNull(),              // 'name','city','style','district','street'
-});
+}, (table) => ({
+  // Fuzzy search does `WHERE trigram IN (…) GROUP BY school_id` — covering
+  // index turns a per-query full scan into index-only lookups
+  idxTrigram: index('idx_school_trigrams_trigram').on(table.trigram, table.schoolId),
+}));
 
 // ── Search Events (user behaviour tracking for self-improving search) ────────
 
@@ -277,7 +287,11 @@ export const searchEvents = sqliteTable('search_events', {
   clickedId: text('clicked_id'),                     // school id, city slug, etc.
   sessionId: text('session_id'),                     // anonymous UUID (no PII)
   createdAt: text('created_at').default(sql`(datetime('now'))`),
-});
+}, (table) => ({
+  // search-health analytics filter on created_at ranges — unindexed, each
+  // call full-scanned the table 4× (the main yogadb rows-read burner)
+  idxCreatedAt: index('idx_search_events_created_at').on(table.createdAt),
+}));
 
 // ── School Translations (per-locale content) ───────────────────────────────
 

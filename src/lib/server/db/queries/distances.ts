@@ -2,6 +2,11 @@ import { db } from '../index';
 import { walkingDistances } from '../schema';
 import { eq, and, sql } from 'drizzle-orm';
 
+// Stale-entry cleanup at most once a day per process — this used to run on
+// every call, a full-table DELETE scan in the hottest path.
+const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+let lastCleanupAt = 0;
+
 export async function getCachedDistances(
   originLat: number,
   originLng: number,
@@ -13,10 +18,13 @@ export async function getCachedDistances(
   const lat = Math.round(originLat * 1000) / 1000;
   const lng = Math.round(originLng * 1000) / 1000;
 
-  // Clean stale entries (>30 days)
-  await db.delete(walkingDistances).where(
-    sql`${walkingDistances.createdAt} < datetime('now', '-30 days')`
-  );
+  if (Date.now() - lastCleanupAt > CLEANUP_INTERVAL_MS) {
+    lastCleanupAt = Date.now();
+    // Fire-and-forget: cache reads shouldn't wait on (or fail with) housekeeping
+    db.delete(walkingDistances)
+      .where(sql`${walkingDistances.createdAt} < datetime('now', '-30 days')`)
+      .catch((err) => console.error('walking_distances cleanup failed:', err));
+  }
 
   const rows = await db
     .select({
