@@ -146,7 +146,11 @@ export const scheduleEntries = sqliteTable('schedule_entries', {
   // ── Housekeeping ───────────────────────────────────────────
   lastSeenAt: text('last_seen_at').default(sql`(CURRENT_TIMESTAMP)`),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-});
+}, (table) => ({
+  // Every listing page loads the school's schedule — unindexed this scanned
+  // all ~26k rows per page view, the single largest yogadb read burner
+  idxSchool: index('idx_schedule_entries_school').on(table.schoolId),
+}));
 
 // ── Scrape Log (written by yoga-scraper, read-only from web) ────────────────
 //
@@ -207,7 +211,10 @@ export const schoolReviews = sqliteTable('school_reviews', {
   publishedAt: text('published_at'),
   language: text('language').default('pl'),
   source: text('source').default('google'),
-});
+}, (table) => ({
+  // Listing pages fetch reviews per school — unindexed = full scan per view
+  idxSchool: index('idx_school_reviews_school').on(table.schoolId),
+}));
 
 // ── Walking Distances (cached Routes API results) ───────────────────────────
 
@@ -288,9 +295,9 @@ export const searchEvents = sqliteTable('search_events', {
   sessionId: text('session_id'),                     // anonymous UUID (no PII)
   createdAt: text('created_at').default(sql`(datetime('now'))`),
 }, (table) => ({
-  // search-health analytics filter on created_at ranges — unindexed, each
-  // call full-scanned the table 4× (the main yogadb rows-read burner)
-  idxCreatedAt: index('idx_search_events_created_at').on(table.createdAt),
+  // Matches the live index created by migrate-search (search-health analytics
+  // filter on created_at ranges); declared here so drizzle push won't drop it
+  idxCreatedAt: index('idx_search_events_created').on(table.createdAt),
 }));
 
 // ── School Translations (per-locale content) ───────────────────────────────
