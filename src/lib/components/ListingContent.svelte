@@ -246,6 +246,7 @@
                     : listing.imageUrl!}
                 alt={listing.name}
                 class="ld-hero-geo"
+                reveal="scatter"
                 loading="eager"
                 fetchpriority="high"
             />
