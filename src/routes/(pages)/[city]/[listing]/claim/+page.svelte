@@ -213,6 +213,7 @@
                         />
                         <p class="field-hint">
                             Zalogowano jako {data.user?.email}.
+                            <a href="/panel">Mój panel</a> ·
                             <button
                                 type="submit"
                                 form="logout-form"

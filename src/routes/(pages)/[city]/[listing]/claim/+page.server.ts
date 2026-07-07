@@ -6,7 +6,7 @@ import { sendClaimNotification } from '$lib/server/email';
 import { getListingAbsoluteUrl, getListingClaimPath, getListingPath } from '$lib/paths';
 import { localizeHref } from '@nomideusz/svelte-i18n';
 import { i18nRouting } from '$lib/i18n-routing';
-import { guestAccount, ID } from '$lib/server/appwrite';
+import { sendMagicLink } from '$lib/server/appwrite';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -44,11 +44,9 @@ export const actions: Actions = {
       return fail(400, { linkError: 'Podaj poprawny adres e-mail.', email });
     }
 
-    // Appwrite appends ?userId & ?secret; we tack on ?next so the link returns
-    // the owner to this exact claim page. Host must be a trusted platform.
-    const redirectUrl = `${url.origin}/auth/verify?next=${encodeURIComponent(url.pathname)}`;
+    // Return the owner to this exact claim page after they click the link.
     try {
-      await guestAccount().createMagicURLToken(ID.unique(), email, redirectUrl);
+      await sendMagicLink(url.origin, email, url.pathname);
     } catch (e) {
       console.error('[claim] magic-url token failed:', e);
       return fail(502, { linkError: 'Nie udało się wysłać linku. Spróbuj ponownie.', email });

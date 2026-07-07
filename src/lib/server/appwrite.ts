@@ -34,4 +34,15 @@ export function sessionAccount(secret: string) {
   return new Account(base().setSession(secret));
 }
 
+/**
+ * Email a magic link that returns the owner to `nextPath` (a same-origin path)
+ * signed in. Clicking it proves control of the address. Existing users are
+ * matched by email, so a returning owner lands back on their same account.
+ * Throws on failure — callers surface a friendly message.
+ */
+export async function sendMagicLink(origin: string, email: string, nextPath: string) {
+  const url = `${origin}/auth/verify?next=${encodeURIComponent(nextPath)}`;
+  await guestAccount().createMagicURLToken(ID.unique(), email, url);
+}
+
 export { ID };
