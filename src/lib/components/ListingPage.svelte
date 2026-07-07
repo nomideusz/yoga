@@ -41,7 +41,7 @@
     );
     let ogImage = $derived(
         listing.photoReference
-            ? `${BASE_URL}/api/photo/${listing.id}?v=2`
+            ? `${BASE_URL}/api/photo/${listing.id}?v=3`
             : listing.imageUrl
               ? listing.imageUrl
               : "https://szkolyjogi.pl/og-default.png",
@@ -104,7 +104,7 @@
         }
 
         if (listing.photoReference) {
-            ld.image = `${BASE_URL}/api/photo/${listing.id}?v=2`;
+            ld.image = `${BASE_URL}/api/photo/${listing.id}?v=3`;
         } else if (listing.imageUrl) {
             ld.image = listing.imageUrl;
         }

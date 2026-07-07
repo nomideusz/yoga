@@ -38,8 +38,9 @@ function cleanup() {
 
 async function fetchPhoto(ref: string, apiKey: string): Promise<PhotoPayload | null> {
 	if (!ref.startsWith('places/')) return null;
+	// 800px covers the ~400px CSS hero at 2× DPR; 1200 shipped ~40% more bytes
 	const res = await fetch(
-		`https://places.googleapis.com/v1/${ref}/media?maxWidthPx=1200&key=${apiKey}`,
+		`https://places.googleapis.com/v1/${ref}/media?maxWidthPx=800&key=${apiKey}`,
 		{ redirect: 'follow' },
 	);
 	if (!res.ok) return null;
@@ -99,7 +100,8 @@ function persistPhotoMetadata(
 
 function photoResponse(photo: PhotoPayload): Response {
 	const headers = new Headers({
-		'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400',
+		// Photo URLs are versioned (?v=N in the components) — bump N to bust.
+		'Cache-Control': 'public, max-age=31536000, immutable',
 		'Content-Type': photo.contentType,
 	});
 	if (photo.contentLength) headers.set('Content-Length', photo.contentLength);

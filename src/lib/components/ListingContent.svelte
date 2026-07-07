@@ -242,7 +242,7 @@
             <GeometrizedImage
                 placeholder={listing.photoPlaceholder}
                 src={listing.photoReference
-                    ? `/api/photo/${listing.id}?v=2`
+                    ? `/api/photo/${listing.id}?v=3`
                     : listing.imageUrl!}
                 alt={listing.name}
                 class="ld-hero-geo"
@@ -272,7 +272,7 @@
     {:else if listing.photoReference && !photoFailed}
         <figure class="ld-hero">
             <img
-                src="/api/photo/{listing.id}?v=2"
+                src="/api/photo/{listing.id}?v=3"
                 alt={listing.name}
                 class="ld-hero-img"
                 loading="eager"
