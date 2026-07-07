@@ -277,6 +277,10 @@ export const schoolTrigrams = sqliteTable('school_trigrams', {
   // Fuzzy search does `WHERE trigram IN (…) GROUP BY school_id` — covering
   // index turns a per-query full scan into index-only lookups
   idxTrigram: index('idx_school_trigrams_trigram').on(table.trigram, table.schoolId),
+  // The scraper re-indexes per school via `DELETE WHERE school_id = ?` —
+  // unindexed this scanned all 82k rows per school, 135M+ rows read/month
+  // (yogadb's single biggest burner per `turso db inspect --queries`)
+  idxSchool: index('idx_school_trigrams_school').on(table.schoolId),
 }));
 
 // ── Search Events (user behaviour tracking for self-improving search) ────────
