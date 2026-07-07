@@ -6,6 +6,7 @@ import { sendClaimNotification } from '$lib/server/email';
 import { getListingAbsoluteUrl, getListingClaimPath, getListingPath } from '$lib/paths';
 import { localizeHref } from '@nomideusz/svelte-i18n';
 import { i18nRouting } from '$lib/i18n-routing';
+import { guestAccount, ID } from '$lib/server/appwrite';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -26,37 +27,61 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     throw redirect(302, localizeHref(getListingPath(listing, 'pl'), locals.locale, i18nRouting));
   }
 
-  return { listing };
+  // Only a verified { id, email } crosses into the page — never the Appwrite client.
+  const user = locals.user ? { id: locals.user.$id, email: locals.user.email } : null;
+  return { listing, user };
 };
 
 export const actions: Actions = {
-  default: async ({ request, params }) => {
+  // Step 1 — owner enters their studio email; Appwrite emails a magic link back
+  // to /auth/verify. Clicking it proves they control the address (the claim proof)
+  // and logs them in. We create the user lazily with ID.unique().
+  requestLink: async ({ request, url }) => {
+    const data = await request.formData();
+    const email = data.get('email')?.toString().trim();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return fail(400, { linkError: 'Podaj poprawny adres e-mail.', email });
+    }
+
+    // Appwrite appends ?userId & ?secret; we tack on ?next so the link returns
+    // the owner to this exact claim page. Host must be a trusted platform.
+    const redirectUrl = `${url.origin}/auth/verify?next=${encodeURIComponent(url.pathname)}`;
+    try {
+      await guestAccount().createMagicURLToken(ID.unique(), email, redirectUrl);
+    } catch (e) {
+      console.error('[claim] magic-url token failed:', e);
+      return fail(502, { linkError: 'Nie udało się wysłać linku. Spróbuj ponownie.', email });
+    }
+
+    return { linkSent: true, email };
+  },
+
+  // Step 2 — only reachable once signed in; the email is the verified account's.
+  default: async ({ request, params, locals }) => {
+    if (!locals.user) {
+      return fail(401, { error: 'Zaloguj się, aby wysłać zgłoszenie.' });
+    }
+    const email = locals.user.email;
+
     const data = await request.formData();
     const name = data.get('name')?.toString().trim();
-    const email = data.get('email')?.toString().trim();
     const phone = data.get('phone')?.toString().trim() || null;
     const role = data.get('role')?.toString().trim();
     const message = data.get('message')?.toString().trim() || null;
     const consent = data.get('consent')?.toString().trim() === 'true';
 
-    if (!name || !email || !role) {
+    if (!name || !role) {
       return fail(400, {
-        error: 'Wypełnij wymagane pola: imię, e-mail i rola.',
-        name, email, phone, role, message,
-      });
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return fail(400, {
-        error: 'Podaj poprawny adres e-mail.',
-        name, email, phone, role, message,
+        error: 'Wypełnij wymagane pola: imię i rola.',
+        name, phone, role, message,
       });
     }
 
     if (!consent) {
       return fail(400, {
         error: 'Aby wysłać zgłoszenie, musisz wyrazić zgodę na przetwarzanie danych.',
-        name, email, phone, role, message,
+        name, phone, role, message,
       });
     }
 
@@ -75,6 +100,7 @@ export const actions: Actions = {
       phone,
       role,
       message,
+      appwriteUserId: locals.user.$id,
       consentedAt,
     });
 

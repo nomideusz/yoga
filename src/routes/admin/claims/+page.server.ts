@@ -27,6 +27,7 @@ export const load: PageServerLoad = async () => {
       phone: claimRequests.phone,
       role: claimRequests.role,
       message: claimRequests.message,
+      appwriteUserId: claimRequests.appwriteUserId,
       status: claimRequests.status,
       consentedAt: claimRequests.consentedAt,
       createdAt: claimRequests.createdAt,

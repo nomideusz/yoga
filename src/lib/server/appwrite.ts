@@ -1,0 +1,37 @@
+// Appwrite = identity only. Turso stays the source of truth; we only ever
+// pull a verified { $id, email } out of Appwrite and store the id on our rows.
+//
+// All calls are server-side (SvelteKit form actions / loads), so endpoint +
+// project id live in private env and no browser SDK is shipped. Magic-URL
+// token + session creation are public (guest-scope) endpoints, so a
+// project-only client with no API key is enough — the only privileged call we
+// make is account.get(), which authorises with the user's own session secret.
+import { Client, Account, ID } from 'node-appwrite';
+import { env } from '$env/dynamic/private';
+
+// Endpoint + project id are not secrets, so they carry public defaults — the app
+// works in prod without any env wiring, and env still overrides for staging.
+const ENDPOINT = env.APPWRITE_ENDPOINT ?? 'https://appwrite.zaur.app/v1';
+const PROJECT = env.APPWRITE_PROJECT_ID ?? '6a4d83760038ed76b167';
+
+// httpOnly cookie holding the Appwrite session secret. Namespaced so it can't
+// collide with Appwrite's own a_session_* cookies if this app is ever same-site.
+export const SESSION_COOKIE = 'yoga_session';
+
+function base() {
+  // pl → Appwrite renders the magic-link subject + body from its built-in Polish
+  // translations (no custom template needed, which would otherwise blank the body).
+  return new Client().setEndpoint(ENDPOINT).setProject(PROJECT).setLocale('pl');
+}
+
+/** Guest client — for createMagicURLToken / createSession. */
+export function guestAccount() {
+  return new Account(base());
+}
+
+/** A client authorised as the user, for account.get() / deleteSession. */
+export function sessionAccount(secret: string) {
+  return new Account(base().setSession(secret));
+}
+
+export { ID };

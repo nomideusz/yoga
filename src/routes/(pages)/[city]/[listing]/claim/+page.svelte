@@ -7,6 +7,9 @@
 
     let { data, form }: { data: PageData; form: ActionData } = $props();
     let listing = $derived(data.listing);
+    // `form` is the union of both actions' results; the claim form only reads the
+    // default action's fields, so a loose view keeps the template readable.
+    let cf = $derived(form as Record<string, any> | null);
 
     // RODO consent gate: the submit button opens the modal; only after the
     // user confirms consent do we mark the hidden field and submit the form.
@@ -79,7 +82,59 @@
                         >{t("claim_back")}</a
                     >
                 </div>
+            {:else if !data.user}
+                <!-- Not signed in: prove control of the studio email via magic link. -->
+                <header class="claim-header">
+                    <h1 class="claim-title">{t("claim_title")}</h1>
+                    <p class="claim-subtitle">
+                        Aby zgłosić szkołę <strong>{listing.name}</strong>,
+                        potwierdź swój adres e-mail — wyślemy Ci link do
+                        zalogowania.
+                    </p>
+                </header>
+
+                {#if form?.linkSent}
+                    <div class="success-card sf-card">
+                        <p class="success-text">
+                            Sprawdź skrzynkę <strong>{form.email}</strong> —
+                            wysłaliśmy link do zalogowania. Kliknij go, aby
+                            dokończyć zgłoszenie.
+                        </p>
+                    </div>
+                {:else}
+                    {#if form?.linkError}
+                        <div class="form-error" role="alert">
+                            {form.linkError}
+                        </div>
+                    {/if}
+                    <form
+                        method="POST"
+                        action="?/requestLink"
+                        class="claim-form"
+                    >
+                        <div class="field">
+                            <label for="signin-email" class="field-label"
+                                >Twój adres e-mail
+                                <span class="required">*</span></label
+                            >
+                            <input
+                                type="email"
+                                id="signin-email"
+                                name="email"
+                                required
+                                value={form?.email ?? ""}
+                                class="field-input"
+                                placeholder="kontakt@twojastudio.pl"
+                            />
+                        </div>
+                        <button type="submit" class="submit-btn"
+                            >Wyślij link logowania</button
+                        >
+                    </form>
+                {/if}
             {:else}
+                <!-- Signed in: email is the verified account, not user-editable. -->
+                <form id="logout-form" method="POST" action="/auth/logout"></form>
                 <header class="claim-header">
                     <h1 class="claim-title">{t("claim_title")}</h1>
                     <p class="claim-subtitle">
@@ -137,7 +192,7 @@
                             aria-describedby={form?.error
                                 ? "form-error"
                                 : undefined}
-                            value={form?.name ?? ""}
+                            value={cf?.name ?? ""}
                             class="field-input"
                             placeholder="Jan Kowalski"
                         />
@@ -152,15 +207,18 @@
                             type="email"
                             id="email"
                             name="email"
-                            required
-                            aria-required="true"
-                            aria-describedby={form?.error
-                                ? "form-error"
-                                : undefined}
-                            value={form?.email ?? ""}
+                            readonly
+                            value={data.user?.email ?? ""}
                             class="field-input"
-                            placeholder="jan@studio.pl"
                         />
+                        <p class="field-hint">
+                            Zalogowano jako {data.user?.email}.
+                            <button
+                                type="submit"
+                                form="logout-form"
+                                class="linklike">Wyloguj</button
+                            >
+                        </p>
                     </div>
 
                     <div class="field">
@@ -171,7 +229,7 @@
                             type="tel"
                             id="phone"
                             name="phone"
-                            value={form?.phone ?? ""}
+                            value={cf?.phone ?? ""}
                             class="field-input"
                             placeholder="+48 123 456 789"
                         />
@@ -189,22 +247,22 @@
                             required
                             aria-required="true"
                         >
-                            <option value="" disabled selected={!form?.role}
+                            <option value="" disabled selected={!cf?.role}
                                 >{t("claim_role_select")}</option
                             >
                             <option
                                 value="owner"
-                                selected={form?.role === "owner"}
+                                selected={cf?.role === "owner"}
                                 >{t("claim_role_owner")}</option
                             >
                             <option
                                 value="manager"
-                                selected={form?.role === "manager"}
+                                selected={cf?.role === "manager"}
                                 >{t("claim_role_manager")}</option
                             >
                             <option
                                 value="instructor"
-                                selected={form?.role === "instructor"}
+                                selected={cf?.role === "instructor"}
                                 >{t("claim_role_instructor")}</option
                             >
                         </select>
@@ -220,7 +278,7 @@
                             rows="3"
                             class="field-input field-textarea"
                             placeholder={t("claim_message_placeholder")}
-                            >{form?.message ?? ""}</textarea
+                            >{cf?.message ?? ""}</textarea
                         >
                     </div>
 

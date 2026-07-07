@@ -15,6 +15,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import type { Handle } from '@sveltejs/kit';
 import { resolveLocale, negotiateLocale, localizeHref } from '@nomideusz/svelte-i18n';
 import { i18nRouting } from '$lib/i18n-routing';
+import { sessionAccount, SESSION_COOKIE } from '$lib/server/appwrite';
 
 Sentry.init({
 	dsn: env.PUBLIC_SENTRY_DSN,
@@ -101,7 +102,22 @@ const noindexPreviewHandle: Handle = async ({ event, resolve }) => {
   return response;
 };
 
+// Resolve the Appwrite session cookie into locals.user once per request. A
+// stale/invalid cookie just clears itself — never blocks the request.
+const sessionHandle: Handle = async ({ event, resolve }) => {
+  const secret = event.cookies.get(SESSION_COOKIE);
+  event.locals.user = null;
+  if (secret) {
+    try {
+      event.locals.user = await sessionAccount(secret).get();
+    } catch {
+      event.cookies.delete(SESSION_COOKIE, { path: '/' });
+    }
+  }
+  return resolve(event);
+};
+
 // sentryHandle() runs first so request context is attached to any error the
 // locale handle (or downstream load/actions) throws.
-export const handle = sequence(Sentry.sentryHandle(), noindexPreviewHandle, adminAuthHandle, localeHandle);
+export const handle = sequence(Sentry.sentryHandle(), noindexPreviewHandle, adminAuthHandle, sessionHandle, localeHandle);
 export const handleError = Sentry.handleErrorWithSentry();

@@ -223,6 +223,7 @@ export const claimRequests = sqliteTable('claim_requests', {
   phone: text('phone'),
   role: text('role').notNull(),           // 'owner' | 'manager' | 'instructor'
   message: text('message'),
+  appwriteUserId: text('appwrite_user_id'), // Appwrite account $id (email-verified via magic link); null = legacy anon claim
   status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
   consentedAt: text('consented_at'),        // RODO/GDPR consent timestamp (ISO); null = no consent recorded
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),

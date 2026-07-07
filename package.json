@@ -45,6 +45,7 @@
 		"dotenv": "^17.4.2",
 		"drizzle-orm": "^0.45.2",
 		"lucide-svelte": "^1.0.1",
+		"node-appwrite": "^26.2.0",
 		"sharp": "^0.34.5"
 	}
 }
