@@ -6,6 +6,7 @@
 	"packageManager": "pnpm@10.33.0",
 	"scripts": {
 		"dev": "vite dev",
+		"dev:dist": "YOGA_CALENDAR_SRC=0 vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",

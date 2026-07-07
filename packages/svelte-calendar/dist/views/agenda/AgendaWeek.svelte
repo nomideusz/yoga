@@ -190,7 +190,7 @@ const weekDays = $derived.by(() => {
 					<div class="ag-wday-head">
 						<div class="ag-wday-head-left">
 							<span class="ag-wday-name">{day.dayName}</span>
-						{#if showDates}<span class="ag-wday-date">{day.dateLabel}</span>{/if}
+							{#if showDates}<span class="ag-wday-date">{day.dateLabel}</span>{/if}
 						</div>
 						{#if dayHeaderSnippet}
 							<div class="ag-wday-custom-header">
@@ -572,6 +572,9 @@ const weekDays = $derived.by(() => {
 	.ag-wday {
 		border-bottom: 1px solid var(--dt-border, rgba(0, 0, 0, 0.08));
 	}
+	.ag-wday:last-child {
+		border-bottom: none;
+	}
 	.ag-wday--today {
 		background: color-mix(in srgb, var(--dt-accent, #2563eb) 2%, transparent);
 	}
@@ -612,7 +615,7 @@ const weekDays = $derived.by(() => {
 	}
 	.ag-wday-head-left {
 		display: flex;
-		align-items: center;
+		align-items: baseline;
 		gap: 8px;
 	}
 	.ag-wday-badge {
@@ -636,11 +639,13 @@ const weekDays = $derived.by(() => {
 	.ag-wday-name {
 		font-size: 13px;
 		font-weight: 600;
+		line-height: 1.2;
 	}
 	.ag-wday-date {
 		font-size: 11px;
 		font-family: var(--dt-mono, monospace);
 		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
+		line-height: 1.2;
 	}
 
 	.ag-wday-empty {
@@ -689,16 +694,15 @@ const weekDays = $derived.by(() => {
 
 	/* Compact day events */
 	.ag-wday-compact {
-		padding: 0 20px 6px;
+		padding: 0 20px 8px;
 	}
 	.ag-compact {
 		display: flex;
-		align-items: center;
+		align-items: baseline;
 		gap: 6px;
 		padding: 3px 0;
 		cursor: pointer;
 		min-width: 0;
-		overflow: hidden;
 	}
 	.ag-compact--selected {
 		background: color-mix(in srgb, var(--ev-color) 10%, transparent);
@@ -719,6 +723,7 @@ const weekDays = $derived.by(() => {
 		border-radius: 50%;
 		background: var(--ev-color, var(--dt-accent));
 		flex-shrink: 0;
+		align-self: center;
 	}
 	.ag-compact-time {
 		font-size: 11px;
@@ -727,6 +732,7 @@ const weekDays = $derived.by(() => {
 		min-width: 40px;
 		flex-shrink: 0;
 		white-space: nowrap;
+		line-height: 1.4;
 	}
 	.ag-compact-title {
 		font-size: 12px;
@@ -738,6 +744,7 @@ const weekDays = $derived.by(() => {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		transition: color 150ms;
+		line-height: 1.4;
 	}
 	.ag-compact-dur {
 		font-size: 10px;
@@ -745,6 +752,7 @@ const weekDays = $derived.by(() => {
 		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
 		white-space: nowrap;
+		line-height: 1.4;
 	}
 	.ag-compact-sub {
 		font-size: 10px;
@@ -754,6 +762,7 @@ const weekDays = $derived.by(() => {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		max-width: 120px;
+		line-height: 1.4;
 	}
 	.ag-compact-loc {
 		font-size: 9px;

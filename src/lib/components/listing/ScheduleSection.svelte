@@ -85,22 +85,26 @@
 {/if}
 
 <style>
+  /* Match calendar mono slots to the host font — yoga uses Karla for data labels */
+  .schedule-calendar-section :global(.cal) {
+    --dt-mono: var(--font-mono);
+  }
+
   .schedule-calendar-section :global(.ag-body) {
     padding-top: 0;
   }
 
   .schedule-calendar-section :global(.ag-wday-head) {
-    padding: 6px 16px 4px;
+    padding: 8px 16px 6px;
   }
 
   .schedule-calendar-section :global(.ag-wday-compact) {
-    padding: 0 16px 3px;
+    padding: 0 16px 8px;
   }
 
   .schedule-calendar-section :global(.ag-compact) {
     gap: 5px;
-    padding: 1px 0;
-    line-height: 1.25;
+    padding: 3px 0;
   }
 
   .schedule-calendar-section :global(.ag-compact-time) {

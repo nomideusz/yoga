@@ -914,7 +914,7 @@ const upcomingNext = $derived.by(() => {
 	.ag-compact-list::-webkit-scrollbar { display: none; }
 	.ag-compact-row {
 		display: flex;
-		align-items: center;
+		align-items: baseline;
 		gap: 8px;
 		padding: 4px 0;
 		cursor: pointer;
@@ -936,6 +936,7 @@ const upcomingNext = $derived.by(() => {
 		border-radius: 50%;
 		background: var(--ev-color, var(--dt-accent));
 		flex-shrink: 0;
+		align-self: center;
 	}
 	.ag-compact-row-time {
 		font-size: 11px;
@@ -943,6 +944,7 @@ const upcomingNext = $derived.by(() => {
 		color: var(--dt-text-2, rgba(0, 0, 0, 0.54));
 		min-width: 64px;
 		flex-shrink: 0;
+		line-height: 1.4;
 	}
 	.ag-compact-row-title {
 		font-size: 12px;
@@ -953,17 +955,20 @@ const upcomingNext = $derived.by(() => {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		transition: color 150ms;
+		line-height: 1.4;
 	}
 	.ag-compact-row-dur {
 		font-size: 10px;
 		font-family: var(--dt-mono, monospace);
 		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
+		line-height: 1.4;
 	}
 	.ag-compact-row-sub {
 		font-size: 10px;
 		color: var(--dt-text-3, rgba(0, 0, 0, 0.38));
 		flex-shrink: 0;
+		line-height: 1.4;
 	}
 	.ag-compact-row-tag {
 		font: 500 8px / 1 var(--dt-sans, system-ui, sans-serif);
