@@ -43,6 +43,7 @@
 		"aws4fetch": "^1.0.20",
 		"dotenv": "^17.4.2",
 		"drizzle-orm": "^0.45.2",
-		"lucide-svelte": "^1.0.1"
+		"lucide-svelte": "^1.0.1",
+		"sharp": "^0.34.5"
 	}
 }

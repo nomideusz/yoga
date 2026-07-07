@@ -1,4 +1,5 @@
 import { error } from '@sveltejs/kit';
+import sharp from 'sharp';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { schools } from '$lib/server/db/schema';
@@ -14,7 +15,7 @@ import type { RequestHandler } from './$types';
  */
 
 interface PhotoPayload {
-	body: ArrayBuffer;
+	body: ArrayBuffer | Uint8Array<ArrayBuffer>;
 	contentType: string;
 	contentLength: string | null;
 }
@@ -48,11 +49,16 @@ async function fetchPhoto(ref: string, apiKey: string): Promise<PhotoPayload | n
 	const contentType = res.headers.get('content-type') ?? '';
 	if (!contentType.startsWith('image/')) return null;
 
-	return {
-		body: await res.arrayBuffer(),
-		contentType,
-		contentLength: res.headers.get('content-length'),
-	};
+	const original = await res.arrayBuffer();
+
+	// Places serves JPEG; WebP is ~30-50% smaller and universally supported.
+	// Transcode cost is paid ~once per school — responses cache immutable.
+	try {
+		const webp = await sharp(Buffer.from(original)).webp({ quality: 80 }).toBuffer();
+		return { body: new Uint8Array(webp), contentType: 'image/webp', contentLength: String(webp.length) };
+	} catch {
+		return { body: original, contentType, contentLength: res.headers.get('content-length') };
+	}
 }
 
 async function refreshFromPlaceDetails(
