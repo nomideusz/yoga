@@ -3,7 +3,7 @@
 // cookie, and bounce the owner back to wherever they started (?next).
 import { redirect } from '@sveltejs/kit';
 import { dev } from '$app/environment';
-import { guestAccount, SESSION_COOKIE } from '$lib/server/appwrite';
+import { exchangeTokenForSession, SESSION_COOKIE } from '$lib/server/appwrite';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
@@ -12,19 +12,18 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
   const next = url.searchParams.get('next') ?? '/';
 
   if (userId && secret) {
-    try {
-      const session = await guestAccount().createSession(userId, secret);
-      cookies.set(SESSION_COOKIE, session.secret, {
-        path: '/',
-        httpOnly: true,
-        sameSite: 'lax', // link is clicked from an email (cross-site nav)
-        secure: !dev, // localhost is http in dev
-        expires: new Date(session.expire),
-      });
-    } catch (e) {
-      console.error('[auth] magic-url session exchange failed:', e);
+    const sessionSecret = await exchangeTokenForSession(userId, secret);
+    if (!sessionSecret) {
+      // token expired, invalid, or already consumed (e.g. a link prefetch)
       throw redirect(303, '/?auth=failed');
     }
+    cookies.set(SESSION_COOKIE, sessionSecret, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax', // link is clicked from an email (cross-site nav)
+      secure: !dev, // localhost is http in dev
+      maxAge: 60 * 60 * 24 * 365, // matches Appwrite's default 1-year session
+    });
   }
 
   // next is a same-origin path we generated ourselves; guard against open redirect.

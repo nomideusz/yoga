@@ -35,6 +35,33 @@ export function sessionAccount(secret: string) {
 }
 
 /**
+ * Exchange a magic-url token (userId + secret) for a durable session secret.
+ * We hit the REST endpoint directly rather than the SDK because a keyless
+ * (client-mode) createSession returns the secret ONLY in a Set-Cookie header
+ * (`a_session_<project>`), never in the JSON body — the SDK's `session.secret`
+ * comes back empty, so the naive approach silently sets an empty cookie.
+ * Returns the raw session secret (usable with setSession), or null on failure.
+ */
+export async function exchangeTokenForSession(
+  userId: string,
+  secret: string,
+): Promise<string | null> {
+  const res = await fetch(`${ENDPOINT}/account/sessions/token`, {
+    method: 'POST',
+    headers: { 'X-Appwrite-Project': PROJECT, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, secret }),
+  });
+  if (!res.ok) return null; // invalid/expired/consumed token
+
+  const prefix = `a_session_${PROJECT}=`; // the non-legacy cookie holds the secret
+  const cookies = res.headers.getSetCookie?.() ?? [];
+  for (const c of cookies) {
+    if (c.startsWith(prefix)) return decodeURIComponent(c.slice(prefix.length).split(';')[0]);
+  }
+  return null;
+}
+
+/**
  * Email a magic link that returns the owner to `nextPath` (a same-origin path)
  * signed in. Clicking it proves control of the address. Existing users are
  * matched by email, so a returning owner lands back on their same account.
