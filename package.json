@@ -47,5 +47,12 @@
 		"lucide-svelte": "^1.0.1",
 		"node-appwrite": "^26.2.0",
 		"sharp": "^0.34.5"
+	},
+	"pnpm": {
+		"supportedArchitectures": {
+			"os": ["current", "linux"],
+			"cpu": ["current", "x64"],
+			"libc": ["current", "glibc", "musl"]
+		}
 	}
 }
