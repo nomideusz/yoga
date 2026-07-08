@@ -63,7 +63,7 @@ export const schools = sqliteTable('schools', {
 
   isListed: integer('is_listed', { mode: 'boolean' }).default(true),
 
-  photosJson: text('photos_json'),      // JSON array of uploaded photos: [{key, alt?}] — key = S3 object key, order = display order
+  photosJson: text('photos_json'),      // JSON array of uploaded photos: [{key, alt?}] — key = Appwrite Storage file id, order = display order
   featuresJson: text('features_json'),  // JSON array of feature slugs and/or free-text strings
   scrapeLocked: integer('scrape_locked', { mode: 'boolean' }).default(false), // claimed/curated: scraper must never modify
 

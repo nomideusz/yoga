@@ -18,6 +18,7 @@
     } from "@nomideusz/svelte-calendar";
     import ScheduleSection from "$lib/components/listing/ScheduleSection.svelte";
     import { getListingPath } from "$lib/paths";
+    import { photoUrl } from "$lib/photo-url";
     import Globe from "lucide-svelte/icons/globe";
     import MapPin from "lucide-svelte/icons/map-pin";
     import BadgeCheck from "lucide-svelte/icons/badge-check";
@@ -320,9 +321,9 @@
     {#if listing.photos.length > 0}
         <section class="ld-gallery" aria-label={t("listing_photos_title")}>
             {#each listing.photos as photo (photo.key)}
-                <a href={`/api/uploads/${photo.key}`} target="_blank" rel="noopener" class="ld-gallery-item">
+                <a href={photoUrl(photo.key, { width: 1600 })} target="_blank" rel="noopener" class="ld-gallery-item">
                     <img
-                        src={`/api/uploads/${photo.key}`}
+                        src={photoUrl(photo.key, { width: 800 })}
                         alt={photo.alt || listing.name}
                         loading="lazy"
                         decoding="async"

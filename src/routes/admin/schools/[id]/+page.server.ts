@@ -1,10 +1,9 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
-import { createHash } from 'node:crypto';
 import { eq, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { schools, styles, schoolStyles } from '$lib/server/db/schema';
-import { putObject, deleteObject } from '$lib/server/s3';
+import { uploadPhoto, removePhoto } from '$lib/server/photo-storage';
 import { normalize, plLocale } from '$lib/search';
 import { FEATURE_SLUGS, isFeatureSlug } from '$lib/features';
 
@@ -131,20 +130,15 @@ export const actions: Actions = {
     }
 
     const body = await file.arrayBuffer();
-    const hash = createHash('sha256').update(Buffer.from(body)).digest('hex').slice(0, 16);
-    const key = `schools/${params.id}/${hash}.${ext}`;
-
-    await putObject(key, body, file.type);
+    const fileId = await uploadPhoto(Buffer.from(body), `${params.id}.${ext}`);
 
     const photos = parsePhotos(school.photosJson);
-    if (!photos.some((p) => p.key === key)) {
-      photos.push({ key });
-      await db
-        .update(schools)
-        .set({ photosJson: JSON.stringify(photos) })
-        .where(eq(schools.id, params.id));
-    }
-    return { uploaded: key };
+    photos.push({ key: fileId });
+    await db
+      .update(schools)
+      .set({ photosJson: JSON.stringify(photos) })
+      .where(eq(schools.id, params.id));
+    return { uploaded: fileId };
   },
 
   deletePhoto: async ({ params, request }) => {
@@ -154,7 +148,7 @@ export const actions: Actions = {
     const photos = parsePhotos(school.photosJson);
     if (!photos.some((p) => p.key === key)) return fail(400, { error: 'Nie ma takiego zdjęcia.' });
 
-    await deleteObject(key);
+    await removePhoto(key);
     await db
       .update(schools)
       .set({ photosJson: JSON.stringify(photos.filter((p) => p.key !== key)) })

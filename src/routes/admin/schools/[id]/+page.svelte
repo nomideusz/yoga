@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { getListingPath } from '$lib/paths';
+  import { photoUrl } from '$lib/photo-url';
 
   let { data, form } = $props();
 
@@ -75,7 +76,7 @@
     <div class="photos">
       {#each data.photos as photo, i (photo.key)}
         <div class="photo">
-          <img src={`/api/uploads/${photo.key}`} alt="" loading="lazy" />
+          <img src={photoUrl(photo.key, { width: 400 })} alt="" loading="lazy" />
           <div class="photo-actions">
             <form method="POST" action="?/movePhoto" use:enhance>
               <input type="hidden" name="key" value={photo.key} />

@@ -75,7 +75,7 @@ export interface Listing {
 }
 
 export interface UploadedPhoto {
-  key: string;   // S3 object key under the yoga-photos bucket; served via /api/uploads/{key}
+  key: string;   // Appwrite Storage file id in the yoga-photos bucket; rendered via photoUrl()
   alt?: string;
 }
 
