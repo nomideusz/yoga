@@ -87,10 +87,6 @@ importers:
       vite:
         specifier: ^7.3.6
         version: 7.3.6(@types/node@25.9.4)(tsx@4.23.0)
-    optionalDependencies:
-      '@libsql/linux-x64-musl':
-        specifier: 0.5.29
-        version: 0.5.29
 
 packages:
 
