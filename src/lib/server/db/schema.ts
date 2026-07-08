@@ -213,6 +213,30 @@ export const schoolServices = sqliteTable('school_services', {
   idxSchool: index('idx_services_school').on(table.schoolId),
 }));
 
+// ── Auth (self-hosted magic-link; see $lib/server/auth) ─────────────────────
+
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey(), // crypto.randomUUID()
+  email: text('email').notNull().unique(),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+// Single-use magic-link tokens; only the SHA-256 hash of the secret is stored.
+export const loginTokens = sqliteTable('login_tokens', {
+  tokenHash: text('token_hash').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt: integer('expires_at').notNull(), // unix seconds
+});
+
+export const sessions = sqliteTable('sessions', {
+  tokenHash: text('token_hash').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt: integer('expires_at').notNull(), // unix seconds
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+}, (t) => ({
+  idxUser: index('sessions_user_idx').on(t.userId),
+}));
+
 // ── Claim Requests ──────────────────────────────────────────────────────────
 
 export const claimRequests = sqliteTable('claim_requests', {
@@ -223,7 +247,9 @@ export const claimRequests = sqliteTable('claim_requests', {
   phone: text('phone'),
   role: text('role').notNull(),           // 'owner' | 'manager' | 'instructor'
   message: text('message'),
-  appwriteUserId: text('appwrite_user_id'), // Appwrite account $id (email-verified via magic link); null = legacy anon claim
+  // Email-verified account id (users.id; column name is a legacy of the old
+  // Appwrite identity provider). null = legacy anon claim.
+  ownerUserId: text('appwrite_user_id'),
   status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
   consentedAt: text('consented_at'),        // RODO/GDPR consent timestamp (ISO); null = no consent recorded
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),

@@ -1,11 +1,11 @@
 // Owner home. Logged out → a magic-link sign-in (same mechanism as claiming).
 // Logged in → the studios this account has claimed, with status; approved ones
-// link to the editor. Turso is the source of truth; Appwrite only says who you are.
+// link to the editor. The main DB is the source of truth for claims and identity.
 import { fail } from '@sveltejs/kit';
 import { eq, desc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { claimRequests, schools } from '$lib/server/db/schema';
-import { sendMagicLink } from '$lib/server/appwrite';
+import { sendMagicLink } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -23,7 +23,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     })
     .from(claimRequests)
     .leftJoin(schools, eq(claimRequests.schoolId, schools.id))
-    .where(eq(claimRequests.appwriteUserId, locals.user.$id))
+    .where(eq(claimRequests.ownerUserId, locals.user.id))
     .orderBy(desc(claimRequests.createdAt));
 
   return { needsAuth: false, email: locals.user.email, claims };

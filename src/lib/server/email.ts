@@ -165,3 +165,38 @@ export async function sendClaimNotification(data: ClaimNotificationData): Promis
     html: claimNotificationHtml(data),
   });
 }
+
+function loginLinkHtml(url: string): string {
+  const esc = (v: string) =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return `<!DOCTYPE html>
+<html lang="pl">
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1a2332;">
+  <div style="border-bottom: 2px solid #1a7f4b; padding-bottom: 16px; margin-bottom: 24px;">
+    <h1 style="font-size: 18px; font-weight: 600; margin: 0;">Zaloguj się do szkolyjogi.pl</h1>
+  </div>
+  <p style="font-size: 15px; line-height: 1.7;">Dzień dobry,</p>
+  <p style="font-size: 15px; line-height: 1.7;">
+    kliknij poniższy przycisk, aby się zalogować. Link jest jednorazowy i wygasa po 15 minutach.
+  </p>
+  <a href="${esc(url)}"
+     style="display: inline-block; margin: 8px 0 24px; padding: 11px 22px; background: #1a7f4b; color: #fff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600;">
+    Zaloguj się
+  </a>
+  <p style="font-size: 13px; line-height: 1.7; color: #6b7a8f;">
+    Jeśli to nie Ty prosiłeś/aś o ten link, zignoruj tę wiadomość — nikt nie uzyska dostępu do Twojego konta.
+  </p>
+  <p style="font-size: 15px; line-height: 1.7;">Pozdrawiam serdecznie,<br>Bartek<br>szkolyjogi.pl</p>
+</body>
+</html>`;
+}
+
+/** Magic-link sign-in email (used by $lib/server/auth). */
+export async function sendLoginLink(to: string, url: string): Promise<void> {
+  await send({
+    to,
+    subject: 'Twój link do logowania — szkolyjogi.pl',
+    html: loginLinkHtml(url),
+  });
+}

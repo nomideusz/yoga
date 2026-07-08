@@ -1,18 +1,17 @@
-// Magic-URL landing. Appwrite emails a link to this route with ?userId & ?secret
-// appended; we exchange them for a session, drop the secret in an httpOnly
+// Magic-link landing. The login email links here with ?token & ?next; we
+// exchange the single-use token for a session, drop the secret in an httpOnly
 // cookie, and bounce the owner back to wherever they started (?next).
 import { redirect } from '@sveltejs/kit';
 import { dev } from '$app/environment';
-import { exchangeTokenForSession, SESSION_COOKIE } from '$lib/server/appwrite';
+import { exchangeTokenForSession, SESSION_COOKIE, SESSION_TTL_S } from '$lib/server/auth';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
-  const userId = url.searchParams.get('userId');
-  const secret = url.searchParams.get('secret');
+  const token = url.searchParams.get('token');
   const next = url.searchParams.get('next') ?? '/';
 
-  if (userId && secret) {
-    const sessionSecret = await exchangeTokenForSession(userId, secret);
+  if (token) {
+    const sessionSecret = await exchangeTokenForSession(token);
     if (!sessionSecret) {
       // token expired, invalid, or already consumed (e.g. a link prefetch)
       throw redirect(303, '/?auth=failed');
@@ -22,7 +21,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
       httpOnly: true,
       sameSite: 'lax', // link is clicked from an email (cross-site nav)
       secure: !dev, // localhost is http in dev
-      maxAge: 60 * 60 * 24 * 365, // matches Appwrite's default 1-year session
+      maxAge: SESSION_TTL_S,
     });
   }
 

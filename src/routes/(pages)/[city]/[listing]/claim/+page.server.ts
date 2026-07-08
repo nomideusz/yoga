@@ -6,7 +6,7 @@ import { sendClaimNotification } from '$lib/server/email';
 import { getListingAbsoluteUrl, getListingClaimPath, getListingPath } from '$lib/paths';
 import { localizeHref } from '@nomideusz/svelte-i18n';
 import { i18nRouting } from '$lib/i18n-routing';
-import { sendMagicLink } from '$lib/server/appwrite';
+import { sendMagicLink } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -27,8 +27,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     throw redirect(302, localizeHref(getListingPath(listing, 'pl'), locals.locale, i18nRouting));
   }
 
-  // Only a verified { id, email } crosses into the page — never the Appwrite client.
-  const user = locals.user ? { id: locals.user.$id, email: locals.user.email } : null;
+  // Only a verified { id, email } crosses into the page.
+  const user = locals.user ? { id: locals.user.id, email: locals.user.email } : null;
   return { listing, user };
 };
 
@@ -98,7 +98,7 @@ export const actions: Actions = {
       phone,
       role,
       message,
-      appwriteUserId: locals.user.$id,
+      ownerUserId: locals.user.id,
       consentedAt,
     });
 

@@ -1,30 +1,48 @@
-import { Client, Storage, ID } from 'node-appwrite';
-import { InputFile } from 'node-appwrite/file';
+// Uploaded listing photos live in the Garage S3 bucket `yoga-photos`,
+// processed into WebP size variants by @nomideusz/svelte-media at upload and
+// served through the same-origin /photos/[...key] proxy route (see
+// $lib/photo-url for the URL scheme). S3_* env come from the deploy.
+import { createS3Adapter, processAndStore, deleteMedia, type StorageAdapter } from '@nomideusz/svelte-media';
 import { env } from '$env/dynamic/private';
 
-// Uploaded listing photos live in the Appwrite Storage bucket `yoga-photos`
-// (public read; served via getFilePreview — see $lib/photo-url). Uploads run
-// server-side with an API key (files.read/write).
-const ENDPOINT = env.APPWRITE_ENDPOINT ?? 'https://appwrite.zaur.app/v1';
-const PROJECT = env.APPWRITE_PROJECT_ID ?? '6a4d83760038ed76b167';
-export const PHOTO_BUCKET = 'yoga-photos';
+const PREFIX = 'schools';
 
-function storage(): Storage {
-  if (!env.APPWRITE_API_KEY) throw new Error('APPWRITE_API_KEY not set');
-  const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT).setKey(env.APPWRITE_API_KEY);
-  return new Storage(client);
-}
-
-/** Uploads a photo, returns the Appwrite file id (stored in photosJson[].key). */
-export async function uploadPhoto(bytes: Buffer, filename: string): Promise<string> {
-  const file = await storage().createFile(PHOTO_BUCKET, ID.unique(), InputFile.fromBuffer(bytes, filename));
-  return file.$id;
-}
-
-export async function removePhoto(fileId: string): Promise<void> {
-  try {
-    await storage().deleteFile(PHOTO_BUCKET, fileId);
-  } catch {
-    // already gone — nothing to do
+let _adapter: StorageAdapter | null = null;
+export function photoAdapter(): StorageAdapter {
+  if (!env.S3_ACCESS_KEY_ID || !env.S3_SECRET_ACCESS_KEY || !env.S3_ENDPOINT) {
+    throw new Error('S3_ENDPOINT / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY not set');
   }
+  if (!_adapter) {
+    _adapter = createS3Adapter({
+      endpoint: env.S3_ENDPOINT,
+      region: env.S3_REGION ?? 'garage',
+      bucket: env.S3_BUCKET ?? 'yoga-photos',
+      accessKeyId: env.S3_ACCESS_KEY_ID,
+      secretAccessKey: env.S3_SECRET_ACCESS_KEY,
+      publicUrl: '/photos', // served via the same-origin proxy route
+    });
+  }
+  return _adapter;
+}
+
+/**
+ * Processes and uploads a photo (original + thumbnail/medium/large WebP
+ * variants). Returns the storage key stored in photosJson[].key, shaped
+ * `schools/<schoolId>/<filename>.webp` — size variants derive from it.
+ */
+export async function uploadPhoto(file: File, schoolId: string): Promise<string> {
+  const stored = await processAndStore(photoAdapter(), file, PREFIX, schoolId, {
+    maxFileSize: 8 * 1024 * 1024,
+  });
+  return stored.sizes.original;
+}
+
+/** Removes a photo and all its size variants. `key` as returned by uploadPhoto. */
+export async function removePhoto(key: string): Promise<void> {
+  const parts = key.split('/');
+  if (parts.length < 3) return; // legacy Appwrite file id — object storage is gone
+  const filename = parts.pop()!;
+  const entityId = parts.pop()!;
+  const prefix = parts.join('/');
+  await deleteMedia(photoAdapter(), prefix, entityId, filename);
 }

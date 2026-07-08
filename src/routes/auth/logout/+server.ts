@@ -1,12 +1,12 @@
 import { redirect } from '@sveltejs/kit';
-import { sessionAccount, SESSION_COOKIE } from '$lib/server/appwrite';
+import { deleteSession, SESSION_COOKIE } from '$lib/server/auth';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ cookies }) => {
   const secret = cookies.get(SESSION_COOKIE);
   if (secret) {
     try {
-      await sessionAccount(secret).deleteSession('current');
+      await deleteSession(secret);
     } catch {
       // session already gone server-side — clearing the cookie is enough
     }

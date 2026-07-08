@@ -75,7 +75,7 @@ export interface Listing {
 }
 
 export interface UploadedPhoto {
-  key: string;   // Appwrite Storage file id in the yoga-photos bucket; rendered via photoUrl()
+  key: string;   // storage key in the yoga-photos bucket (schools/<id>/<file>.webp); rendered via photoUrl()
   alt?: string;
 }
 

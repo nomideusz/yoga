@@ -1,17 +1,26 @@
-// Public getFilePreview URL for an uploaded listing photo (fileId in photosJson[].key).
-// Appwrite transforms on the fly (resize + WebP) and caches at the edge. Endpoint/project
-// are the yoga Appwrite instance (non-secret, stable); the bucket is public-read.
-const ENDPOINT = 'https://appwrite.zaur.app/v1';
-const PROJECT = '6a4d83760038ed76b167';
-const BUCKET = 'yoga-photos';
+// Public URL for an uploaded listing photo (key in photosJson[].key, shaped
+// `schools/<schoolId>/<filename>.webp`). Size variants were pre-generated at
+// upload (thumb_/med_/large_ prefixes on the filename); we pick the closest
+// one for the requested width. Served same-origin via /photos/[...key], which
+// streams from Garage with immutable cache headers (CDN-cacheable).
 
-export function photoUrl(
-  fileId: string,
-  opts: { width?: number; height?: number; quality?: number } = {}
-): string {
-  const p = new URLSearchParams({ project: PROJECT, output: 'webp' });
-  if (opts.width) p.set('width', String(opts.width));
-  if (opts.height) p.set('height', String(opts.height));
-  if (opts.quality) p.set('quality', String(opts.quality));
-  return `${ENDPOINT}/storage/buckets/${BUCKET}/files/${fileId}/preview?${p}`;
+const SIZE_PREFIX: Record<string, string> = {
+  thumbnail: 'thumb_', // 300x300 cover
+  medium: 'med_', // fits 800x600
+  large: 'large_', // fits 1200x900
+  original: '',
+};
+
+function sizeForWidth(width?: number): keyof typeof SIZE_PREFIX {
+  if (!width) return 'medium';
+  if (width <= 300) return 'thumbnail';
+  if (width <= 800) return 'medium';
+  return 'large';
+}
+
+export function photoUrl(key: string, opts: { width?: number; height?: number; quality?: number } = {}): string {
+  const parts = key.split('/');
+  const filename = parts.pop()!;
+  const prefix = SIZE_PREFIX[sizeForWidth(opts.width)];
+  return `/photos/${[...parts, `${prefix}${filename}`].join('/')}`;
 }

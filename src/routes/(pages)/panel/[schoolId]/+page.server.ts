@@ -18,7 +18,7 @@ async function getOwnedSchoolOr403(userId: string | undefined, schoolId: string)
     .from(claimRequests)
     .where(
       and(
-        eq(claimRequests.appwriteUserId, userId),
+        eq(claimRequests.ownerUserId, userId),
         eq(claimRequests.schoolId, schoolId),
         eq(claimRequests.status, 'approved'),
       ),
@@ -40,14 +40,14 @@ const num = (v: FormDataEntryValue | null): number | null => {
 };
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-  const school = await getOwnedSchoolOr403(locals.user?.$id, params.schoolId);
+  const school = await getOwnedSchoolOr403(locals.user?.id, params.schoolId);
   return { school };
 };
 
 export const actions: Actions = {
   save: async ({ params, request, locals }) => {
     // Re-check ownership on write — the load-time gate is not a security boundary.
-    await getOwnedSchoolOr403(locals.user?.$id, params.schoolId);
+    await getOwnedSchoolOr403(locals.user?.id, params.schoolId);
 
     const fd = await request.formData();
     const description = str(fd.get('description'));

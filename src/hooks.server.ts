@@ -15,7 +15,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import type { Handle } from '@sveltejs/kit';
 import { resolveLocale, negotiateLocale, localizeHref } from '@nomideusz/svelte-i18n';
 import { i18nRouting } from '$lib/i18n-routing';
-import { sessionAccount, SESSION_COOKIE } from '$lib/server/appwrite';
+import { getSessionUser, SESSION_COOKIE } from '$lib/server/auth';
 
 Sentry.init({
 	dsn: env.PUBLIC_SENTRY_DSN,
@@ -102,16 +102,19 @@ const noindexPreviewHandle: Handle = async ({ event, resolve }) => {
   return response;
 };
 
-// Resolve the Appwrite session cookie into locals.user once per request. A
+// Resolve the session cookie into locals.user once per request. A
 // stale/invalid cookie just clears itself — never blocks the request.
 const sessionHandle: Handle = async ({ event, resolve }) => {
   const secret = event.cookies.get(SESSION_COOKIE);
   event.locals.user = null;
   if (secret) {
     try {
-      event.locals.user = await sessionAccount(secret).get();
+      event.locals.user = await getSessionUser(secret);
+      if (!event.locals.user) {
+        event.cookies.delete(SESSION_COOKIE, { path: '/' }); // stale/expired session
+      }
     } catch {
-      event.cookies.delete(SESSION_COOKIE, { path: '/' });
+      // DB hiccup — treat as logged out for this request, keep the cookie
     }
   }
   return resolve(event);

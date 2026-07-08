@@ -91,10 +91,10 @@
             <td>
               {c.name}<br />
               <a href="mailto:{c.email}">{c.email}</a>
-              {#if c.appwriteUserId}
+              {#if c.ownerUserId}
                 <span
                   style="margin-left:.4em;color:#1a7f4b;font-size:.75em;font-weight:600;white-space:nowrap"
-                  title="E-mail potwierdzony przez logowanie magic-link (Appwrite)"
+                  title="E-mail potwierdzony przez logowanie magic-link"
                   >✓ zweryfikowany</span
                 >
               {/if}

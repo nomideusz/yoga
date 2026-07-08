@@ -124,13 +124,11 @@ export const actions: Actions = {
     if (file.size > 8 * 1024 * 1024) {
       return fail(400, { error: 'Plik jest za duży (max 8 MB).' });
     }
-    const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
-    if (!ext) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       return fail(400, { error: 'Dozwolone formaty: JPEG, PNG, WebP.' });
     }
 
-    const body = await file.arrayBuffer();
-    const fileId = await uploadPhoto(Buffer.from(body), `${params.id}.${ext}`);
+    const fileId = await uploadPhoto(file, params.id);
 
     const photos = parsePhotos(school.photosJson);
     photos.push({ key: fileId });
