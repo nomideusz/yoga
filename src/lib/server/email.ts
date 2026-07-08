@@ -1,12 +1,40 @@
 import { env } from '$env/dynamic/private';
+import nodemailer, { type Transporter } from 'nodemailer';
 
-// Sent through the Temps transactional-email API (relays via the Zaur Mail
-// SMTP provider / Stalwart on mail.zaur.app). TEMPS_API_URL and
-// TEMPS_API_TOKEN are injected into every Temps deployment; locally they're
-// unset and sending throws (callers treat email as best-effort).
+// Sent by direct SMTP to Stalwart on mail.zaur.app (szkolyjogi.pl is a Stalwart
+// domain, SPF-aligned). SMTP_* env come from the deploy; when unset (e.g. local)
+// sending throws and callers treat email as best-effort.
 const FROM = 'noreply@szkolyjogi.pl';
 const FROM_NAME = 'szkolyjogi.pl';
 const ADMIN_EMAIL = 'kontakt@szkolyjogi.pl';
+
+let _tx: Transporter | null = null;
+function transport(): Transporter {
+  if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASS) {
+    throw new Error('SMTP_HOST / SMTP_USER / SMTP_PASS not set');
+  }
+  if (!_tx) {
+    const port = Number(env.SMTP_PORT ?? 465);
+    _tx = nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port,
+      secure: port === 465, // 465 = implicit TLS (STARTTLS/587 is broken on this Stalwart)
+      auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+    });
+  }
+  return _tx;
+}
+
+async function send(opts: { to: string; subject: string; html: string; replyTo?: string }): Promise<void> {
+  const info = await transport().sendMail({
+    from: `"${FROM_NAME}" <${FROM}>`,
+    to: opts.to,
+    replyTo: opts.replyTo,
+    subject: opts.subject,
+    html: opts.html,
+  });
+  console.log(`[claim] email sent id=${info.messageId} → ${opts.to}`);
+}
 
 export type ClaimNotificationData = {
   schoolName: string;
@@ -122,47 +150,18 @@ function claimApprovedHtml(data: ClaimApprovedData): string {
 }
 
 export async function sendClaimApproved(data: ClaimApprovedData): Promise<void> {
-  if (!env.TEMPS_API_URL || !env.TEMPS_API_TOKEN) {
-    throw new Error('TEMPS_API_URL / TEMPS_API_TOKEN not set');
-  }
-  const res = await fetch(`${env.TEMPS_API_URL}/emails`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.TEMPS_API_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: FROM,
-      from_name: FROM_NAME,
-      reply_to: ADMIN_EMAIL, // owner replies reach Bartek
-      to: [data.claimantEmail],
-      subject: `Profil ${data.schoolName} — zweryfikowany`,
-      html: claimApprovedHtml(data),
-    }),
+  await send({
+    to: data.claimantEmail,
+    replyTo: ADMIN_EMAIL, // owner replies reach Bartek
+    subject: `Profil ${data.schoolName} — zweryfikowany`,
+    html: claimApprovedHtml(data),
   });
-  if (!res.ok) throw new Error(`Temps email API ${res.status}: ${await res.text()}`);
-  const sent = (await res.json()) as { id: string; status: string };
-  console.log(`[claim] approved email ${sent.status} via Temps, id=${sent.id}`);
 }
 
 export async function sendClaimNotification(data: ClaimNotificationData): Promise<void> {
-  if (!env.TEMPS_API_URL || !env.TEMPS_API_TOKEN) {
-    throw new Error('TEMPS_API_URL / TEMPS_API_TOKEN not set');
-  }
-  const res = await fetch(`${env.TEMPS_API_URL}/emails`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.TEMPS_API_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: FROM,
-      from_name: FROM_NAME,
-      to: [ADMIN_EMAIL],
-      subject: `Przejęcie profilu: ${data.schoolName}`,
-      html: claimNotificationHtml(data),
-    }),
+  await send({
+    to: ADMIN_EMAIL,
+    subject: `Przejęcie profilu: ${data.schoolName}`,
+    html: claimNotificationHtml(data),
   });
-  if (!res.ok) {
-    throw new Error(`Temps email API ${res.status}: ${await res.text()}`);
-  }
-  const sent = (await res.json()) as { id: string; status: string };
-  console.log(`[claim] notification email ${sent.status} via Temps, id=${sent.id}`);
 }
