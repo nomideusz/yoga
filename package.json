@@ -48,6 +48,9 @@
 		"node-appwrite": "^26.2.0",
 		"sharp": "^0.34.5"
 	},
+	"optionalDependencies": {
+		"@libsql/linux-x64-musl": "0.5.29"
+	},
 	"pnpm": {
 		"supportedArchitectures": {
 			"os": ["current", "linux"],
