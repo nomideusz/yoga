@@ -10,8 +10,7 @@
 </svelte:head>
 
 <div class="sf-page-shell">
-  <div class="claim-layout">
-    <div class="claim-main">
+  <div class="owner-shell">
       <header class="claim-header">
         <h1 class="claim-title">Edycja wizytówki</h1>
         <p class="claim-subtitle">
@@ -70,6 +69,5 @@
 
         <button type="submit" class="submit-btn">Zapisz zmiany</button>
       </form>
-    </div>
   </div>
 </div>

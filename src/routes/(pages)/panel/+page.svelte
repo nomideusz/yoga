@@ -15,8 +15,7 @@
 </svelte:head>
 
 <div class="sf-page-shell">
-  <div class="claim-layout">
-    <div class="claim-main">
+  <div class="owner-shell">
       {#if data.needsAuth}
         <header class="claim-header">
           <h1 class="claim-title">Panel właściciela</h1>
@@ -94,7 +93,6 @@
           </ul>
         {/if}
       {/if}
-    </div>
   </div>
 </div>
 

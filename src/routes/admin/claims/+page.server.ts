@@ -3,6 +3,27 @@ import { fail } from '@sveltejs/kit';
 import { eq, desc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { claimRequests, schools } from '$lib/server/db/schema';
+import { getListingAbsoluteUrl } from '$lib/paths';
+import { sendClaimApproved } from '$lib/server/email';
+
+// Notify the owner their claim was approved and they can self-manage. Best-effort:
+// a mail failure must never block the approval itself.
+async function notifyApproved(claimId: number) {
+  const [claim] = await db
+    .select({ email: claimRequests.email, schoolId: claimRequests.schoolId })
+    .from(claimRequests)
+    .where(eq(claimRequests.id, claimId))
+    .limit(1);
+  if (!claim?.email) return;
+  const [school] = await db.select().from(schools).where(eq(schools.id, claim.schoolId)).limit(1);
+  if (!school) return;
+  await sendClaimApproved({
+    schoolName: school.name,
+    claimantEmail: claim.email,
+    listingUrl: getListingAbsoluteUrl(school, 'pl'),
+    panelUrl: 'https://szkolyjogi.pl/panel',
+  });
+}
 
 async function lockSchoolForClaim(claimId: number) {
   const [claim] = await db
@@ -55,8 +76,15 @@ export const actions: Actions = {
 
     await db.update(claimRequests).set({ status }).where(eq(claimRequests.id, id));
     // Approval is the promise that the owner's data won't be overwritten —
-    // lock the school against the scraper in the same step.
-    if (status === 'approved') await lockSchoolForClaim(id);
+    // lock the school against the scraper, and tell the owner they can self-manage.
+    if (status === 'approved') {
+      await lockSchoolForClaim(id);
+      try {
+        await notifyApproved(id);
+      } catch (e) {
+        console.error('[claim] approved email failed:', e);
+      }
+    }
     return { success: true, id, status };
   },
 

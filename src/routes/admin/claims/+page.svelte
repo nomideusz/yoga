@@ -121,8 +121,8 @@
             </td>
             <td class="nowrap">
               <a href={mailto(c, 'verify')}>weryfikacja</a> ·
-              <a href={mailto(c, 'approved')}>zatwierdzone</a> ·
               <a href={mailto(c, 'rejected')}>odmowa</a>
+              <br /><span class="muted" style="font-size:.75em">zatwierdzenie → auto e-mail</span>
             </td>
             <td>
               <form
