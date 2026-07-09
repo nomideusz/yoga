@@ -18,7 +18,8 @@
 		"db:migrate-search": "tsx scripts/migrate-search.ts",
 		"db:migrate-search:dry": "tsx scripts/migrate-search.ts --dry-run",
 		"db:renormalize": "tsx scripts/renormalize-search.ts",
-		"db:refresh-cities": "tsx scripts/refresh-cities.ts"
+		"db:refresh-cities": "tsx scripts/refresh-cities.ts",
+		"db:studio": "drizzle-kit studio"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
