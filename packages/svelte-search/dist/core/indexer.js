@@ -141,15 +141,27 @@ export function createIndexer(config) {
      * Call after changing the normalize() function or locale.
      */
     async function renormalizeAll(updateRow) {
-        const result = await db.execute({ sql: `SELECT * FROM ${tables.entities}`, args: [] });
+        // Page the scan: a single SELECT * of the whole table can exceed the
+        // libsql/sqld HTTP response-size cap once the table grows past ~1.5k rows.
+        const PAGE = 500;
         let count = 0;
-        for (const row of result.rows) {
-            await updateRow(db, row);
-            if (dialect === 'sqlite') {
-                const id = row[columns.id];
-                await indexTrigrams(id, row);
+        for (let offset = 0;; offset += PAGE) {
+            const result = await db.execute({
+                sql: `SELECT * FROM ${tables.entities} ORDER BY ${columns.id} LIMIT ${PAGE} OFFSET ${offset}`,
+                args: [],
+            });
+            if (result.rows.length === 0)
+                break;
+            for (const row of result.rows) {
+                await updateRow(db, row);
+                if (dialect === 'sqlite') {
+                    const id = row[columns.id];
+                    await indexTrigrams(id, row);
+                }
+                count++;
             }
-            count++;
+            if (result.rows.length < PAGE)
+                break;
         }
         if (dialect === 'sqlite') {
             await rebuildFts();
