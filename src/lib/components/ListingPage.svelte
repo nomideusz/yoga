@@ -1,8 +1,10 @@
 <script lang="ts">
     import { browser } from "$app/environment";
     import ListingContent from "$lib/components/ListingContent.svelte";
-    import { getListingAbsoluteUrl, BASE_URL } from "$lib/paths";
+    import { getCityPath, getListingAbsoluteUrl, BASE_URL } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
+    import { i18nRouting } from "$lib/i18n-routing";
+    import { localizeHref } from "@nomideusz/svelte-i18n";
     import { trackListingView } from "$lib/analytics/umami.js";
     import { parsePricingJson } from "$lib/data";
     import type { Listing } from "$lib/data";
@@ -32,7 +34,13 @@
         });
     });
 
-    const canonicalUrl = $derived(getListingAbsoluteUrl(listing));
+    const canonicalUrl = $derived(getListingAbsoluteUrl(listing, i18n.locale));
+    const localizedHomeUrl = $derived(
+        BASE_URL + localizeHref("/", i18n.locale, i18nRouting),
+    );
+    const localizedCityUrl = $derived(
+        BASE_URL + getCityPath(listing.city, listing.citySlug, i18n.locale),
+    );
 
     // Shared social-card values (used by both OG and Twitter tags below)
     let ogTitle = $derived(`${listing.name} | Joga ${listing.city}`);
@@ -260,8 +268,8 @@
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-            { "@type": "ListItem", position: 1, name: "szkolyjogi.pl", item: "https://szkolyjogi.pl" },
-            { "@type": "ListItem", position: 2, name: listing.city, item: `https://szkolyjogi.pl/${listing.citySlug || listing.city.toLowerCase()}` },
+            { "@type": "ListItem", position: 1, name: "szkolyjogi.pl", item: localizedHomeUrl },
+            { "@type": "ListItem", position: 2, name: listing.city, item: localizedCityUrl },
             { "@type": "ListItem", position: 3, name: listing.name, item: canonicalUrl },
         ],
     }).replace(/</g, "\\u003c")}</script>`}

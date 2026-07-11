@@ -7,7 +7,13 @@
     import { normalizePolish } from "$lib/utils/street";
     import { haversineKm } from "$lib/search/geo";
     import { yogaTier } from "$lib/search/rank";
-    import { getListingAbsoluteUrl, getListingPath, getCitySlugPath } from "$lib/paths";
+    import {
+        BASE_URL,
+        getCitySlugPath,
+        getListingAbsoluteUrl,
+        getListingPath,
+        getStyleCityPath,
+    } from "$lib/paths";
     import { searchSchools } from "$lib/search.remote";
     import { autocomplete as placesAutocomplete } from "$lib/autocomplete.remote";
     import { walkingDistances as computeWalkingDistances } from "$lib/distances.remote";
@@ -36,6 +42,9 @@
     import { styleDisplayName } from "$lib/styles-metadata";
     import Turtle from "$lib/components/icons/Turtle.svelte";
     import Kangaroo from "$lib/components/icons/Kangaroo.svelte";
+    import { localizeHref } from "@nomideusz/svelte-i18n";
+    import { i18nRouting } from "$lib/i18n-routing";
+    import { MIN_STYLE_CITY_LISTINGS } from "$lib/seo";
 
     const TURTLE_SPEED = 3; // km/h
     const KANGAROO_SPEED = 25; // km/h
@@ -43,6 +52,12 @@
     const t = i18n.t;
 
     let { data }: { data: PageData } = $props();
+    let localizedHomeUrl = $derived(
+        BASE_URL + localizeHref("/", i18n.locale, i18nRouting),
+    );
+    let localizedCityUrl = $derived(
+        BASE_URL + getCitySlugPath(data.citySlug, i18n.locale),
+    );
 
     $effect(() => {
         if (!browser) return;
@@ -189,12 +204,6 @@
     );
     let chipScrollEl: HTMLElement | undefined = $state();
 
-    $effect(() => {
-        void activeStyles;
-        void activeDistrict;
-        currentPage = 1;
-    });
-
     // Scroll selected style chip into view (centered) on mobile
     $effect(() => {
         if (!chipScrollEl || activeStyles.length === 0) return;
@@ -261,6 +270,19 @@
         activeStyles = activeStyles.includes(style)
             ? activeStyles.filter((s) => s !== style)
             : [...activeStyles, style];
+    }
+
+    function handleStyleLink(event: MouseEvent, style: string) {
+        if (
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        ) return;
+
+        event.preventDefault();
+        toggleStyle(style);
     }
 
     const autocompleteItems = $derived.by((): SearchBoxItem[] => {
@@ -1543,9 +1565,11 @@
 
     $effect(() => {
         if (!browser) return;
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(window.location.search);
+        params.delete("q");
         if (activeFilterQuery) {
             params.set("q", activeFilterQuery);
+            params.delete("page");
         }
         const newSearch = params.toString();
         const currentSearch = window.location.search.replace(/^\?/, "");
@@ -1567,13 +1591,29 @@
 
     // ── Pagination ──
     const PER_PAGE = 24;
-    let currentPage = $state(1);
+    let pageOverride = $state<number | null>(null);
+    let currentPage = $derived(pageOverride ?? data.page);
+    let previousFilterKey: string | null = $state(null);
+    let loadedPageKey: string | null = $state(null);
 
     $effect(() => {
-        void activeFilterQuery;
-        void activeStyles;
-        void activeDistrict;
-        currentPage = 1;
+        const filterKey = `${activeFilterQuery}|${activeStyles.join(",")}|${activeDistrict ?? ""}`;
+        if (previousFilterKey === null) {
+            previousFilterKey = filterKey;
+            return;
+        }
+        if (filterKey !== previousFilterKey) {
+            previousFilterKey = filterKey;
+            pageOverride = 1;
+        }
+    });
+
+    $effect(() => {
+        const pageKey = `${$page.url.pathname}:${data.page}`;
+        if (loadedPageKey !== null && pageKey !== loadedPageKey) {
+            pageOverride = null;
+        }
+        loadedPageKey = pageKey;
     });
 
     const totalPages = $derived(
@@ -1586,8 +1626,15 @@
         ),
     );
 
+    function pageHref(targetPage: number): string {
+        return targetPage === 1
+            ? $page.url.pathname
+            : `${$page.url.pathname}?page=${targetPage}`;
+    }
+
     function handlePageChange(page: number) {
-        currentPage = page;
+        pageOverride = null;
+        goto(pageHref(page), { keepFocus: true, noScroll: true });
         document
             .querySelector(".city-schools")
             ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1641,10 +1688,10 @@
         "@type": "ItemList",
         name: `${t('meta_yoga_schools')} ${cityDisplay(data.city)}`,
         numberOfItems: data.schools.length,
-        itemListElement: data.schools.slice(0, 20).map((s, i) => ({
+        itemListElement: paginatedSchools.map((s, i) => ({
             "@type": "ListItem",
-            position: i + 1,
-            url: getListingAbsoluteUrl(s),
+            position: (currentPage - 1) * PER_PAGE + i + 1,
+            url: getListingAbsoluteUrl(s, i18n.locale),
             name: s.name,
         })),
     }).replace(/</g, "\\u003c")}</script>`}
@@ -1652,11 +1699,13 @@
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-            { "@type": "ListItem", position: 1, name: "szkolyjogi.pl", item: "https://szkolyjogi.pl" },
-            { "@type": "ListItem", position: 2, name: cityDisplay(data.city), item: `https://szkolyjogi.pl/${data.citySlug}` },
+            { "@type": "ListItem", position: 1, name: "szkolyjogi.pl", item: localizedHomeUrl },
+            { "@type": "ListItem", position: 2, name: cityDisplay(data.city), item: localizedCityUrl },
         ],
     }).replace(/</g, "\\u003c")}</script>`}
-    {@html `<script type="application/ld+json">${JSON.stringify(faqJsonLd).replace(/</g, "\\u003c")}</script>`}
+    {#if faqItems.length > 0}
+        {@html `<script type="application/ld+json">${JSON.stringify(faqJsonLd).replace(/</g, "\\u003c")}</script>`}
+    {/if}
 </svelte:head>
 
 <!-- ── City page ── -->
@@ -1928,22 +1977,34 @@
         <div class="city-chips">
             <div class="chip-scroll" bind:this={chipScrollEl}>
                 {#each allStyles as style}
-                    <button
-                        class="chip-pill chip-pill--subtle"
-                        class:chip-pill--selected={activeStyles.includes(style)}
-                        onclick={() => {
-                            activeStyles = activeStyles.includes(style)
-                                ? activeStyles.filter((s) => s !== style)
-                                : [...activeStyles, style];
-                        }}
-                    >
-                        <span class="chip-pill-name">{styleDisplayName(style, i18n.locale)}</span>
-                        <span class="chip-pill-count"
-                            >{data.schools.filter((s) =>
-                                s.styles.includes(style),
-                            ).length}</span
+                    {@const styleCount = data.schools.filter((s) =>
+                        s.styles.includes(style),
+                    ).length}
+                    {#if styleCount >= MIN_STYLE_CITY_LISTINGS}
+                        <a
+                            href={getStyleCityPath(
+                                data.lookups.styleMap.get(normalize(style)) ??
+                                    style,
+                                data.city,
+                                data.citySlug,
+                            )}
+                            class="chip-pill chip-pill--subtle"
+                            class:chip-pill--selected={activeStyles.includes(style)}
+                            onclick={(event) => handleStyleLink(event, style)}
                         >
-                    </button>
+                            <span class="chip-pill-name">{styleDisplayName(style, i18n.locale)}</span>
+                            <span class="chip-pill-count">{styleCount}</span>
+                        </a>
+                    {:else}
+                        <button
+                            class="chip-pill chip-pill--subtle"
+                            class:chip-pill--selected={activeStyles.includes(style)}
+                            onclick={() => toggleStyle(style)}
+                        >
+                            <span class="chip-pill-name">{styleDisplayName(style, i18n.locale)}</span>
+                            <span class="chip-pill-count">{styleCount}</span>
+                        </button>
+                    {/if}
                 {/each}
             </div>
         </div>
@@ -2032,6 +2093,7 @@
             <Pagination
                 {currentPage}
                 {totalPages}
+                hrefForPage={pageHref}
                 onPageChange={handlePageChange}
             />
         {/if}

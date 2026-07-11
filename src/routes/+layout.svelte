@@ -96,6 +96,23 @@
   const active = $derived(extractLocale($page.url.pathname, i18nRouting));
   const activeLocale = $derived(active.locale);
   const seoPath = $derived(active.pathname);
+  const isPaginatedHub = $derived(
+    $page.route?.id === "/(pages)/[city]" ||
+      $page.route?.id === "/(pages)/category/[slug]" ||
+      $page.route?.id === "/(pages)/category/[slug]/[city]",
+  );
+  const pageNumber = $derived.by(() => {
+    if (!isPaginatedHub) return 1;
+    const value = $page.url.searchParams.get("page");
+    return value && /^[1-9]\d*$/.test(value) ? Number(value) : 1;
+  });
+  const hasFacetParams = $derived(
+    isPaginatedHub &&
+      [...$page.url.searchParams.keys()].some((key) => key !== "page"),
+  );
+  const canonicalSeoPath = $derived(
+    pageNumber > 1 ? `${seoPath}?page=${pageNumber}` : seoPath,
+  );
 
   // SSR + first paint: apply the locale synchronously. The sync loader (see
   // $lib/i18n) makes this safe — the singleton is set during the
@@ -109,10 +126,16 @@
   // ── Centralized SEO: one canonical + hreflang set for every indexable page ──
   // Gated to public content routes (skips admin/lab and the claim form).
   const isIndexable = $derived(
-    !!$page.route?.id?.startsWith("/(pages)") && !$page.route.id.endsWith("/claim"),
+    !!$page.route?.id?.startsWith("/(pages)") &&
+      !$page.route.id.endsWith("/claim") &&
+      !hasFacetParams,
   );
-  const canonicalUrl = $derived(BASE_URL + localizeHref(seoPath, activeLocale, i18nRouting));
-  const hreflangLinks = $derived(alternates(seoPath, i18nRouting, BASE_URL));
+  const canonicalUrl = $derived(
+    BASE_URL + localizeHref(canonicalSeoPath, activeLocale, i18nRouting),
+  );
+  const hreflangLinks = $derived(
+    alternates(canonicalSeoPath, i18nRouting, BASE_URL),
+  );
 </script>
 
 <svelte:head>
@@ -122,6 +145,12 @@
     {#each hreflangLinks as link (link.hreflang)}
       <link rel="alternate" hreflang={link.hreflang} href={link.href} />
     {/each}
+  {:else if hasFacetParams}
+    <meta name="robots" content="noindex, follow" />
+    <link
+      rel="canonical"
+      href={BASE_URL + localizeHref(seoPath, activeLocale, i18nRouting)}
+    />
   {/if}
 </svelte:head>
 

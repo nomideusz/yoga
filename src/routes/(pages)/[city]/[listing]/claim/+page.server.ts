@@ -9,7 +9,8 @@ import { i18nRouting } from '$lib/i18n-routing';
 import { sendMagicLink } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, setHeaders }) => {
+  setHeaders({ 'X-Robots-Tag': 'noindex, follow' });
   const listing = await getListingByIdentifier(params.listing);
 
   if (!listing) {

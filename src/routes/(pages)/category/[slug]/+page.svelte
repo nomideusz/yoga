@@ -1,15 +1,24 @@
 <script lang="ts">
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
+    import { page } from "$app/stores";
     import Pagination from "$lib/components/Pagination.svelte";
     import { trackCategoryView } from "$lib/analytics/umami.js";
     import {
-        getCityPath,
+        BASE_URL,
+        getCityStylePath,
         getListingAbsoluteUrl,
         getListingPath,
+        getStyleCityPath,
     } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
+    import { i18nRouting } from "$lib/i18n-routing";
+    import {
+        MIN_STYLE_CITY_LISTINGS,
+        SEO_PAGE_SIZE,
+    } from "$lib/seo";
     import { styleDisplayName, getStyleTranslation } from "$lib/styles-metadata";
+    import { localizeHref } from "@nomideusz/svelte-i18n";
     const t = i18n.t;
 
     let { data } = $props();
@@ -28,6 +37,13 @@
 
     let slug = $derived(data.slug);
     let categoryListings = $derived(data.listings);
+    let localizedHomeUrl = $derived(
+        BASE_URL + localizeHref("/", i18n.locale, i18nRouting),
+    );
+    let localizedCategoryUrl = $derived(
+        BASE_URL +
+            localizeHref(`/category/${slug}`, i18n.locale, i18nRouting),
+    );
     let categoryName = $derived(
         data.styleName ?? (slug ? slug.replace(/-/g, " ") : ""),
     );
@@ -66,6 +82,18 @@
             .sort(([, a], [, b]) => b - a)
             .map(([city, count]) => ({ city, count })),
     );
+
+    function getCityHref(city: string, count: number): string {
+        const citySlug = categoryListings.find(
+            (listing) => listing.city === city,
+        )?.citySlug;
+
+        if (count >= MIN_STYLE_CITY_LISTINGS) {
+            return getStyleCityPath(slug, city, citySlug);
+        }
+
+        return getCityStylePath(city, categoryName, citySlug);
+    }
 
     const plCollator = new Intl.Collator("pl-PL");
 
@@ -131,26 +159,49 @@
     );
 
     // ── Pagination ──
-    const PER_PAGE = 24;
-    let currentPage = $state(1);
+    const totalPages = $derived(
+        Math.max(1, Math.ceil(sortedListings.length / SEO_PAGE_SIZE)),
+    );
+    let pageOverride = $state<number | null>(null);
+    let currentPage = $derived(pageOverride ?? data.page);
+    let previousSort: "name" | "city" | null = $state(null);
+    let loadedPageKey: string | null = $state(null);
 
     $effect(() => {
-        void sortBy;
-        currentPage = 1;
+        if (previousSort === null) {
+            previousSort = sortBy;
+            return;
+        }
+        if (sortBy !== previousSort) {
+            previousSort = sortBy;
+            pageOverride = 1;
+        }
     });
 
-    const totalPages = $derived(
-        Math.max(1, Math.ceil(sortedListings.length / PER_PAGE)),
-    );
+    $effect(() => {
+        const pageKey = `${$page.url.pathname}:${data.page}`;
+        if (loadedPageKey !== null && pageKey !== loadedPageKey) {
+            pageOverride = null;
+        }
+        loadedPageKey = pageKey;
+    });
+
     const paginatedListings = $derived(
         sortedListings.slice(
-            (currentPage - 1) * PER_PAGE,
-            currentPage * PER_PAGE,
+            (currentPage - 1) * SEO_PAGE_SIZE,
+            currentPage * SEO_PAGE_SIZE,
         ),
     );
 
+    function pageHref(targetPage: number): string {
+        return targetPage === 1
+            ? $page.url.pathname
+            : `${$page.url.pathname}?page=${targetPage}`;
+    }
+
     function handlePageChange(page: number) {
-        currentPage = page;
+        pageOverride = null;
+        goto(pageHref(page), { keepFocus: true, noScroll: true });
         document
             .querySelector(".cat-schools")
             ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -169,6 +220,7 @@
         content={t("cat_meta_desc", { style: displayName, count: categoryListings.length })}
     />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://szkolyjogi.pl/og-default.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{displayName} | szkolyjogi.pl" />
     <meta
@@ -181,10 +233,10 @@
         "@type": "ItemList",
         name: displayName,
         numberOfItems: categoryListings.length,
-        itemListElement: categoryListings.slice(0, 20).map((s, i) => ({
+        itemListElement: paginatedListings.map((s, i) => ({
             "@type": "ListItem",
-            position: i + 1,
-            url: getListingAbsoluteUrl(s),
+            position: (currentPage - 1) * SEO_PAGE_SIZE + i + 1,
+            url: getListingAbsoluteUrl(s, i18n.locale),
             name: s.name,
         })),
     }).replace(/</g, "\\u003c")}</script>`}
@@ -192,11 +244,13 @@
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-            { "@type": "ListItem", position: 1, name: "szkolyjogi.pl", item: "https://szkolyjogi.pl" },
-            { "@type": "ListItem", position: 2, name: displayName, item: `https://szkolyjogi.pl/category/${slug}` },
+            { "@type": "ListItem", position: 1, name: "szkolyjogi.pl", item: localizedHomeUrl },
+            { "@type": "ListItem", position: 2, name: displayName, item: localizedCategoryUrl },
         ],
     }).replace(/</g, "\\u003c")}</script>`}
-    {@html `<script type="application/ld+json">${JSON.stringify(faqJsonLd).replace(/</g, "\\u003c")}</script>`}
+    {#if faqItems.length > 0}
+        {@html `<script type="application/ld+json">${JSON.stringify(faqJsonLd).replace(/</g, "\\u003c")}</script>`}
+    {/if}
 </svelte:head>
 
 <div class="sf-page-category">
@@ -226,12 +280,7 @@
                 <div class="cat-cities-flex">
                     {#each sortedCities as { city, count } (city)}
                         <a
-                            href="{getCityPath(
-                                city,
-                                data.lookups?.cityMap?.get(
-                                    city.toLowerCase(),
-                                ) ?? null,
-                            )}?style={encodeURIComponent(categoryName)}"
+                            href={getCityHref(city, count)}
                             class="sf-city-pill"
                         >
                             <span class="sf-city-name">{cityDisplay(city)}</span>
@@ -285,10 +334,23 @@
                 <Pagination
                     {currentPage}
                     {totalPages}
+                    hrefForPage={pageHref}
                     onPageChange={handlePageChange}
                 />
             {/if}
         </section>
+
+        {#if faqItems.length > 0}
+            <footer class="cat-faq">
+                <div class="cat-faq-kicker">FAQ</div>
+                {#each faqItems as faq}
+                    <details class="cat-faq-item">
+                        <summary class="cat-faq-q">{faq.q}</summary>
+                        <p class="cat-faq-a">{faq.a}</p>
+                    </details>
+                {/each}
+            </footer>
+        {/if}
     {/if}
 </div>
 

@@ -5,6 +5,7 @@ import { STYLES_METADATA } from "$lib/styles-metadata";
 import { localizeHref } from "@nomideusz/svelte-i18n";
 import { i18nRouting } from "$lib/i18n-routing";
 import { CDN_CACHE_HEADER } from "$lib/server/cdn-cache";
+import { getCanonicalStyleSlug, SEO_PAGE_SIZE } from "$lib/seo";
 import type { PageServerLoad } from "./$types";
 
 function slugToStyleName(slug: string): string {
@@ -22,11 +23,19 @@ function metadataStyleNameFromSlug(slug: string): string | null {
   return null;
 }
 
-export const load: PageServerLoad = async ({ params, parent, locals, setHeaders }) => {
+export const load: PageServerLoad = async ({ params, url, parent, locals, setHeaders }) => {
   setHeaders(CDN_CACHE_HEADER);
   const slug = params.slug;
   const parentData = await parent();
   const lookups = parentData.lookups;
+
+  const replacementSlug = getCanonicalStyleSlug(slug);
+  if (replacementSlug !== slug) {
+    throw redirect(
+      301,
+      localizeHref(`/category/${replacementSlug}${url.search}`, locals.locale, i18nRouting),
+    );
+  }
 
   const normalizedSlug = normalize(slugToStyleName(params.slug));
   const mappedSlug = lookups.styleMap.get(normalizedSlug);
@@ -40,7 +49,10 @@ export const load: PageServerLoad = async ({ params, parent, locals, setHeaders 
     : params.slug;
 
   if (canonicalSlug !== params.slug) {
-    throw redirect(301, localizeHref(`/category/${canonicalSlug}`, locals.locale, i18nRouting));
+    throw redirect(
+      301,
+      localizeHref(`/category/${canonicalSlug}${url.search}`, locals.locale, i18nRouting),
+    );
   }
 
   const fallbackMetadataStyleName = metadataStyleNameFromSlug(canonicalSlug);
@@ -57,10 +69,26 @@ export const load: PageServerLoad = async ({ params, parent, locals, setHeaders 
     throw error(404, "Nie znaleziono takiego stylu jogi.");
   }
 
+  const pageParam = url.searchParams.get("page");
+  const page = pageParam && /^[1-9]\d*$/.test(pageParam) ? Number(pageParam) : 1;
+  const totalPages = Math.max(1, Math.ceil(listings.length / SEO_PAGE_SIZE));
+
+  if ((pageParam && !/^[1-9]\d*$/.test(pageParam)) || page > totalPages) {
+    throw error(404, "Nie znaleziono takiej strony wyników.");
+  }
+
+  if (pageParam && page === 1) {
+    throw redirect(
+      301,
+      localizeHref(`/category/${canonicalSlug}`, locals.locale, i18nRouting),
+    );
+  }
+
   return {
     slug: canonicalSlug,
     styleName,
     listings,
+    page,
     metadata,
     lookups,
   };

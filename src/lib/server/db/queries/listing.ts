@@ -257,7 +257,7 @@ export async function getListingById(id: string): Promise<Listing | null> {
   const [school] = await db
     .select()
     .from(schools)
-    .where(eq(schools.id, id))
+    .where(and(eq(schools.id, id), eq(schools.isListed, true)))
     .limit(1);
   if (!school) return null;
 
@@ -287,7 +287,12 @@ export async function getListingByIdentifier(
   const [school] = await db
     .select()
     .from(schools)
-    .where(or(eq(schools.id, identifier), eq(schools.slug, identifier)))
+    .where(
+      and(
+        or(eq(schools.id, identifier), eq(schools.slug, identifier)),
+        eq(schools.isListed, true),
+      ),
+    )
     .limit(1);
 
   if (!school) return null;

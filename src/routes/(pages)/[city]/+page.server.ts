@@ -7,6 +7,7 @@ import {
 import { normalize } from "$lib/search";
 import { localizeHref } from "@nomideusz/svelte-i18n";
 import { i18nRouting } from "$lib/i18n-routing";
+import { SEO_PAGE_SIZE } from "$lib/seo";
 import { CDN_CACHE_HEADER } from "$lib/server/cdn-cache";
 import type { PageServerLoad } from "./$types";
 
@@ -42,7 +43,7 @@ export const load: PageServerLoad = async ({ params, url, parent, locals, setHea
     lookups.cityMap.get(normalize(exactCityName)) ??
     requestedCity.toLowerCase();
 
-  if (resolvedCitySlug !== requestedCity.toLowerCase()) {
+  if (resolvedCitySlug !== requestedCity) {
     throw redirect(301, localizeHref(`/${resolvedCitySlug}${url.search}`, locals.locale, i18nRouting));
   }
 
@@ -50,6 +51,23 @@ export const load: PageServerLoad = async ({ params, url, parent, locals, setHea
     getListingsByCity(exactCityName),
     getCityIntro(resolvedCitySlug, locals.locale),
   ]);
+  const pageParam = url.searchParams.get("page");
+  const page = pageParam && /^[1-9]\d*$/.test(pageParam) ? Number(pageParam) : 1;
+  const totalPages = Math.max(1, Math.ceil(cityListing.length / SEO_PAGE_SIZE));
+
+  if ((pageParam && !/^[1-9]\d*$/.test(pageParam)) || page > totalPages) {
+    throw error(404, "Nie znaleziono takiej strony wyników.");
+  }
+
+  if (pageParam && page === 1) {
+    const searchParams = new URLSearchParams(url.searchParams);
+    searchParams.delete("page");
+    const search = searchParams.toString();
+    throw redirect(
+      301,
+      localizeHref(`/${resolvedCitySlug}${search ? `?${search}` : ""}`, locals.locale, i18nRouting),
+    );
+  }
 
   const lat = parseFloat(url.searchParams.get("lat") ?? "");
   const lng = parseFloat(url.searchParams.get("lng") ?? "");
@@ -60,6 +78,7 @@ export const load: PageServerLoad = async ({ params, url, parent, locals, setHea
     city: exactCityName,
     citySlug: resolvedCitySlug,
     schools: cityListing,
+    page,
     cityIntro,
     location,
     lookups,

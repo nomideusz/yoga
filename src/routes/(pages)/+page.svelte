@@ -1396,6 +1396,9 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://szkolyjogi.pl/og-default.png" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={t("meta_main_title")} />
+    <meta name="twitter:description" content={t("meta_main_desc")} />
+    <meta name="twitter:image" content="https://szkolyjogi.pl/og-default.png" />
     {@html `<script type="application/ld+json">${JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebSite",
@@ -1404,14 +1407,6 @@
         url: "https://szkolyjogi.pl",
         description: t("meta_main_desc"),
         inLanguage: ["pl", "en", "uk"],
-        potentialAction: {
-            "@type": "SearchAction",
-            target: {
-                "@type": "EntryPoint",
-                urlTemplate: "https://szkolyjogi.pl/?q={search_term_string}",
-            },
-            "query-input": "required name=search_term_string",
-        },
     }).replace(/</g, "\\u003c")}</script>`}
     {@html `<script type="application/ld+json">${JSON.stringify({
         "@context": "https://schema.org",

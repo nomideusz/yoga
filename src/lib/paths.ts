@@ -60,6 +60,18 @@ export function getStylePath(style: string, locale?: string): string {
   return loc(`/category/${encodeURIComponent(getStyleSlug(style))}`, locale);
 }
 
+export function getStyleCityPath(
+  style: string,
+  city: string,
+  citySlug?: string | null,
+  locale?: string,
+): string {
+  return loc(
+    `/category/${encodeURIComponent(getStyleSlug(style))}/${citySlug || getCitySlug(city)}`,
+    locale,
+  );
+}
+
 export function getCityStylePath(
   city: string,
   style: string,

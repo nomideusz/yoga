@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { PageData, ActionData } from "./$types";
-    import { getListingClaimAbsoluteUrl, getListingPath } from "$lib/paths";
+    import { getListingPath } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
     import ConsentModal from "$lib/components/ConsentModal.svelte";
     const t = i18n.t;
@@ -31,6 +31,7 @@
 
 <svelte:head>
     <title>{t("claim_title")} — {listing.name} | szkolyjogi.pl</title>
+    <meta name="robots" content="noindex, follow" />
     <meta
         name="description"
         content="{t('claim_title')} — {listing.name} | szkolyjogi.pl"
@@ -39,7 +40,6 @@
         property="og:title"
         content="{t('claim_title')} — {listing.name} | szkolyjogi.pl"
     />
-    <link rel="canonical" href={getListingClaimAbsoluteUrl(listing)} />
 </svelte:head>
 
 <div class="sf-page-shell">

@@ -5,11 +5,13 @@
   let {
     currentPage = 1,
     totalPages = 1,
+    hrefForPage,
     onPageChange,
   }: {
     currentPage: number;
     totalPages: number;
-    onPageChange: (page: number) => void;
+    hrefForPage?: (page: number) => string;
+    onPageChange?: (page: number) => void;
   } = $props();
 
   // Build an array of page numbers/ellipsis markers to display
@@ -47,48 +49,101 @@
     return items;
   });
 
-  function goTo(page: number) {
-    if (page >= 1 && page <= totalPages && page !== currentPage) {
-      onPageChange(page);
-    }
+  function navigate(event: MouseEvent, page: number) {
+    if (
+      !onPageChange ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) return;
+
+    event.preventDefault();
+    onPageChange(page);
   }
 </script>
 
 {#if totalPages > 1}
   <nav class="pagination" aria-label={t("pagination_label")}>
-    <button
-      class="pg-btn pg-prev"
-      disabled={currentPage === 1}
-      onclick={() => goTo(currentPage - 1)}
-      aria-label={t("pagination_prev")}
-    >
-      ←
-    </button>
+    {#if currentPage > 1}
+      {#if hrefForPage}
+        <a
+          class="pg-btn pg-prev"
+          href={hrefForPage(currentPage - 1)}
+          onclick={(event) => navigate(event, currentPage - 1)}
+          aria-label={t("pagination_prev")}
+        >
+          ←
+        </a>
+      {:else}
+        <button
+          class="pg-btn pg-prev"
+          onclick={() => onPageChange?.(currentPage - 1)}
+          aria-label={t("pagination_prev")}
+        >
+          ←
+        </button>
+      {/if}
+    {:else}
+      <span class="pg-btn pg-prev disabled" aria-disabled="true">←</span>
+    {/if}
 
     {#each pageItems as item}
       {#if item === '...'}
         <span class="pg-ellipsis">…</span>
-      {:else}
-        <button
-          class="pg-btn pg-num"
-          class:active={item === currentPage}
-          onclick={() => goTo(item)}
+      {:else if item === currentPage}
+        <span
+          class="pg-btn pg-num active"
           aria-label={t("pagination_page", { page: item })}
-          aria-current={item === currentPage ? 'page' : undefined}
+          aria-current="page"
         >
           {item}
-        </button>
+        </span>
+      {:else}
+        {#if hrefForPage}
+          <a
+            class="pg-btn pg-num"
+            href={hrefForPage(item)}
+            onclick={(event) => navigate(event, item)}
+            aria-label={t("pagination_page", { page: item })}
+          >
+            {item}
+          </a>
+        {:else}
+          <button
+            class="pg-btn pg-num"
+            onclick={() => onPageChange?.(item)}
+            aria-label={t("pagination_page", { page: item })}
+          >
+            {item}
+          </button>
+        {/if}
       {/if}
     {/each}
 
-    <button
-      class="pg-btn pg-next"
-      disabled={currentPage === totalPages}
-      onclick={() => goTo(currentPage + 1)}
-      aria-label={t("pagination_next")}
-    >
-      →
-    </button>
+    {#if currentPage < totalPages}
+      {#if hrefForPage}
+        <a
+          class="pg-btn pg-next"
+          href={hrefForPage(currentPage + 1)}
+          onclick={(event) => navigate(event, currentPage + 1)}
+          aria-label={t("pagination_next")}
+        >
+          →
+        </a>
+      {:else}
+        <button
+          class="pg-btn pg-next"
+          onclick={() => onPageChange?.(currentPage + 1)}
+          aria-label={t("pagination_next")}
+        >
+          →
+        </button>
+      {/if}
+    {:else}
+      <span class="pg-btn pg-next disabled" aria-disabled="true">→</span>
+    {/if}
   </nav>
 {/if}
 
@@ -117,6 +172,7 @@
     font-size: 0.78rem;
     font-weight: 500;
     letter-spacing: 0.02em;
+    text-decoration: none;
     cursor: pointer;
     transition:
       border-color var(--dur-fast, 0.15s) ease,
@@ -125,13 +181,13 @@
       box-shadow var(--dur-fast, 0.15s) ease;
   }
 
-  .pg-btn:hover:not(:disabled):not(.active) {
+  .pg-btn:hover:not(.disabled):not(.active) {
     border-color: var(--sf-accent);
     color: var(--sf-accent);
     box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
   }
 
-  .pg-btn:disabled {
+  .pg-btn.disabled {
     opacity: 0.35;
     cursor: not-allowed;
   }
