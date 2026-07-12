@@ -26,7 +26,6 @@
     } from "$lib/geocode.remote";
     import LocateButton from "$lib/components/LocateButton.svelte";
     import type { SearchBoxItem } from "$lib/components/SearchBox.svelte";
-    import { trackCityView } from "$lib/analytics/umami.js";
     import {
         resolveSearch,
         findNearestCityWithSchools,
@@ -58,11 +57,6 @@
     let localizedCityUrl = $derived(
         BASE_URL + getCitySlugPath(data.citySlug, i18n.locale),
     );
-
-    $effect(() => {
-        if (!browser) return;
-        trackCityView(data.citySlug, data.schools.length);
-    });
 
     /** Translate a Polish city name based on current locale. */
     function cityDisplay(plName: string): string {

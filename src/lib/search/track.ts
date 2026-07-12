@@ -1,6 +1,5 @@
 // src/lib/search/track.ts — Yoga search tracker
 import { createTracker, type TrackSearchEvent as BaseTrackSearchEvent } from '@nomideusz/svelte-search';
-import { trackSearch as trackUmamiSearch } from '$lib/analytics/umami.js';
 
 const tracker = createTracker({
   endpoint: '/api/search-events',
@@ -18,15 +17,5 @@ export function trackSearch(event: TrackSearchEvent): void {
   tracker.track({
     ...rest,
     locationContext: cityContext ?? rest.locationContext,
-  });
-
-  trackUmamiSearch({
-    query: event.query,
-    action: event.action,
-    layer: event.layer,
-    page: event.page,
-    resultType: event.clickedType,
-    city: cityContext ?? rest.locationContext,
-    resultCount: event.resultCount,
   });
 }

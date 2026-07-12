@@ -1,9 +1,7 @@
 <script lang="ts">
-    import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
     import Pagination from "$lib/components/Pagination.svelte";
-    import { trackCategoryView } from "$lib/analytics/umami.js";
     import {
         BASE_URL,
         getCityStylePath,
@@ -22,11 +20,6 @@
     const t = i18n.t;
 
     let { data } = $props();
-
-    $effect(() => {
-        if (!browser) return;
-        trackCategoryView(data.slug, data.styleName, data.listings.length);
-    });
 
     /** Translate a Polish city name based on current locale. */
     function cityDisplay(plName: string): string {

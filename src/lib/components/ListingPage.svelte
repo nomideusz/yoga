@@ -1,11 +1,9 @@
 <script lang="ts">
-    import { browser } from "$app/environment";
     import ListingContent from "$lib/components/ListingContent.svelte";
     import { getCityPath, getListingAbsoluteUrl, BASE_URL } from "$lib/paths";
     import { i18n } from "$lib/i18n.js";
     import { i18nRouting } from "$lib/i18n-routing";
     import { localizeHref } from "@nomideusz/svelte-i18n";
-    import { trackListingView } from "$lib/analytics/umami.js";
     import { parsePricingJson } from "$lib/data";
     import type { Listing } from "$lib/data";
     import type { ReviewData } from "$lib/server/db/queries";
@@ -23,16 +21,6 @@
         preferredLangs?: string[];
         verifiedOwner?: boolean;
     } = $props();
-
-    $effect(() => {
-        if (!browser) return;
-        trackListingView({
-            city: listing.city,
-            slug: listing.slug ?? listing.id,
-            name: listing.name,
-            styles: listing.styles.length ? listing.styles.join(", ") : undefined,
-        });
-    });
 
     const canonicalUrl = $derived(getListingAbsoluteUrl(listing, i18n.locale));
     const localizedHomeUrl = $derived(
