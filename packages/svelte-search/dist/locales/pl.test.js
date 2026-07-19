@@ -21,6 +21,25 @@ describe('polishLocative', () => {
         expect(polishLocative('Bielany Wrocławskie')).toBe('Bielanach Wrocławskich');
         expect(polishLocative('Suchy Las')).toBe('Suchym Lesie');
     });
+    it('handles towns the suffix rules used to mangle', () => {
+        // feminine -ica → -icy (rules said "Dębicie")
+        expect(polishLocative('Dębica')).toBe('Dębicy');
+        // -iec → -cu (rules said "Bolesławiecie")
+        expect(polishLocative('Bolesławiec')).toBe('Bolesławcu');
+        // hyphenated with noun -ko (rules said "Bielskie-Białej")
+        expect(polishLocative('Bielsko-Biała')).toBe('Bielsku-Białej');
+        // -nia → -ni (rules said "Wrześniie")
+        expect(polishLocative('Września')).toBe('Wrześni');
+        // feminine Ostrów, unlike masculine Ostrów Wielkopolski
+        expect(polishLocative('Ostrów Mazowiecka')).toBe('Ostrowi Mazowieckiej');
+        expect(polishLocative('Ostrów Wielkopolski')).toBe('Ostrowie Wielkopolskim');
+        // fossilized instrumental
+        expect(polishLocative('Zakopane')).toBe('Zakopanem');
+        // plural -y → -ach
+        expect(polishLocative('Brzeziny')).toBe('Brzezinach');
+        // declining "nad X" tail stays untouched
+        expect(polishLocative('Kostrzyn nad Odrą')).toBe('Kostrzynie nad Odrą');
+    });
     it('handles rule-based fallback', () => {
         // -ów → -owie
         expect(polishLocative('Tarnów')).toBe('Tarnowie');
