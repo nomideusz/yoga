@@ -91,17 +91,6 @@ const localeHandle: Handle = async ({ event, resolve }) => {
   });
 };
 
-// Keep the Temps preview mirror (*.rzeka.live) out of search indexes — the
-// canonical site is szkolyjogi.pl. Scoped to the known mirror suffix so a
-// misread Host header can never deindex production.
-const noindexPreviewHandle: Handle = async ({ event, resolve }) => {
-  const response = await resolve(event);
-  if (event.url.hostname.endsWith('.rzeka.live')) {
-    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
-  }
-  return response;
-};
-
 // Resolve the session cookie into locals.user once per request. A
 // stale/invalid cookie just clears itself — never blocks the request.
 const sessionHandle: Handle = async ({ event, resolve }) => {
@@ -122,5 +111,5 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 
 // sentryHandle() runs first so request context is attached to any error the
 // locale handle (or downstream load/actions) throws.
-export const handle = sequence(Sentry.sentryHandle(), noindexPreviewHandle, adminAuthHandle, sessionHandle, localeHandle);
+export const handle = sequence(Sentry.sentryHandle(), adminAuthHandle, sessionHandle, localeHandle);
 export const handleError = Sentry.handleErrorWithSentry();
