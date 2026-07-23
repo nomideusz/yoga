@@ -442,11 +442,14 @@
                                     {#each group.tiers as tier}
                                         <div class="ld-kv">
                                             <span>{tier.name}</span>
-                                            <strong
-                                                >{Math.round(
-                                                    tier.price_pln,
-                                                )} zł</strong
-                                            >
+                                            <!-- 0 = benefit card / free item; the tier note explains it, "0 zł" as a price is noise -->
+                                            {#if tier.price_pln > 0}
+                                                <strong
+                                                    >{Math.round(
+                                                        tier.price_pln,
+                                                    )} zł</strong
+                                                >
+                                            {/if}
                                         </div>
                                         {#if tier.notes}
                                             <p class="ld-tier-note">
