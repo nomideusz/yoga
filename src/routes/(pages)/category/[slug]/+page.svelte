@@ -63,6 +63,7 @@
     const cityCounts = $derived(
         categoryListings.reduce(
             (acc, s) => {
+                if (!s.city) return acc; // city-less imports would render a nameless self-linking pill
                 acc[s.city] = (acc[s.city] || 0) + 1;
                 return acc;
             },
@@ -118,7 +119,7 @@
         }
 
         // 3. Cities with this style
-        const cities = [...new Set(categoryListings.map((s) => s.city))].sort();
+        const cities = [...new Set(categoryListings.map((s) => s.city))].filter(Boolean).sort();
         if (cities.length > 0) {
             const displayCities = cities.slice(0, 10).map(c => cityDisplay(c)).join(", ") + (cities.length > 10 ? "..." : "");
             items.push({
