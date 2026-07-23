@@ -392,6 +392,8 @@ export const schoolTranslations = sqliteTable('school_translations', {
   description: text('description').default(''),
   editorialSummary: text('editorial_summary').default(''),
   pricingNotes: text('pricing_notes').default(''),
+  pricingJson: text('pricing_json').default(''),  // pricing_json with tier names/notes translated
+  sourceHash: text('source_hash').default(''),    // sha256 of PL source fields — re-translate when it changes
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
   updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
 }, (table) => ({

@@ -11,6 +11,7 @@ export interface SchoolTranslationData {
   description: string;
   editorialSummary: string;
   pricingNotes: string;
+  pricingJson: string;
 }
 
 /** Get translations for a single school */
@@ -38,6 +39,7 @@ export async function getSchoolTranslation(
     description: row.description ?? '',
     editorialSummary: row.editorialSummary ?? '',
     pricingNotes: row.pricingNotes ?? '',
+    pricingJson: row.pricingJson ?? '',
   };
 }
 
@@ -71,6 +73,7 @@ export async function getSchoolTranslations(
       description: row.description ?? '',
       editorialSummary: row.editorialSummary ?? '',
       pricingNotes: row.pricingNotes ?? '',
+      pricingJson: row.pricingJson ?? '',
     });
   }
   return map;
@@ -87,6 +90,7 @@ export function applyTranslation(
     description: translation.description || listing.description,
     editorialSummary: translation.editorialSummary || listing.editorialSummary,
     pricingNotes: translation.pricingNotes || listing.pricingNotes,
+    pricingJson: translation.pricingJson || listing.pricingJson,
   };
 }
 
