@@ -17,7 +17,8 @@
         createMemoryAdapter,
     } from "@nomideusz/svelte-calendar";
     import ScheduleSection from "$lib/components/listing/ScheduleSection.svelte";
-    import { getListingPath } from "$lib/paths";
+    import { getCityStylePath, getListingPath, getStyleCityPath } from "$lib/paths";
+    import { MIN_STYLE_CITY_LISTINGS } from "$lib/seo";
     import { photoUrl } from "$lib/photo-url";
     import Globe from "lucide-svelte/icons/globe";
     import MapPin from "lucide-svelte/icons/map-pin";
@@ -30,12 +31,23 @@
         reviews: rawReviews = [],
         preferredLangs = ["pl", "en"],
         verifiedOwner = false,
+        styleCityCounts = {},
     }: {
         listing: Listing;
         reviews?: ReviewData[];
         preferredLangs?: string[];
         verifiedOwner?: boolean;
+        styleCityCounts?: Record<string, number>;
     } = $props();
+
+    /** Same split as category-page city pills: enough same-city listings →
+     *  the style×city SEO page, otherwise the filtered city view. */
+    function styleHref(style: string): string {
+        const count = styleCityCounts[style] ?? 0;
+        return count >= MIN_STYLE_CITY_LISTINGS
+            ? getStyleCityPath(style, listing.city, listing.citySlug)
+            : getCityStylePath(listing.city, style, listing.citySlug);
+    }
 
     // ── Pricing ───────────────────────────────────────────
     let freshness = $derived(priceFreshness(listing));
@@ -218,7 +230,7 @@
         {#if listing.styles.length > 0}
             <ul class="ld-styles">
                 {#each listing.styles as style}
-                    <li class="ld-style">{style}</li>
+                    <li><a class="ld-style ld-style-link" href={styleHref(style)}>{style}</a></li>
                 {/each}
             </ul>
         {/if}
@@ -813,6 +825,15 @@
         background: transparent;
         border: 1px solid color-mix(in srgb, var(--sf-muted) 28%, transparent);
         color: var(--sf-muted);
+    }
+    .ld-style-link {
+        display: inline-block;
+        text-decoration: none;
+        transition: background var(--dur-fast) ease;
+    }
+    .ld-style-link:hover,
+    .ld-style-link:focus-visible {
+        background: var(--sf-ice);
     }
 
     /* ═══ Uploaded photo gallery ═══ */

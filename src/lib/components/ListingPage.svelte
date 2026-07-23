@@ -15,11 +15,13 @@
         reviews = [],
         preferredLangs = ["pl", "en"],
         verifiedOwner = false,
+        styleCityCounts = {},
     }: {
         listing: Listing;
         reviews?: ReviewData[];
         preferredLangs?: string[];
         verifiedOwner?: boolean;
+        styleCityCounts?: Record<string, number>;
     } = $props();
 
     const canonicalUrl = $derived(getListingAbsoluteUrl(listing, i18n.locale));
@@ -269,6 +271,7 @@
         {reviews}
         {preferredLangs}
         {verifiedOwner}
+        {styleCityCounts}
     />
 </section>
 

@@ -1,7 +1,7 @@
 import { error, redirect } from "@sveltejs/kit";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "$lib/server/db";
-import { claimRequests } from "$lib/server/db/schema";
+import { claimRequests, schools, schoolStyles, styles } from "$lib/server/db/schema";
 import { getListingByIdentifier, getReviewsBySchoolId, getSchoolTranslation, applyTranslation } from "$lib/server/db/queries";
 import { getListingPath } from "$lib/paths";
 import { localizeHref } from "@nomideusz/svelte-i18n";
@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ params, request, url, locals, setHe
     .filter(Boolean);
 
   // Fetch translations for EN and UK (they'll be applied client-side based on locale)
-  const [translationEn, translationUk, approvedClaim] = await Promise.all([
+  const [translationEn, translationUk, approvedClaim, styleCounts] = await Promise.all([
     getSchoolTranslation(listing.id, 'en'),
     getSchoolTranslation(listing.id, 'uk'),
     db
@@ -43,6 +43,21 @@ export const load: PageServerLoad = async ({ params, request, url, locals, setHe
       .from(claimRequests)
       .where(and(eq(claimRequests.schoolId, listing.id), eq(claimRequests.status, 'approved')))
       .limit(1),
+    // Per-style listed-school counts in this city, so style pills can link to
+    // the style×city page only where it exists (≥ MIN_STYLE_CITY_LISTINGS).
+    listing.styles.length > 0 && listing.citySlug
+      ? db
+          .select({ style: styles.name, n: count() })
+          .from(schoolStyles)
+          .innerJoin(styles, eq(schoolStyles.styleId, styles.id))
+          .innerJoin(schools, eq(schoolStyles.schoolId, schools.id))
+          .where(and(
+            eq(schools.citySlug, listing.citySlug),
+            eq(schools.isListed, true),
+            inArray(styles.name, listing.styles),
+          ))
+          .groupBy(styles.name)
+      : Promise.resolve([]),
   ]);
 
   return {
@@ -50,6 +65,7 @@ export const load: PageServerLoad = async ({ params, request, url, locals, setHe
     reviews,
     preferredLangs,
     verifiedOwner: approvedClaim.length > 0,
+    styleCityCounts: Object.fromEntries(styleCounts.map((r) => [r.style, r.n])),
     translations: {
       en: translationEn,
       uk: translationUk,

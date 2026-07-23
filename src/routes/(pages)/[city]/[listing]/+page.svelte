@@ -26,4 +26,5 @@
     reviews={data.reviews}
     preferredLangs={data.preferredLangs}
     verifiedOwner={data.verifiedOwner}
+    styleCityCounts={data.styleCityCounts}
 />
