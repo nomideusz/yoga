@@ -18,6 +18,7 @@
     import ScheduleSection from "$lib/components/listing/ScheduleSection.svelte";
     import { getCityStylePath, getListingPath, getStyleCityPath } from "$lib/paths";
     import { MIN_STYLE_CITY_LISTINGS } from "$lib/seo";
+    import { styleDisplayName } from "$lib/styles-metadata";
     import { photoUrl } from "$lib/photo-url";
     import Globe from "lucide-svelte/icons/globe";
     import MapPin from "lucide-svelte/icons/map-pin";
@@ -220,7 +221,7 @@
         {#if listing.styles.length > 0}
             <ul class="ld-styles">
                 {#each listing.styles as style}
-                    <li><a class="ld-style ld-style-link" href={styleHref(style)}>{style}</a></li>
+                    <li><a class="ld-style ld-style-link" href={styleHref(style)}>{styleDisplayName(style, i18n.locale)}</a></li>
                 {/each}
             </ul>
         {/if}

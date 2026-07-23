@@ -4,7 +4,9 @@
   import { i18n } from "$lib/i18n.js";
   const t = i18n.t;
 
-  const calendarLocale = $derived(i18n.locale === 'en' ? 'en-US' : 'pl-PL');
+  const calendarLocale = $derived(
+    i18n.locale === 'en' ? 'en-US' : i18n.locale === 'uk' ? 'uk-UA' : 'pl-PL',
+  );
 
   let {
     listing,
