@@ -69,7 +69,7 @@ export const DAY_NAMES_PL: Record<number, string> = {
 
 export interface PricingTier {
   name: string;
-  price_pln: number;
+  price_pln: number | null;  // LLM extraction can leave a tier priceless
   tier_type: 'unlimited' | 'pack' | 'single' | 'trial' | 'membership' | 'private' | 'intro_pack' | 'other';
   entries?: number | null;
   validity_days?: number | null;
@@ -111,11 +111,13 @@ export const TIER_GROUPS: Array<{ types: string[]; label: string }> = [
 ];
 
 /** Group tiers by tier_type following TIER_GROUPS order. Omits empty groups. */
-export function groupTiers(tiers: PricingTier[]): Array<{ label: string; tiers: PricingTier[] }> {
+type PricedTier = PricingTier & { price_pln: number };
+
+export function groupTiers(tiers: PricingTier[]): Array<{ label: string; tiers: PricedTier[] }> {
   return TIER_GROUPS
     .map(g => ({
       label: g.label,
-      tiers: tiers.filter(t => g.types.includes(t.tier_type)),
+      tiers: tiers.filter((t): t is PricedTier => t.price_pln != null && g.types.includes(t.tier_type)),
     }))
     .filter(g => g.tiers.length > 0);
 }
