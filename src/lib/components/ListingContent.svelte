@@ -4,7 +4,6 @@
         parsePricingJson,
         groupTiers,
         formatDateEU,
-        formatDatePL,
         healthSuffix,
     } from "$lib/data";
     import type { Listing, ScheduleEntry } from "$lib/data";
@@ -57,15 +56,6 @@
     let hasAnyPrice = $derived(
         listing.price != null || listing.singleClassPrice != null || hasTiers,
     );
-
-    // ── Data freshness ────────────────────────────────────
-    let isStaleData = $derived.by(() => {
-        if (!listing.lastUpdated) return false;
-        const days = Math.floor(
-            (Date.now() - new Date(listing.lastUpdated).getTime()) / 86_400_000,
-        );
-        return days > 60;
-    });
 
     // ── Actions (one always-prominent primary) ────────────
     let hasWebsite = $derived(!!listing.websiteUrl);
@@ -699,13 +689,13 @@
 
     <!-- ═══ FOOTER ═══ -->
     <footer class="ld-foot">
-        {#if listing.lastUpdated}
+        <!-- lastUpdated is bumped by any scraper touch — as a visible "data updated"
+             date it contradicted the per-section freshness (e.g. pricing stale since
+             March next to "updated 4 days ago"), so only the health warning remains. -->
+        {#if healthSuffix(listing.healthStatus)}
             <div class="ld-foot-meta">
-                <span class="ld-foot-label">{t("listing_data_updated")}</span>
                 <span class="ld-freshness">
-                    {formatDatePL(listing.lastUpdated)}{healthSuffix(
-                        listing.healthStatus,
-                    )}{isStaleData ? ` · ${t("listing_data_stale")}` : ""}
+                    {healthSuffix(listing.healthStatus).replace(" · ", "")}
                 </span>
             </div>
         {/if}
