@@ -1392,14 +1392,6 @@
         flex-wrap: wrap;
         min-width: 0;
     }
-    .ld-foot-label {
-        font-family: var(--font-mono);
-        font-size: 0.62rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: color-mix(in srgb, var(--sf-text) 56%, var(--sf-muted) 44%);
-    }
     .ld-freshness {
         font-size: 0.74rem;
         color: var(--sf-muted);
